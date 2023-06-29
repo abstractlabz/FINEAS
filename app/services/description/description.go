@@ -14,12 +14,12 @@ import (
 )
 
 func main() {
-	http.HandleFunc("/desc", descriptioService)
+	http.HandleFunc("/desc", descriptionService)
 	fmt.Println("Server listening on port 8084...")
 	log.Println(http.ListenAndServe(":8084", nil))
 }
 
-func descriptioService(w http.ResponseWriter, r *http.Request) {
+func descriptionService(w http.ResponseWriter, r *http.Request) {
 
 	err := godotenv.Load("../../../.env") // load the .env file
 	if err != nil {
@@ -36,7 +36,7 @@ func descriptioService(w http.ResponseWriter, r *http.Request) {
 	// set params
 	params := models.GetTickerDetailsParams{
 		Ticker: "AAPL",
-	}.WithDate(models.Date(time.Date(2023, 3, 9, 0, 0, 0, 0, time.UTC)))
+	}.WithDate(models.Date(time.Date(time.Now().Year(), 1, 1, 0, 0, 0, 0, time.UTC)))
 
 	// make request
 	res, err := c.GetTickerDetails(context.Background(), params)
@@ -44,7 +44,7 @@ func descriptioService(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 	}
 
-	// do something with the result
-	log.Print(res)
+	w.Header().Set("Content-Type", "application/json")
+	w.Write([]byte(fmt.Sprint(res)))
 
 }

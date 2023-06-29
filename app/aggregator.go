@@ -15,6 +15,17 @@ func main() {
 
 func handleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 
+	type QueriedInfoAggregate struct {
+		Ticker    string
+		YTD_Info  string
+		Fin_Info  string
+		News_Info string
+		Desc_Info string
+	}
+
+	// Create a new instance of QueriedInfoAggregate
+	var queriedInfoAggregate QueriedInfoAggregate
+
 	// Process query string parameters from the request URL
 	queryParams := r.URL.Query()
 	ticker := queryParams.Get("ticker")
@@ -23,20 +34,24 @@ func handleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 	// Return the entry url as the response
 	w.Header().Set("Content-Type", "text/plain")
 
-	// Get the financial information from the crawlers
+	// Get the financial information from the services
 	// and return it as the response
 
 	ytd_info := getFinancialInfo(ticker, "/ytd", "http://localhost:8081")
+	queriedInfoAggregate.YTD_Info = ytd_info
 	fmt.Println(ytd_info + "\n")
 
 	fin_info := getFinancialInfo(ticker, "/fin", "http://localhost:8082")
+	queriedInfoAggregate.Fin_Info = fin_info
 	fmt.Println(fin_info + "\n")
 
-	//is_info := getFinancialInfo(ticker, "/is", "http://localhost:8083")
-	//fmt.Println(is_info + "\n")
+	news_info := getFinancialInfo(ticker, "/news", "http://localhost:8083")
+	queriedInfoAggregate.News_Info = news_info
+	fmt.Println(news_info + "\n")
 
-	//cf_info := getFinancialInfo(ticker, "/cf", "http://localhost:8084")
-	//fmt.Println(cf_info + "\n")
+	desc_info := getFinancialInfo(ticker, "/desc", "http://localhost:8084")
+	queriedInfoAggregate.Desc_Info = desc_info
+	fmt.Println(desc_info + "\n")
 
 }
 
