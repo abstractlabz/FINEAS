@@ -33,6 +33,7 @@ func finService(w http.ResponseWriter, r *http.Request) {
 
 	c := polygon.New(API_KEY) // Polygon API connection
 
+	//
 	params := models.ListStockFinancialsParams{}.
 		WithTicker(ticker)
 
@@ -51,6 +52,7 @@ func finService(w http.ResponseWriter, r *http.Request) {
 	if iter.Err() != nil {
 		fmt.Println(iter.Err())
 	}
+	//
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(fmt.Sprint(collection)))
