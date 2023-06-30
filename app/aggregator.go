@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -37,21 +38,28 @@ func handleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 	// Get the financial information from the services
 	// and return it as the response
 
+	queriedInfoAggregate.Ticker = ticker
 	ytd_info := getFinancialInfo(ticker, "/ytd", "http://localhost:8081")
 	queriedInfoAggregate.YTD_Info = ytd_info
-	fmt.Println(ytd_info + "\n")
 
 	fin_info := getFinancialInfo(ticker, "/fin", "http://localhost:8082")
 	queriedInfoAggregate.Fin_Info = fin_info
-	fmt.Println(fin_info + "\n")
 
 	news_info := getFinancialInfo(ticker, "/news", "http://localhost:8083")
 	queriedInfoAggregate.News_Info = news_info
-	fmt.Println(news_info + "\n")
 
 	desc_info := getFinancialInfo(ticker, "/desc", "http://localhost:8084")
 	queriedInfoAggregate.Desc_Info = desc_info
-	fmt.Println(desc_info + "\n")
+
+	// Marshal the queriedInfoAggregate struct into json
+	queriedInfoAggregate_json, err := json.Marshal(queriedInfoAggregate)
+	if err != nil {
+		log.Println(err)
+	}
+
+	// Return the queriedInfoAggregate_json as the response
+	w.Header().Set("Content-Type", "application/json")
+	w.Write([]byte(queriedInfoAggregate_json))
 
 }
 
