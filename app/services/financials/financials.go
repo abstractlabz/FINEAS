@@ -47,7 +47,6 @@ func finService(w http.ResponseWriter, r *http.Request) {
 		res := fmt.Sprint(iter.Item())
 		collection += res
 	}
-	log.Print(collection)
 
 	if iter.Err() != nil {
 		fmt.Println(iter.Err())
