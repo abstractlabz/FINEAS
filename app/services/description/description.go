@@ -35,7 +35,7 @@ func descriptionService(w http.ResponseWriter, r *http.Request) {
 
 	// set params
 	params := models.GetTickerDetailsParams{
-		Ticker: "AAPL",
+		Ticker: ticker,
 	}.WithDate(models.Date(time.Date(time.Now().Year(), 1, 1, 0, 0, 0, 0, time.UTC)))
 
 	// make request
