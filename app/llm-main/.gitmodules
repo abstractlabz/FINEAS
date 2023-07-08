@@ -1,3 +1,0 @@
-[submodule "crates/ggml/sys/llama-cpp"]
-	path = crates/ggml/sys/llama-cpp
-	url = https://github.com/ggerganov/llama.cpp
