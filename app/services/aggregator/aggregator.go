@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
+	"strings"
 )
 
 func main() {
@@ -57,9 +59,11 @@ func handleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 	}
 
+	template := "You are an AI who is tasked to summarize financial information for this company ticker. Give me a summary on the financial health of this company based on the following data. This is the data:"
+	prompt_inference := getPromptInference(string(queriedInfoAggregate_json), template, "/", "http://localhost:8086")
 	// Return the queriedInfoAggregate_json as the response
 	w.Header().Set("Content-Type", "application/json")
-	w.Write([]byte(queriedInfoAggregate_json))
+	w.Write([]byte(prompt_inference))
 
 }
 
@@ -84,4 +88,37 @@ func getFinancialInfo(ticker string, handlerID string, handlerURL string) string
 	}
 
 	return string(getResponseBody)
+}
+
+func getPromptInference(prompt string, template string, handlerID string, handlerURL string) string {
+
+	base_url := handlerURL + handlerID
+
+	url := base_url + "?" + "prompt=" + urlConverter(template+prompt)
+
+	// Send a GET request
+	getResponse, err := http.Get(url)
+	if err != nil {
+		log.Println(err)
+	}
+	defer getResponse.Body.Close()
+
+	// Read the response body
+	getResponseBody, err := ioutil.ReadAll(getResponse.Body)
+	if err != nil {
+		log.Println(err)
+	}
+
+	return string(getResponseBody)
+}
+
+func urlConverter(_url string) string {
+
+	// Construct the URL with query parameters
+	encoded_prompt := url.QueryEscape(_url)
+	encoded_prompt = strings.ReplaceAll(encoded_prompt, "+", "%20")
+	encoded_prompt = strings.ReplaceAll(encoded_prompt, "%2F", "/")
+	encoded_prompt = strings.ReplaceAll(encoded_prompt, "%3A", ":")
+
+	return encoded_prompt
 }
