@@ -44,6 +44,8 @@ func newsService(w http.ResponseWriter, r *http.Request) {
 		res = sendRequestWithParamsInfo(c, ticker, current_year, current_month, recent_day)
 	}
 
+	fmt.Println(res)
+
 	// return the res as the response
 	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(fmt.Sprint(res)))

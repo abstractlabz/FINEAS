@@ -43,6 +43,7 @@ func descriptionService(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println(err)
 	}
+	fmt.Println(res)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(fmt.Sprint(res)))

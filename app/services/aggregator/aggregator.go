@@ -26,6 +26,15 @@ func handleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 		Desc_Info string
 	}
 
+	type PromptInference struct {
+		Stock_Performance string
+		Financial_Health  string
+		News_Summary      string
+		Company_Desc      string
+	}
+
+	var promptInference PromptInference
+
 	// Create a new instance of QueriedInfoAggregate
 	var queriedInfoAggregate QueriedInfoAggregate
 
@@ -53,17 +62,40 @@ func handleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 	desc_info := getFinancialInfo(ticker, "/desc", "http://localhost:8084")
 	queriedInfoAggregate.Desc_Info = desc_info
 
-	// Marshal the queriedInfoAggregate struct into json
+	/* Marshal the queriedInfoAggregate struct into json
 	queriedInfoAggregate_json, err := json.Marshal(queriedInfoAggregate)
 	if err != nil {
 		log.Println(err)
 	}
+	*/
 
-	template := "You are an AI who is tasked to summarize financial information for this company ticker. Give me a summary on the financial health of this company based on the following data. This is the data:"
-	prompt_inference := getPromptInference(string(queriedInfoAggregate_json), template, "/", "http://localhost:8086")
-	// Return the queriedInfoAggregate_json as the response
+	// stock perfomance
+	ytd_template := "Give me a short summary on this company's stock performance following year to date stock data titled Stock Performance: .At the end of the summary categorize the company's perfomance into only one of five categories, Very Bad, Bad, Neutral, Good, and Very Good. Data: "
+	ytd_inference := getPromptInference(string(queriedInfoAggregate.YTD_Info), ytd_template, "/", "http://localhost:8086")
+	promptInference.Stock_Performance = ytd_inference
+
+	// financial health
+	fin_template := "Give me a summary on the financial health of this company based on the following financial data titled Financial Health: . The numbers used to represent this data is in scientific notation, so parse it and return the number as a decimal number. At the end of the summary categorize the company's rating into only one of five categories, Very Bad, Bad, Neutral, Good, and Very Good. Data: "
+	fin_inference := getPromptInference(string(queriedInfoAggregate.Fin_Info), fin_template, "/", "http://localhost:8086")
+	promptInference.Financial_Health = fin_inference
+
+	// news summary
+	news_template := "Give me a summary on the news surrounding this company based on the following news data titled News Summary: .At the end of the summary categorize the company's rating into only one of five categories, Very Bad, Bad, Neutral, Good, and Very Good. Data: "
+	news_inference := getPromptInference(string(queriedInfoAggregate.News_Info), news_template, "/", "http://localhost:8086")
+	promptInference.News_Summary = news_inference
+
+	// company description
+	desc_template := "You are an AI who is tasked to summarize financial information for this company ticker. Give me a summary on the company's description. In your summary start the paragraph with the phrase: Company Description: This is the data you will work with: "
+	desc_inference := getPromptInference(string(queriedInfoAggregate.Desc_Info), desc_template, "/", "http://localhost:8086")
+	promptInference.Company_Desc = desc_inference
+
+	// Return the PromptInference json object as the response
 	w.Header().Set("Content-Type", "application/json")
-	w.Write([]byte(prompt_inference))
+	PromptInference_json, err := json.Marshal(promptInference)
+	if err != nil {
+		log.Println(err)
+	}
+	w.Write([]byte(PromptInference_json))
 
 }
 

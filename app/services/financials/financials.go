@@ -52,6 +52,7 @@ func finService(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(iter.Err())
 	}
 	//
+	fmt.Println(collection)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(fmt.Sprint(collection)))
