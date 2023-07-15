@@ -21,3 +21,6 @@
 
 # Go workspace file
 go.work
+
+#misc
+app/todo.txt

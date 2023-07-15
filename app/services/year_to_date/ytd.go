@@ -74,8 +74,6 @@ func ytdService(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 	}
 
-	fmt.Println(string(ytd_json))
-
 	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(fmt.Sprint(string(ytd_json))))
 	fmt.Println("Successfully served ytd data for " + ticker)
