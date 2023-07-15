@@ -1,79 +1,103 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"net/http"
-	"os"
-	"time"
+	"strings"
 
-	"github.com/joho/godotenv"
-	polygon "github.com/polygon-io/client-go/rest"
-	"github.com/polygon-io/client-go/rest/models"
+	"github.com/PuerkitoBio/goquery"
 )
 
 func main() {
 	http.HandleFunc("/news", newsService)
-	fmt.Println("Server listening on port 8083...")
-	log.Println(http.ListenAndServe(":8083", nil))
+	fmt.Println("Server started at http://localhost:8083")
+	log.Fatal(http.ListenAndServe(":8083", nil))
 }
 
 func newsService(w http.ResponseWriter, r *http.Request) {
+	ticker := r.URL.Query().Get("ticker")
+	if ticker == "" {
+		http.Error(w, "Please provide a 'ticker' query parameter", http.StatusBadRequest)
+		return
+	}
 
-	err := godotenv.Load("../../../.env") // load the .env file
+	entryURL := "https://www.google.com/finance/quote/"
+	entryTickerURL := entryURL + ticker
+	tickerLinks, err := scrapeTickerLinks(entryTickerURL, ticker)
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		http.Error(w, "Failed to scrape data", http.StatusInternalServerError)
+		return
 	}
 
-	API_KEY := os.Getenv("API_KEY")
+	subLink := tickerLinks[1][1:]
 
-	c := polygon.New(API_KEY) // Polygon API connection
-	queryParams := r.URL.Query()
-	ticker := queryParams.Get("ticker")
+	scrapeTickerURL := "https://www.google.com/finance" + subLink
 
-	//get the relevant date components
-	current_year := time.Now().Year()
-	current_month := time.Now().Month()
-	recent_day := time.Now().Day()
-
-	//
-	res := sendRequestWithParamsInfo(c, ticker, current_year, current_month, recent_day)
-	for res == "" || res == " " || res == "nil" {
-		recent_day = recent_day - 1
-		res = sendRequestWithParamsInfo(c, ticker, current_year, current_month, recent_day)
+	textFromDiv, err := scrapeTextFromDiv(scrapeTickerURL)
+	if err != nil {
+		http.Error(w, "Failed to scrape data", http.StatusInternalServerError)
+		return
 	}
 
-	fmt.Println(res)
-
-	// return the res as the response
-	w.Header().Set("Content-Type", "application/json")
-	w.Write([]byte(fmt.Sprint(res)))
+	fmt.Fprintln(w, textFromDiv)
 
 }
 
-func sendRequestWithParamsInfo(c *polygon.Client, ticker string, currentYear int, currentMonth time.Month, recentDay int) string {
-	params := models.ListTickerNewsParams{}.
-		WithTicker(models.GTE, ticker).
-		WithPublishedUTC(models.GTE, models.Millis(time.Date(currentYear, currentMonth,
-			recentDay, 0, 0, 0, 0, time.UTC))).
-		WithSort(models.PublishedUTC).
-		WithOrder(models.Asc).
-		WithLimit(1000)
+func scrapeTickerLinks(url string, ticker string) ([]string, error) {
+	var tickerLinks []string
 
-	// make request
-	iter := c.ListTickerNews(context.Background(), params)
+	// Make a GET request to the URL
+	res, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
 
-	// do something with the result
-	var collection string
-	for iter.Next() {
-		res := fmt.Sprint(iter.Item())
-		collection += res
+	if res.StatusCode != 200 {
+		return nil, fmt.Errorf("status code error: %d %s", res.StatusCode, res.Status)
 	}
 
-	if iter.Err() != nil {
-		return "nil"
+	// Parse the HTML response body
+	doc, err := goquery.NewDocumentFromReader(res.Body)
+	if err != nil {
+		return nil, err
 	}
 
-	return collection
+	// Find all anchor tags and extract the links containing the ticker
+	doc.Find("a").Each(func(i int, s *goquery.Selection) {
+		href, _ := s.Attr("href")
+		if strings.Contains(href, ticker) {
+			tickerLinks = append(tickerLinks, href)
+		}
+	})
+
+	return tickerLinks, nil
+}
+
+func scrapeTextFromDiv(url string) (string, error) {
+	// Make a GET request to the URL
+	res, err := http.Get(url)
+	if err != nil {
+		return "", err
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != 200 {
+		return "", fmt.Errorf("status code error: %d %s", res.StatusCode, res.Status)
+	}
+
+	// Parse the HTML response body
+	doc, err := goquery.NewDocumentFromReader(res.Body)
+	if err != nil {
+		return "", err
+	}
+
+	// Find the text within the div with class "F2KAFc"
+	text := ""
+	doc.Find("div.F2KAFc").Each(func(i int, s *goquery.Selection) {
+		text += s.Text() + "\n"
+	})
+
+	return text, nil
 }
