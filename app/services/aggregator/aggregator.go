@@ -70,22 +70,19 @@ func handleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 	*/
 
 	// stock perfomance
-	ytd_template := "Give me a short summary on this company's stock performance following year to date stock data titled Stock Performance: .At the end of the summary categorize the company's perfomance into only one of five categories, Very Bad, Bad, Neutral, Good, and Very Good. Data: "
+	ytd_template := "Write me a summary in a few sentences on this company's stock performance based on the following year to date stock data. Make sure to explicitly state the returns. At the end of the summary categorize the company's perfomance into only one of five categories, Very Bad, Bad, Neutral, Good, and Very Good: "
 	ytd_inference := getPromptInference(string(queriedInfoAggregate.YTD_Info), ytd_template, "/", "http://localhost:8086")
 	promptInference.Stock_Performance = ytd_inference
-
 	// financial health
-	fin_template := "Give me a summary on the financial health of this company based on the following financial data titled Financial Health: . The numbers used to represent this data is in scientific notation, so parse it and return the number as a decimal number. At the end of the summary categorize the company's rating into only one of five categories, Very Bad, Bad, Neutral, Good, and Very Good. Data: "
+	fin_template := "Write me a summary in a paragraph of the financials of this company based on the following scientific notation based financial data. Make sure in the summary, to convert the scientific numbers to decimal notation and only displaying the resulting decimal number. At the end of the summary categorize the company's rating into only one of five categories, Very Bad, Bad, Neutral, Good, and Very Good: "
 	fin_inference := getPromptInference(string(queriedInfoAggregate.Fin_Info), fin_template, "/", "http://localhost:8086")
 	promptInference.Financial_Health = fin_inference
 
 	// news summary
-	news_template := "Give me a summary on the news surrounding this company based on the following news data titled News Summary: .At the end of the summary categorize the company's rating into only one of five categories, Very Bad, Bad, Neutral, Good, and Very Good. Data: "
-	news_inference := getPromptInference(string(queriedInfoAggregate.News_Info), news_template, "/", "http://localhost:8086")
-	promptInference.News_Summary = news_inference
+	promptInference.News_Summary = queriedInfoAggregate.News_Info
 
 	// company description
-	desc_template := "You are an AI who is tasked to summarize financial information for this company ticker. Give me a summary on the company's description. In your summary start the paragraph with the phrase: Company Description: This is the data you will work with: "
+	desc_template := "Return the following description as a concise summary: "
 	desc_inference := getPromptInference(string(queriedInfoAggregate.Desc_Info), desc_template, "/", "http://localhost:8086")
 	promptInference.Company_Desc = desc_inference
 

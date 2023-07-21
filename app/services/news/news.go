@@ -40,7 +40,11 @@ func newsService(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Fprintln(w, textFromDiv)
+	fmt.Println(textFromDiv)
+	w.Header().Set("Content-Type", "text/plain")
+	fmt.Println(textFromDiv)
+	w.Write([]byte(fmt.Sprint(textFromDiv)))
+	fmt.Println("Successfully served news data for " + ticker)
 
 }
 
