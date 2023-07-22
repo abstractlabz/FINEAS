@@ -9,16 +9,20 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
+// entry point
 func main() {
 	http.HandleFunc("/news", newsService)
 	fmt.Println("Server started at http://localhost:8083")
 	log.Fatal(http.ListenAndServe(":8083", nil))
 }
 
+// handles the news request
 func newsService(w http.ResponseWriter, r *http.Request) {
 	ticker := r.URL.Query().Get("ticker")
-	if ticker == "" {
-		http.Error(w, "Please provide a 'ticker' query parameter", http.StatusBadRequest)
+	if len(ticker) == 0 {
+		log.Println("Missing required parameter 'ticker' in the query string")
+		w.Write([]byte(http.StatusText(http.StatusBadRequest)))
+		w.Write([]byte("Error: Bad Request(400), Missing required parameter 'ticker' in the query string."))
 		return
 	}
 
@@ -48,6 +52,7 @@ func newsService(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// scrapeTickerLinks scrapes the ticker links from the Google Finance page
 func scrapeTickerLinks(url string, ticker string) ([]string, error) {
 	var tickerLinks []string
 
@@ -79,6 +84,7 @@ func scrapeTickerLinks(url string, ticker string) ([]string, error) {
 	return tickerLinks, nil
 }
 
+// scrapeTextFromDiv scrapes the text from Google's top news section
 func scrapeTextFromDiv(url string) (string, error) {
 	// Make a GET request to the URL
 	res, err := http.Get(url)
