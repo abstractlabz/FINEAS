@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -70,28 +72,37 @@ func handleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 	DESC_SERVICE_URL := os.Getenv("DESC_SERVICE_URL")
 	YTD_TEMPLATE := os.Getenv("YTD_TEMPLATE")
 	FIN_TEMPLATE := os.Getenv("FIN_TEMPLATE")
+	PASS_KEY := os.Getenv("PASS_KEY")
+
+	// create a 256 sha hash of pass key from env file
+	hash := sha256.New()
+	hash.Write([]byte(PASS_KEY))
+	getPassHash := hash.Sum(nil)
+	passHash := hex.EncodeToString(getPassHash)
+
+	fmt.Print("passHash: " + passHash + "\n")
 
 	queriedInfoAggregate.Ticker = ticker
-	ytd_info := getFinancialInfo(ticker, "/ytd", YTD_SERVICE_URL)
+	ytd_info := getFinancialInfo(ticker, "/ytd", YTD_SERVICE_URL, passHash)
 	queriedInfoAggregate.YtdInfo = ytd_info
 
-	fin_info := getFinancialInfo(ticker, "/fin", FIN_SERVICE_URL)
+	fin_info := getFinancialInfo(ticker, "/fin", FIN_SERVICE_URL, passHash)
 	queriedInfoAggregate.FinInfo = fin_info
 
-	news_info := getFinancialInfo(ticker, "/news", NEWS_SERVICE_URL)
+	news_info := getFinancialInfo(ticker, "/news", NEWS_SERVICE_URL, passHash)
 	queriedInfoAggregate.NewsInfo = news_info
 
-	desc_info := getFinancialInfo(ticker, "/desc", DESC_SERVICE_URL)
+	desc_info := getFinancialInfo(ticker, "/desc", DESC_SERVICE_URL, passHash)
 	queriedInfoAggregate.DescInfo = desc_info
 
 	// stock perfomance
 	ytdTemplate := YTD_TEMPLATE
-	ytdInference := getPromptInference(string(queriedInfoAggregate.YtdInfo), ytdTemplate, "/", "http://localhost:8086")
+	ytdInference := getPromptInference(string(queriedInfoAggregate.YtdInfo), ytdTemplate, "/", "http://localhost:8086", passHash)
 	promptInference.StockPerformance = ytdInference
 
 	// financial health
 	finTemplate := FIN_TEMPLATE
-	finInference := getPromptInference(string(queriedInfoAggregate.FinInfo), finTemplate, "/", "http://localhost:8086")
+	finInference := getPromptInference(string(queriedInfoAggregate.FinInfo), finTemplate, "/", "http://localhost:8086", passHash)
 	promptInference.FinancialHealth = finInference
 
 	// news summary
@@ -111,12 +122,12 @@ func handleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 }
 
 // gets the financial information from the polygon.io services
-func getFinancialInfo(ticker string, handlerID string, handlerURL string) string {
+func getFinancialInfo(ticker string, handlerID string, handlerURL string, passHash string) string {
 
 	base_url := handlerURL + handlerID
 
 	// Construct the URL with query parameters
-	url := base_url + "?" + "ticker=" + ticker
+	url := base_url + "?" + "ticker=" + ticker + "&" + "passhash=" + passHash
 
 	// Send a GET request
 	getResponse, err := http.Get(url)
@@ -135,11 +146,11 @@ func getFinancialInfo(ticker string, handlerID string, handlerURL string) string
 }
 
 // gets the prompt inference from the LLM service
-func getPromptInference(prompt string, template string, handlerID string, handlerURL string) string {
+func getPromptInference(prompt string, template string, handlerID string, handlerURL string, passHash string) string {
 
 	baseUrl := handlerURL + handlerID
 
-	url := baseUrl + "?" + "prompt=" + urlConverter(template+prompt)
+	url := baseUrl + "?" + "prompt=" + urlConverter(template+prompt) + "&" + "passhash=" + passHash
 
 	// Send a GET request
 	getResponse, err := http.Get(url)
