@@ -169,13 +169,13 @@ func handleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 
 	// stock perfomance
 	ytdTemplate := YTD_TEMPLATE
-	ytdInference := getPromptInference(string(queriedInfoAggregate.YtdInfo), ytdTemplate, "/", "http://localhost:8086", eventSequenceArray)
+	ytdInference := getPromptInference(string(queriedInfoAggregate.YtdInfo), ytdTemplate, "/llm", "http://127.0.0.1:5000", eventSequenceArray)
 	promptInference.StockPerformance = ytdInference
 	eventSequenceArray = append(eventSequenceArray, "collected ytd prompt inference \n")
 
 	// financial health
 	finTemplate := FIN_TEMPLATE
-	finInference := getPromptInference(string(queriedInfoAggregate.FinInfo), finTemplate, "/", "http://localhost:8086", eventSequenceArray)
+	finInference := getPromptInference(string(queriedInfoAggregate.FinInfo), finTemplate, "/llm", "http://127.0.0.1:5000", eventSequenceArray)
 	promptInference.FinancialHealth = finInference
 	eventSequenceArray = append(eventSequenceArray, "collected fin prompt inference \n")
 
