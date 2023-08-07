@@ -23,6 +23,7 @@ import (
 func newsService(w http.ResponseWriter, r *http.Request) {
 
 	type NEWSLOG struct {
+		Timestamp       time.Time
 		ExecutionTimeMs float32
 		RequestIP       string
 		EventSequence   []string
@@ -131,6 +132,8 @@ func newsService(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain")
 	fmt.Println(textFromDiv)
 	w.Write([]byte(fmt.Sprint(textFromDiv)))
+	newsLog.Timestamp = time.Now()
+
 	// insert the log into the database
 	eventSequenceArray = append(eventSequenceArray, "successfully served news data for: "+ticker+"\n")
 	newsLog.EventSequence = eventSequenceArray

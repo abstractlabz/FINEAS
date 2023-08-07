@@ -32,6 +32,7 @@ func ytdService(w http.ResponseWriter, r *http.Request) {
 	}
 
 	type YTDLOG struct {
+		Timestamp       time.Time
 		ExecutionTimeMs float32
 		RequestIP       string
 		EventSequence   []string
@@ -162,6 +163,7 @@ func ytdService(w http.ResponseWriter, r *http.Request) {
 	ytdLog.ExecutionTimeMs = float32(elapsedTime.Milliseconds())
 	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(fmt.Sprint(string(ytdJson))))
+	ytdLog.Timestamp = time.Now()
 	fmt.Println(string(ytdJson))
 
 	// insert the log into the database

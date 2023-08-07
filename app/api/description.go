@@ -22,6 +22,7 @@ import (
 func descriptionService(w http.ResponseWriter, r *http.Request) {
 
 	type DESCLOG struct {
+		Timestamp       time.Time
 		ExecutionTimeMs float32
 		RequestIP       string
 		EventSequence   []string
@@ -115,6 +116,8 @@ func descriptionService(w http.ResponseWriter, r *http.Request) {
 	descLog.ExecutionTimeMs = float32(elapsedTime.Milliseconds())
 	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(fmt.Sprint(res)))
+	descLog.Timestamp = time.Now()
+
 	// insert the log into the database
 	eventSequenceArray = append(eventSequenceArray, "successfully served ytd data \n")
 	descLog.EventSequence = eventSequenceArray

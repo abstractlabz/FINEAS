@@ -72,6 +72,7 @@ func handleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 	}
 
 	type AGGLOG struct {
+		Timestamp       time.Time
 		ExecutionTimeMs float32
 		RequestIP       string
 		EventSequence   []string
@@ -196,6 +197,7 @@ func handleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 	}
 	w.Write([]byte(promptInferenceJson))
+	aggLog.Timestamp = time.Now()
 	eventSequenceArray = append(eventSequenceArray, "sent prompt inference response \n")
 	aggLog.EventSequence = eventSequenceArray
 	db := client.Database("MicroserviceLogs")
