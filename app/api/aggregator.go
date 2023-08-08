@@ -120,6 +120,8 @@ func handleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 	DESC_SERVICE_URL := os.Getenv("DESC_SERVICE_URL")
 	YTD_TEMPLATE := os.Getenv("YTD_TEMPLATE")
 	FIN_TEMPLATE := os.Getenv("FIN_TEMPLATE")
+	NEWS_TEMPLATE := os.Getenv("NEWS_TEMPLATE")
+	DESC_TEMPLATE := os.Getenv("DESC_TEMPLATE")
 	PASS_KEY := os.Getenv("PASS_KEY")
 
 	// connnect to mongodb
@@ -169,22 +171,26 @@ func handleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 
 	// stock perfomance
 	ytdTemplate := YTD_TEMPLATE
-	ytdInference := getPromptInference(string(queriedInfoAggregate.YtdInfo), ytdTemplate, "/llm", "http://127.0.0.1:5000", eventSequenceArray)
+	ytdInference := getPromptInference(string(queriedInfoAggregate.YtdInfo), ytdTemplate, "/llm", "http://127.0.0.1:5000", eventSequenceArray, passHash)
 	promptInference.StockPerformance = ytdInference
 	eventSequenceArray = append(eventSequenceArray, "collected ytd prompt inference \n")
 
 	// financial health
 	finTemplate := FIN_TEMPLATE
-	finInference := getPromptInference(string(queriedInfoAggregate.FinInfo), finTemplate, "/llm", "http://127.0.0.1:5000", eventSequenceArray)
+	finInference := getPromptInference(string(queriedInfoAggregate.FinInfo), finTemplate, "/llm", "http://127.0.0.1:5000", eventSequenceArray, passHash)
 	promptInference.FinancialHealth = finInference
 	eventSequenceArray = append(eventSequenceArray, "collected fin prompt inference \n")
 
 	// news summary
-	promptInference.NewsSummary = queriedInfoAggregate.NewsInfo
+	newsTemplate := NEWS_TEMPLATE
+	newsInference := getPromptInference(string(queriedInfoAggregate.NewsInfo), newsTemplate, "/llm", "http://127.0.0.1:5000", eventSequenceArray, passHash)
+	promptInference.NewsSummary = newsInference
 	eventSequenceArray = append(eventSequenceArray, "collected news prompt inference \n")
 
 	// company description
-	promptInference.CompanyDesc = queriedInfoAggregate.DescInfo
+	descTemplate := DESC_TEMPLATE
+	descInference := getPromptInference(string(queriedInfoAggregate.DescInfo), descTemplate, "/llm", "http://127.0.0.1:5000", eventSequenceArray, passHash)
+	promptInference.CompanyDesc = descInference
 	eventSequenceArray = append(eventSequenceArray, "collected desc prompt inference \n")
 
 	// Return the PromptInference json object as the response
@@ -234,11 +240,11 @@ func getFinancialInfo(ticker string, handlerID string, handlerURL string, passHa
 }
 
 // gets the prompt inference from the LLM service
-func getPromptInference(prompt string, template string, handlerID string, handlerURL string, eventSequenceArray []string) string {
+func getPromptInference(prompt string, template string, handlerID string, handlerURL string, eventSequenceArray []string, passHash string) string {
 
 	baseUrl := handlerURL + handlerID
 
-	url := baseUrl + "?" + "prompt=" + urlConverter(template+prompt)
+	url := baseUrl + "?" + "prompt=" + urlConverter(template+prompt) + "&" + "passhash=" + passHash
 
 	// Send a GET request
 	getResponse, err := http.Get(url)
