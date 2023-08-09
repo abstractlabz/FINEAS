@@ -104,27 +104,16 @@ func newsService(w http.ResponseWriter, r *http.Request) {
 	//log ticker
 	eventSequenceArray = append(eventSequenceArray, "ticker collected \n")
 
-	entryURL := "https://www.google.com/finance/quote/"
-	entryTickerURL := entryURL + ticker
-	tickerLinks, err := scrapeTickerLinks(entryTickerURL, ticker)
-	if err != nil {
-		http.Error(w, "Failed to scrape data", http.StatusInternalServerError)
-		eventSequenceArray = append(eventSequenceArray, "Failed to scrape ticker links \n")
-		return
-	}
-	eventSequenceArray = append(eventSequenceArray, "Successfully scraped ticker links \n")
+	scrapeTickerURL := "https://news.google.com/search?q=" + strings.ToUpper(ticker) + "_stock&hl=en-US&gl=US&ceid=US%3Aen"
 
-	subLink := tickerLinks[1][1:]
-
-	scrapeTickerURL := "https://www.google.com/finance" + subLink
-
-	textFromDiv, err := scrapeTextFromDiv(scrapeTickerURL)
+	textFromDiv, err := scrapeTextFromDiv(scrapeTickerURL, 5)
 	if err != nil {
 		http.Error(w, "Failed to scrape data", http.StatusInternalServerError)
 		eventSequenceArray = append(eventSequenceArray, "Failed to scrape data \n")
 		return
+	} else {
+		eventSequenceArray = append(eventSequenceArray, "Successfully scraped data \n")
 	}
-	eventSequenceArray = append(eventSequenceArray, "Successfully scraped data \n")
 
 	endTime := time.Now()
 	elapsedTime := endTime.Sub(startTime)
@@ -146,40 +135,8 @@ func newsService(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// scrapeTickerLinks scrapes the ticker links from the Google Finance page
-func scrapeTickerLinks(url string, ticker string) ([]string, error) {
-	var tickerLinks []string
-
-	// Make a GET request to the URL
-	res, err := http.Get(url)
-	if err != nil {
-		return nil, err
-	}
-	defer res.Body.Close()
-
-	if res.StatusCode != 200 {
-		return nil, fmt.Errorf("status code error: %d %s", res.StatusCode, res.Status)
-	}
-
-	// Parse the HTML response body
-	doc, err := goquery.NewDocumentFromReader(res.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	// Find all anchor tags and extract the links containing the ticker
-	doc.Find("a").Each(func(i int, s *goquery.Selection) {
-		href, _ := s.Attr("href")
-		if strings.Contains(href, ticker) {
-			tickerLinks = append(tickerLinks, href)
-		}
-	})
-
-	return tickerLinks, nil
-}
-
 // scrapeTextFromDiv scrapes the text from Google's top news section
-func scrapeTextFromDiv(url string) (string, error) {
+func scrapeTextFromDiv(url string, collectionSize int) (string, error) {
 	// Make a GET request to the URL
 	res, err := http.Get(url)
 	if err != nil {
@@ -197,10 +154,12 @@ func scrapeTextFromDiv(url string) (string, error) {
 		return "", err
 	}
 
-	// Find the text within the div with class "F2KAFc"
+	// Find the text within the div with class "Yfwt5"
 	text := ""
-	doc.Find("div.F2KAFc").Each(func(i int, s *goquery.Selection) {
-		text += s.Text() + "\n"
+	doc.Find("a.DY5T1d.RZIKme").Each(func(i int, s *goquery.Selection) {
+		if i <= collectionSize {
+			text += s.Text() + "\n"
+		}
 	})
 
 	return text, nil
