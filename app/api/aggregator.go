@@ -218,48 +218,73 @@ func handleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 // gets the financial information from the polygon.io services
 func getFinancialInfo(ticker string, handlerID string, handlerURL string, passHash string, eventSequenceArray []string) string {
 
-	base_url := handlerURL + handlerID
+	// Create a new HTTP client
+	client := &http.Client{}
 
 	// Construct the URL with query parameters
-	url := base_url + "?" + "ticker=" + ticker + "&" + "passhash=" + passHash
+	base_url := handlerURL + handlerID
+	url := base_url + "?" + "ticker=" + ticker
 
-	// Send a GET request
-	getResponse, err := http.Get(url)
-	if err != nil {
-		panic(err)
-	}
-	defer getResponse.Body.Close()
-
-	// Read the response body
-	getResponseBody, err := io.ReadAll(getResponse.Body)
+	// Create a GET request
+	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		panic(err)
 	}
 
-	return string(getResponseBody)
+	// Set the Authorization header with the Bearer token
+	req.Header.Set("Authorization", "Bearer "+passHash)
+
+	// Send the request
+	resp, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+
+	// Read the response body as a string
+	responseBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		panic(err)
+	}
+
+	return string(responseBody)
+
 }
 
 // gets the prompt inference from the LLM service
 func getPromptInference(prompt string, template string, handlerID string, handlerURL string, eventSequenceArray []string, passHash string) string {
 
+	//Create an HTTP client
+	client := &http.Client{}
+
 	baseUrl := handlerURL + handlerID
 
-	url := baseUrl + "?" + "prompt=" + urlConverter(template+prompt) + "&" + "passhash=" + passHash
+	url := baseUrl + "?" + "prompt=" + urlConverter(template+prompt)
 
-	// Send a GET request
-	getResponse, err := http.Get(url)
-	if err != nil {
-		panic(err)
-	}
-	defer getResponse.Body.Close()
+	// Create a GET request
 
-	// Read the response body
-	getResponseBody, err := io.ReadAll(getResponse.Body)
+	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		panic(err)
 	}
 
-	return string(getResponseBody)
+	// Set the Authorization header with the Bearer token
+	req.Header.Set("Authorization", "Bearer "+passHash)
+
+	// Send the request
+	resp, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+
+	// Read the response body as a string
+	responseBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		panic(err)
+	}
+
+	return string(responseBody)
 }
 
 // converts prompt to a URL compatible format

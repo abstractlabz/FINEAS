@@ -7,22 +7,23 @@ import hashlib
 
 app = Flask(__name__)
 
-# Set your OpenAI API key here or use an environment variable
+# Loading information structures
 load_dotenv("../../.env/file")
 OPEN_AI_API_KEY = os.environ.get("OPEN_AI_API_KEY")
 openai.api_key = OPEN_AI_API_KEY
 PASS_KEY = os.environ.get("PASS_KEY")
 @app.route('/llm', methods=['GET'])
 def generate_response():
+    #get params
     prompt = request.args.get('prompt')
-    passhash = request.args.get('passhash')
+    passhash = (request.headers.get('Authorization'))[7:]
+    print(passhash)
+    #security measures
     sha256_hash = hashlib.sha256()
     sha256_hash.update(PASS_KEY.encode('utf-8'))
     HASH_KEY = sha256_hash.hexdigest()
-
     if passhash != HASH_KEY:
         return jsonify({'error': 'Unauthorized access'}), 401
-
     if not prompt:
         return jsonify({'error': 'Missing prompt parameter'}), 400
 

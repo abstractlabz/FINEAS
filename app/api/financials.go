@@ -53,15 +53,7 @@ func finService(w http.ResponseWriter, r *http.Request) {
 	hash.Write([]byte(PASS_KEY))
 	getPassHash := hash.Sum(nil)
 	passHash := hex.EncodeToString(getPassHash)
-	passHashFromRequest := queryParams.Get("passhash")
-	if passHash != passHashFromRequest {
-		log.Println("Incorrect passhash: unathorized request")
-		w.Write([]byte(http.StatusText(http.StatusUnauthorized)))
-		w.Write([]byte("Error: Unauthorized(401), Incorrect passhash."))
-		eventSequenceArray = append(eventSequenceArray, "passhash unauthorized \n")
-		return
-	}
-	eventSequenceArray = append(eventSequenceArray, "passhash checked \n")
+	finAuthMiddleware(w, r, eventSequenceArray, passHash)
 
 	// connnect to mongodb
 	MONGO_DB_LOGGER_PASSWORD := os.Getenv("MONGO_DB_LOGGER_PASSWORD")
@@ -146,5 +138,32 @@ func finService(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+}
+
+func finAuthMiddleware(w http.ResponseWriter, r *http.Request, eventSequenceArray []string, passHash string) bool {
+
+	// Get the Authorization header value
+	authHeader := r.Header.Get("Authorization")
+
+	// Check if the Authorization header is present and starts with "Bearer "
+	if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		eventSequenceArray = append(eventSequenceArray, "passhash unauthorized \n")
+		return false
+	}
+
+	// Extract the token from the Authorization header
+	token := strings.TrimPrefix(authHeader, "Bearer ")
+
+	// Perform token validation (e.g., check if it's a valid token)
+	if token != passHash {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		eventSequenceArray = append(eventSequenceArray, "passhash unauthorized \n")
+		return false
+	}
+
+	eventSequenceArray = append(eventSequenceArray, "passhash passed \n")
+	return true
 
 }
