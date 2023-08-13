@@ -15,9 +15,9 @@ MODEL = "text-embedding-ada-002"
 @app.route('/ingestor', methods=['POST'])
 def ingest_data():
     #get params
-    prompt = request.args.get('prompt')
-    passhash = request.args.get('passhash')
-
+    print(request.form)
+    raw_data = request.form.get('data')
+    passhash = (request.headers.get('Authorization'))[7:]
     #security measures
     sha256_hash = hashlib.sha256()
     sha256_hash.update(PASS_KEY.encode('utf-8'))
@@ -25,20 +25,21 @@ def ingest_data():
     if passhash != HASH_KEY:
         return jsonify({'error': 'Unauthorized access'}), 401
     
-    if not prompt:
-        return jsonify({'error': 'Missing prompt parameter'}), 400
+    if not raw_data:
+        print("Raw Data: ", raw_data)
+        return jsonify({'error': 'No data given'}), 400
     
-    decoded_prompt = urllib.parse.unquote(prompt)  # Decode URL-encoded prompt
-    print(decoded_prompt)
+    raw_data = urllib.parse.unquote(raw_data)  # Decode URL-encoded prompt
+    print(raw_data)
 
     res = openai.Embedding.create(
         input=[
-            "Sample document text goes here",
-            "there will be several phrases in each batch"
+            raw_data
         ], engine=MODEL
     )
     embeds = [record['embedding'] for record in res['data']]
     print(embeds)
+    return "200 Status OK"
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='127.0.0.1', port=6001, debug=True)

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
@@ -169,6 +170,16 @@ func handleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 	queriedInfoAggregate.DescInfo = desc_info
 	eventSequenceArray = append(eventSequenceArray, "queried desc info \n")
 
+	// Convert JSON object to string
+	qiaDATA, err := json.Marshal(queriedInfoAggregate)
+	vectorDBResponse := postFinancialData(string(qiaDATA), "/ingestor", "http://127.0.0.1:6001", eventSequenceArray, passHash)
+	if vectorDBResponse != "200 Status OK" {
+		panic(err)
+	}
+	if err != nil {
+		panic(err)
+	}
+
 	// stock perfomance
 	ytdTemplate := YTD_TEMPLATE
 	ytdInference := getPromptInference(string(queriedInfoAggregate.YtdInfo), ytdTemplate, "/llm", "http://127.0.0.1:5000", eventSequenceArray, passHash)
@@ -264,6 +275,48 @@ func getPromptInference(prompt string, template string, handlerID string, handle
 	// Create a GET request
 
 	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		panic(err)
+	}
+
+	// Set the Authorization header with the Bearer token
+	req.Header.Set("Authorization", "Bearer "+passHash)
+
+	// Send the request
+	resp, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+
+	// Read the response body as a string
+	responseBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		panic(err)
+	}
+
+	return string(responseBody)
+}
+
+// Posts financial data to data ingestor service
+func postFinancialData(dataValue string, handlerID string, handlerURL string, eventSequenceArray []string, passHash string) string {
+
+	// Create an HTTP client
+	client := &http.Client{}
+
+	baseURL := handlerURL + handlerID
+
+	url := baseURL
+
+	// Create the payload as a map
+	payload := map[string]string{"data": dataValue}
+	payloadBytes, err := json.Marshal(payload)
+	if err != nil {
+		panic(err)
+	}
+
+	// Create a POST request
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payloadBytes))
 	if err != nil {
 		panic(err)
 	}

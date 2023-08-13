@@ -106,7 +106,7 @@ func ytdService(w http.ResponseWriter, r *http.Request) {
 
 	//get the relevant date components
 	currentYear := time.Now().Year()
-	currentMonth := time.Now().Month()
+	currentMonth := time.Now().Month() - 1
 	recentDay := time.Now().Day()
 
 	//get the recent date stock price
@@ -137,7 +137,7 @@ func ytdService(w http.ResponseWriter, r *http.Request) {
 	//get the relevant date components
 
 	currentYear = time.Now().Year()
-	currentMonth = time.Now().Month()
+	currentMonth = time.Now().Month() - 1
 	recentDay = time.Now().Day()
 
 	//gets the year before recent date stock price
