@@ -172,7 +172,8 @@ func handleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 
 	// Convert JSON object to string
 	qiaDATA, err := json.Marshal(queriedInfoAggregate)
-	vectorDBResponse := postFinancialData(string(qiaDATA), "/ingestor", "http://127.0.0.1:6001", eventSequenceArray, passHash)
+	fmt.Println(string(qiaDATA))
+	vectorDBResponse := postFinancialData(string(qiaDATA), eventSequenceArray, passHash)
 	if vectorDBResponse != "200 Status OK" {
 		panic(err)
 	}
@@ -299,45 +300,46 @@ func getPromptInference(prompt string, template string, handlerID string, handle
 }
 
 // Posts financial data to data ingestor service
-func postFinancialData(dataValue string, handlerID string, handlerURL string, eventSequenceArray []string, passHash string) string {
+func postFinancialData(dataValue string, eventSequenceArray []string, passHash string) string {
 
-	// Create an HTTP client
+	url := "http://127.0.0.1:6001/ingestor"
+	bearerToken := passHash
+	infoData := dataValue
+
+	// Create payload as bytes
+	payload := []byte(fmt.Sprintf("info=%s", infoData))
+
+	// Create HTTP client
 	client := &http.Client{}
 
-	baseURL := handlerURL + handlerID
-
-	url := baseURL
-
-	// Create the payload as a map
-	payload := map[string]string{"data": dataValue}
-	payloadBytes, err := json.Marshal(payload)
+	// Create POST request
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
 	if err != nil {
-		panic(err)
+		fmt.Println("Error creating request:", err)
+
 	}
 
-	// Create a POST request
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payloadBytes))
-	if err != nil {
-		panic(err)
-	}
-
-	// Set the Authorization header with the Bearer token
-	req.Header.Set("Authorization", "Bearer "+passHash)
+	// Set Authorization header
+	req.Header.Set("Authorization", "Bearer "+bearerToken)
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	// Send the request
 	resp, err := client.Do(req)
 	if err != nil {
-		panic(err)
+		fmt.Println("Error sending request:", err)
+
+	}
+
+	// Read response
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("Error reading response:", err)
+
 	}
 	defer resp.Body.Close()
 
-	// Read the response body as a string
-	responseBody, err := io.ReadAll(resp.Body)
-	if err != nil {
-		panic(err)
-	}
-
-	return string(responseBody)
+	fmt.Println("Response:", string(respBody))
+	return string(respBody)
 }
 
 // converts prompt to a URL compatible format

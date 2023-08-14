@@ -20,7 +20,7 @@ PINECONE_API_KEY = os.environ.get("PINECONE_API_KEY")
 @app.route('/chat', methods=['GET'])
 def chatbot():
     #get params
-    raw_data = request.form.get('prompt')
+    raw_data = request.args.get('prompt')
     passhash = (request.headers.get('Authorization'))[7:]
     #security measures
     sha256_hash = hashlib.sha256()
@@ -46,11 +46,12 @@ def chatbot():
     xq = openai.Embedding.create(input=raw_data, engine=MODEL)['data'][0]['embedding']
     res = index.query([xq], top_k=5, include_metadata=True)
 
+    res_list = []
     for match in res['matches']:
-        print(f"{match['score']:.2f}: {match['metadata']['text']}")
+        res_list.append(match['metadata']['text'])
    
 
-    return res['matches']
+    return res_list[0]
 
 if __name__ == '__main__':
     app.run(host='127.0.0.1', port=6002, debug=True)

@@ -21,7 +21,7 @@ PINECONE_API_KEY = os.environ.get("PINECONE_API_KEY")
 def ingest_data():
     #get params
     print(request.form)
-    raw_data = request.form.get('data')
+    raw_data = request.form.get("info")
     passhash = (request.headers.get('Authorization'))[7:]
     #security measures
     sha256_hash = hashlib.sha256()
