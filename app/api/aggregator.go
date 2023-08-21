@@ -170,17 +170,6 @@ func handleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 	queriedInfoAggregate.DescInfo = desc_info
 	eventSequenceArray = append(eventSequenceArray, "queried desc info \n")
 
-	// Convert JSON object to string
-	qiaDATA, err := json.Marshal(queriedInfoAggregate)
-	fmt.Println(string(qiaDATA))
-	vectorDBResponse := postFinancialData(string(qiaDATA), eventSequenceArray, passHash)
-	if vectorDBResponse != "200 Status OK" {
-		panic(err)
-	}
-	if err != nil {
-		panic(err)
-	}
-
 	// stock perfomance
 	ytdTemplate := YTD_TEMPLATE
 	ytdInference := getPromptInference(string(queriedInfoAggregate.YtdInfo), ytdTemplate, "/llm", "http://127.0.0.1:5000", eventSequenceArray, passHash)
@@ -204,6 +193,42 @@ func handleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 	descInference := getPromptInference(string(queriedInfoAggregate.DescInfo), descTemplate, "/llm", "http://127.0.0.1:5000", eventSequenceArray, passHash)
 	promptInference.CompanyDesc = descInference
 	eventSequenceArray = append(eventSequenceArray, "collected desc prompt inference \n")
+
+	// Post ytd inference info
+	ytdVectorDBResponse := postFinancialData(string(ytdInference), eventSequenceArray, passHash)
+	if ytdVectorDBResponse != "200 Status OK" {
+		panic(err)
+	}
+	if err != nil {
+		panic(err)
+	}
+
+	// Post fin inference info
+	finVectorDBResponse := postFinancialData(string(finInference), eventSequenceArray, passHash)
+	if finVectorDBResponse != "200 Status OK" {
+		panic(err)
+	}
+	if err != nil {
+		panic(err)
+	}
+
+	// Post desc inference info
+	descVectorDBResponse := postFinancialData(string(descInference), eventSequenceArray, passHash)
+	if descVectorDBResponse != "200 Status OK" {
+		panic(err)
+	}
+	if err != nil {
+		panic(err)
+	}
+
+	// Post news inference info
+	newsVectorDBResponse := postFinancialData(string(newsInference), eventSequenceArray, passHash)
+	if newsVectorDBResponse != "200 Status OK" {
+		panic(err)
+	}
+	if err != nil {
+		panic(err)
+	}
 
 	// Return the PromptInference json object as the response
 	endTime := time.Now()
