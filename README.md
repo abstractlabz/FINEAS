@@ -1,2 +1,2 @@
 # FINEAS
-An AI tool which makes summaries and predictions about the financial health of a company
+ An AI Investment Analyst 
