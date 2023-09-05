@@ -72,6 +72,16 @@ func handleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 		CompanyDesc      string
 	}
 
+	// to represent data posted to the data ingestor
+	type PostDataInfo struct {
+		Ticker           string
+		StockPerformance string
+		FinancialHealth  string
+		NewsSummary      string
+		CompanyDesc      string
+	}
+
+	// aggregate of all event sequences
 	type AGGLOG struct {
 		Timestamp       time.Time
 		ExecutionTimeMs float32
@@ -79,9 +89,13 @@ func handleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 		EventSequence   []string
 	}
 
+	//event aggregation object
 	var aggLog AGGLOG
+
+	//Create a new instance of event logging
 	var eventSequenceArray []string
 
+	// Create a new instance of PromptInference
 	var promptInference PromptInference
 
 	// Create a new instance of QueriedInfoAggregate
@@ -173,57 +187,65 @@ func handleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 	// stock perfomance
 	ytdTemplate := YTD_TEMPLATE
 	ytdInference := getPromptInference(string(queriedInfoAggregate.YtdInfo), ytdTemplate, "/llm", "http://127.0.0.1:5000", eventSequenceArray, passHash)
+	ytdInference = strings.Trim(ytdInference, "{}")
 	promptInference.StockPerformance = ytdInference
 	eventSequenceArray = append(eventSequenceArray, "collected ytd prompt inference \n")
 
 	// financial health
 	finTemplate := FIN_TEMPLATE
 	finInference := getPromptInference(string(queriedInfoAggregate.FinInfo), finTemplate, "/llm", "http://127.0.0.1:5000", eventSequenceArray, passHash)
+	finInference = strings.Trim(finInference, "{}")
 	promptInference.FinancialHealth = finInference
 	eventSequenceArray = append(eventSequenceArray, "collected fin prompt inference \n")
 
 	// news summary
 	newsTemplate := NEWS_TEMPLATE
 	newsInference := getPromptInference(string(queriedInfoAggregate.NewsInfo), newsTemplate, "/llm", "http://127.0.0.1:5000", eventSequenceArray, passHash)
+	newsInference = strings.Trim(newsInference, "{}")
 	promptInference.NewsSummary = newsInference
 	eventSequenceArray = append(eventSequenceArray, "collected news prompt inference \n")
 
 	// company description
 	descTemplate := DESC_TEMPLATE
 	descInference := getPromptInference(string(queriedInfoAggregate.DescInfo), descTemplate, "/llm", "http://127.0.0.1:5000", eventSequenceArray, passHash)
+	descInference = strings.Trim(descInference, "{}")
 	promptInference.CompanyDesc = descInference
 	eventSequenceArray = append(eventSequenceArray, "collected desc prompt inference \n")
 
-	// Post ytd inference info
-	ytdVectorDBResponse := postFinancialData(string(ytdInference), eventSequenceArray, passHash)
-	if ytdVectorDBResponse != "200 Status OK" {
-		panic(err)
-	}
-	if err != nil {
-		panic(err)
+	//constructs valid json string
+	stockperformace := strings.Replace(promptInference.StockPerformance, "{", "|", -1)
+	stockperformace = strings.Replace(stockperformace, "}", "|", -1)
+	financialhealth := strings.Replace(promptInference.FinancialHealth, "{", "|", -1)
+	financialhealth = strings.Replace(financialhealth, "}", "|", -1)
+	newssummary := strings.Replace(promptInference.NewsSummary, "{", "|", -1)
+	newssummary = strings.Replace(newssummary, "}", "|", -1)
+	companydesc := strings.Replace(promptInference.CompanyDesc, "{", "|", -1)
+	companydesc = strings.Replace(companydesc, "}", "|", -1)
+
+	fmt.Println("RAW DATA:")
+
+	postDataInfo := PostDataInfo{
+		Ticker:           ticker,
+		StockPerformance: stockperformace,
+		FinancialHealth:  financialhealth,
+		NewsSummary:      newssummary,
+		CompanyDesc:      companydesc,
 	}
 
-	// Post fin inference info
-	finVectorDBResponse := postFinancialData(string(finInference), eventSequenceArray, passHash)
-	if finVectorDBResponse != "200 Status OK" {
-		panic(err)
-	}
+	// Marshal the struct into JSON
+	postJsonData, err := json.Marshal(postDataInfo)
 	if err != nil {
-		panic(err)
+		fmt.Println("Error marshaling JSON:", err)
+		return
 	}
 
-	// Post desc inference info
-	descVectorDBResponse := postFinancialData(string(descInference), eventSequenceArray, passHash)
-	if descVectorDBResponse != "200 Status OK" {
-		panic(err)
-	}
-	if err != nil {
-		panic(err)
-	}
+	// data which will be posted to the data ingestor
+	finalPostJsonData := strings.ReplaceAll(string(postJsonData), "\\n", " ")
+	fmt.Println((string(finalPostJsonData)))
 
-	// Post news inference info
-	newsVectorDBResponse := postFinancialData(string(newsInference), eventSequenceArray, passHash)
-	if newsVectorDBResponse != "200 Status OK" {
+	// Posts the whole financial data blob to the data ingestor
+	resPostFinancialData := postFinancialData(string(postJsonData), eventSequenceArray, passHash)
+	if resPostFinancialData != "200 Status OK" {
 		panic(err)
 	}
 	if err != nil {
