@@ -39,7 +39,7 @@ def generate_response():
         generated_text = response.choices[0].text.strip()
         print(generated_text)
 
-        return jsonify({'response': generated_text})
+        return generated_text
 
     except openai.error.OpenAIError as e:
         print(f"OpenAI error: {e}")

@@ -1,4 +1,8 @@
+import json
 from flask import Flask, request, jsonify
+from langchain.vectorstores import Pinecone
+import pinecone
+from langchain.embeddings.openai import OpenAIEmbeddings
 import openai
 import os
 from dotenv import load_dotenv
@@ -29,11 +33,32 @@ def chatbot():
     if not raw_data:
         print("Raw Data: ", raw_data)
         return jsonify({'error': 'No data given'}), 400
-    
+
     raw_data = urllib.parse.unquote(raw_data)  # Decode URL-encoded prompt
+        
+    text_field = "text"
+    index_name = "langchain-retrieval-augmentation"
+
+    embed = OpenAIEmbeddings(
+    document_model_name=MODEL,
+    query_model_name=MODEL,
+    openai_api_key=OPEN_AI_API_KEY
+    )
+
+    pinecone.init(
+        api_key=PINECONE_API_KEY,  # find api key in console at app.pinecone.io
+        environment="gcp-starter"  # find next to api key in console
+    )
+    index = pinecone.Index(index_name)
+
+    vectorstore = Pinecone(
+        index, embed.embed_query, text_field
+    )
 
     #query the vector DB index for prompt
-
+    response = vectorstore.similarity_search(raw_data,k=2)
+    print(response)
+    return '200 OK'
 
 if __name__ == '__main__':
     app.run(host='127.0.0.1', port=6002, debug=True)
