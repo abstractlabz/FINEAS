@@ -9,6 +9,8 @@ from dotenv import load_dotenv
 import urllib.parse
 import hashlib
 
+import requests
+
 app = Flask(__name__)
 
 load_dotenv()
@@ -17,6 +19,7 @@ OPEN_AI_API_KEY = os.environ.get("OPEN_AI_API_KEY")
 openai.api_key = OPEN_AI_API_KEY
 MODEL = 'text-embedding-ada-002'
 PINECONE_API_KEY = os.environ.get("PINECONE_API_KEY")
+LLM_SERVICE_URL = os.environ.get("LLM_SERVICE_URL")
 
 @app.route('/chat', methods=['GET'])
 def chatbot():
@@ -56,9 +59,22 @@ def chatbot():
     )
 
     #query the vector DB index for prompt
-    response = vectorstore.similarity_search(raw_data,k=2)
-    print(response)
-    return '200 OK'
+    context = vectorstore.similarity_search(raw_data,k=1)
+
+    prompt_payload = "CONTEXT :" + str(context) + "PROMPT: " + raw_data
+    
+    url = LLM_SERVICE_URL + "/llm"
+
+    headers = {
+    'Authorization': 'Bearer ' + HASH_KEY
+    }
+
+    params = {
+    'prompt': prompt_payload
+    }
+
+    chatresponse = requests.get(url, headers=headers, params=params)
+    return chatresponse.text
 
 if __name__ == '__main__':
     app.run(host='127.0.0.1', port=6002, debug=True)
