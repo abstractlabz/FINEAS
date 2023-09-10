@@ -103,48 +103,20 @@ func ytdService(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(ticker)
 	ytd.Ticker = ticker
 	eventSequenceArray = append(eventSequenceArray, "ticker collected \n")
+	//get the previous closing price
+	res, err := sendPreviousCloseInfo(c, ticker)
+	ytd.RecentDateStockPrice = res.Results[0].Close
 
-	//get the relevant date components
+	//calculating dates
 	currentYear := time.Now().Year()
-	currentMonth := time.Now().Month() - 1
+	currentMonth := time.Now().Month()
 	recentDay := time.Now().Day()
 
-	//get the recent date stock price
-	res, err := sendRequestWithParamsInfo(c, ticker, currentYear, currentMonth, recentDay)
-	//sends request until the stock price is available
-
-	count1 := 0
-	for err != nil && res.Open == 0 {
-		if count1 == 7 {
-			break
-		}
-		if recentDay <= 0 {
-			recentDay = 31
-			currentMonth = currentMonth - 1
-			if currentMonth <= 0 {
-				currentYear = currentYear - 1
-				currentMonth = 12
-			}
-
-		}
-
-		res, err = sendRequestWithParamsInfo(c, ticker, currentYear, currentMonth, recentDay)
-		recentDay -= 1
-		count1 += 1
-	}
-	ytd.RecentDateStockPrice = res.Open
-	eventSequenceArray = append(eventSequenceArray, "recent date stock price found \n")
-	//get the relevant date components
-
-	currentYear = time.Now().Year()
-	currentMonth = time.Now().Month() - 1
-	recentDay = time.Now().Day()
-
 	//gets the year before recent date stock price
-	res1, err := sendRequestWithParamsInfo(c, ticker, currentYear-1, currentMonth, recentDay)
+	res1, err := sendClosingPriceAtDate(c, ticker, currentYear-1, currentMonth, recentDay)
 	//sends request until the stock price is available
 	count2 := 0
-	for err != nil && res.Open == 0 {
+	for err != nil && res1.Open == 0 {
 		if count2 == 7 {
 			break
 		}
@@ -157,7 +129,7 @@ func ytdService(w http.ResponseWriter, r *http.Request) {
 			}
 
 		}
-		res1, err = sendRequestWithParamsInfo(c, ticker, currentYear, currentMonth, recentDay)
+		res1, err = sendClosingPriceAtDate(c, ticker, currentYear, currentMonth, recentDay)
 		recentDay -= 1
 		count2 += 1
 	}
@@ -198,13 +170,28 @@ func ytdService(w http.ResponseWriter, r *http.Request) {
 }
 
 // sends the request to the Polygon API
-func sendRequestWithParamsInfo(c *polygon.Client, ticker string, currentYear int, currentMonth time.Month, recentDay int) (*models.GetDailyOpenCloseAggResponse, error) {
+func sendClosingPriceAtDate(c *polygon.Client, ticker string, currentYear int, currentMonth time.Month, recentDay int) (*models.GetDailyOpenCloseAggResponse, error) {
 	paramsGDOC := models.GetDailyOpenCloseAggParams{ // params for recent date stock price
 		Ticker: ticker,
 		Date:   models.Date(time.Date(currentYear, currentMonth, recentDay, 0, 0, 0, 0, time.Local)),
 	}.WithAdjusted(true)
 
 	res, err := c.GetDailyOpenCloseAgg(context.Background(), paramsGDOC) // get recent date stock price
+	if err != nil {
+		log.Println(err)
+		return res, err
+	}
+
+	return res, err
+}
+
+// sends the request to the Polygon API
+func sendPreviousCloseInfo(c *polygon.Client, ticker string) (*models.GetPreviousCloseAggResponse, error) {
+	paramsGDOC := models.GetPreviousCloseAggParams{ // params for recent date stock price
+		Ticker: ticker,
+	}.WithAdjusted(true)
+
+	res, err := c.GetPreviousCloseAgg(context.Background(), paramsGDOC) // get recent date stock price
 	if err != nil {
 		log.Println(err)
 		return res, err

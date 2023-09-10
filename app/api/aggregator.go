@@ -222,8 +222,6 @@ func handleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 	companydesc := strings.Replace(promptInference.CompanyDesc, "{", "|", -1)
 	companydesc = strings.Replace(companydesc, "}", "|", -1)
 
-	fmt.Println("RAW DATA:")
-
 	postDataInfo := PostDataInfo{
 		Ticker:           ticker,
 		StockPerformance: stockperformace,
@@ -238,10 +236,6 @@ func handleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("Error marshaling JSON:", err)
 		return
 	}
-
-	// data which will be posted to the data ingestor
-	finalPostJsonData := strings.ReplaceAll(string(postJsonData), "\\n", " ")
-	fmt.Println((string(finalPostJsonData)))
 
 	// Posts the whole financial data blob to the data ingestor
 	resPostFinancialData := postFinancialData(string(postJsonData), eventSequenceArray, passHash)
