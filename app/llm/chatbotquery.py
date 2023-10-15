@@ -1,4 +1,3 @@
-import json
 from flask import Flask, request, jsonify
 from langchain.vectorstores import Pinecone
 import pinecone
@@ -59,9 +58,9 @@ def chatbot():
     )
 
     #query the vector DB index for prompt
-    context = vectorstore.similarity_search(raw_data,k=1)
+    context = vectorstore.similarity_search(raw_data,k=5)
 
-    prompt_payload = "CONTEXT :" + str(context) + "PROMPT: " + raw_data
+    prompt_payload = "PROMPT :" + "\n" + raw_data + "The following information is the context which is the only reference the prompt will be answered from." + "\n" + "CONTEXT" + "\n" + str(context)
     
     url = LLM_SERVICE_URL + "/llm"
 

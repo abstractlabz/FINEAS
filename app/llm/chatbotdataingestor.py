@@ -1,10 +1,9 @@
 import json
-import tiktoken
+import tiktoken 
 import pinecone
 from tqdm.auto import tqdm
 from uuid import uuid4
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-import re
 from flask import Flask, request, jsonify
 from langchain.embeddings.openai import OpenAIEmbeddings
 import openai
@@ -80,14 +79,16 @@ def ingest_data():
         )
     index = pinecone.Index(index_name)
 
-    batch_limit = 5
+    batch_limit = 1
 
     text_splitter = RecursiveCharacterTextSplitter(
-    chunk_size=20,
-    chunk_overlap=20,
+    chunk_size=1,
+    chunk_overlap=1,
     length_function=tiktoken_len,
     separators=["\n\n", "\n", " ", ""]
     )
+
+    print(dataset)
     
     for i, record in enumerate(tqdm(dataset)):
         texts = []
@@ -100,6 +101,7 @@ def ingest_data():
             'text': str(record['text'])  # Ensure 'text' is a string
         }
         # Now create chunks from the record text
+        text_splitter._chunk_size = len(str(record['text']))
         record_texts = text_splitter.split_text(str(record['text']))
         # Create individual metadata dicts for each chunk
         record_metadatas = [{
