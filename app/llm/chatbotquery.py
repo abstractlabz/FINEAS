@@ -20,16 +20,19 @@ MODEL = 'text-embedding-ada-002'
 PINECONE_API_KEY = os.environ.get("PINECONE_API_KEY")
 LLM_SERVICE_URL = os.environ.get("LLM_SERVICE_URL")
 
-@app.route('/chat', methods=['GET'])
+@app.route('/chat', methods=['POST'])
 def chatbot():
     #get params
     raw_data = request.args.get('prompt')
+    
     passhash = (request.headers.get('Authorization'))[7:]
     #security measures
     sha256_hash = hashlib.sha256()
     sha256_hash.update(PASS_KEY.encode('utf-8'))
     HASH_KEY = sha256_hash.hexdigest()
     if passhash != HASH_KEY:
+        print(passhash + "\n")
+        print(HASH_KEY + "\n")
         return jsonify({'error': 'Unauthorized access'}), 401
     
     if not raw_data:
