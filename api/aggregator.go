@@ -1,4 +1,4 @@
-package main
+package api
 
 import (
 	"bytes"
@@ -21,39 +21,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// entry point
-func main() {
-	go func() {
-		http.HandleFunc("/", handleQuoteRequest)
-		log.Println(http.ListenAndServe(":8080", nil))
-	}()
-
-	go func() {
-		http.HandleFunc("/ytd", ytdService)
-		log.Println(http.ListenAndServe(":8081", nil))
-	}()
-
-	go func() {
-		http.HandleFunc("/fin", finService)
-		log.Println(http.ListenAndServe(":8082", nil))
-	}()
-
-	go func() {
-		http.HandleFunc("/news", newsService)
-		log.Fatal(http.ListenAndServe(":8083", nil))
-	}()
-
-	go func() {
-		http.HandleFunc("/desc", descriptionService)
-		log.Println(http.ListenAndServe(":8084", nil))
-	}()
-
-	// Keep the main goroutine running to prevent the program from exiting
-	select {}
-}
-
 // handles the ticker request
-func handleQuoteRequest(w http.ResponseWriter, r *http.Request) {
+func HandleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 
 	//to represent the aggregate of all financial information
 	type QueriedInfoAggregate struct {

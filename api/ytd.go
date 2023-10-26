@@ -1,17 +1,17 @@
-package main
+package api
 
 import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"fineas/pkg/serviceauth"
 	"fmt"
 	"log"
 	"math"
 	"net"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -23,7 +23,7 @@ import (
 )
 
 // handles the ytd request
-func ytdService(w http.ResponseWriter, r *http.Request) {
+func YtdService(w http.ResponseWriter, r *http.Request) {
 
 	type YTD struct {
 		Ticker                      string
@@ -64,7 +64,7 @@ func ytdService(w http.ResponseWriter, r *http.Request) {
 	hash.Write([]byte(PASS_KEY))
 	getPassHash := hash.Sum(nil)
 	passHash := hex.EncodeToString(getPassHash)
-	ytdAuthMiddleware(w, r, eventSequenceArray, passHash)
+	serviceauth.ServiceAuthMiddleware(w, r, eventSequenceArray, passHash)
 
 	// connnect to mongodb
 	MONGO_DB_LOGGER_PASSWORD := os.Getenv("MONGO_DB_LOGGER_PASSWORD")
@@ -204,31 +204,4 @@ func sendPreviousCloseInfo(c *polygon.Client, ticker string) (*models.GetPreviou
 func roundDecimal(number float64, decimalPlaces int) float64 {
 	shift := math.Pow(10, float64(decimalPlaces))
 	return math.Round(number*shift) / shift
-}
-
-func ytdAuthMiddleware(w http.ResponseWriter, r *http.Request, eventSequenceArray []string, passHash string) bool {
-
-	// Get the Authorization header value
-	authHeader := r.Header.Get("Authorization")
-
-	// Check if the Authorization header is present and starts with "Bearer "
-	if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		eventSequenceArray = append(eventSequenceArray, "passhash unauthorized \n")
-		return false
-	}
-
-	// Extract the token from the Authorization header
-	token := strings.TrimPrefix(authHeader, "Bearer ")
-
-	// Perform token validation (e.g., check if it's a valid token)
-	if token != passHash {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		eventSequenceArray = append(eventSequenceArray, "passhash unauthorized \n")
-		return false
-	}
-
-	eventSequenceArray = append(eventSequenceArray, "passhash passed \n")
-	return true
-
 }

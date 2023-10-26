@@ -1,9 +1,10 @@
-package main
+package api
 
 import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"fineas/pkg/serviceauth"
 	"fmt"
 	"log"
 	"net"
@@ -19,17 +20,17 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// handles the desc request
-func descriptionService(w http.ResponseWriter, r *http.Request) {
+// handles the fin request
+func FinService(w http.ResponseWriter, r *http.Request) {
 
-	type DESCLOG struct {
+	type FINLOG struct {
 		Timestamp       time.Time
 		ExecutionTimeMs float32
 		RequestIP       string
 		EventSequence   []string
 	}
 
-	var descLog DESCLOG
+	var finLog FINLOG
 	var eventSequenceArray []string
 
 	//load information structures
@@ -45,7 +46,7 @@ func descriptionService(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	eventSequenceArray = append(eventSequenceArray, "collected request ip \n")
-	descLog.RequestIP = ip
+	finLog.RequestIP = ip
 
 	// secure service with pass key hash
 	PASS_KEY := os.Getenv("PASS_KEY")
@@ -53,7 +54,7 @@ func descriptionService(w http.ResponseWriter, r *http.Request) {
 	hash.Write([]byte(PASS_KEY))
 	getPassHash := hash.Sum(nil)
 	passHash := hex.EncodeToString(getPassHash)
-	descAuthMiddleware(w, r, eventSequenceArray, passHash)
+	serviceauth.ServiceAuthMiddleware(w, r, eventSequenceArray, passHash)
 
 	// connnect to mongodb
 	MONGO_DB_LOGGER_PASSWORD := os.Getenv("MONGO_DB_LOGGER_PASSWORD")
@@ -63,15 +64,16 @@ func descriptionService(w http.ResponseWriter, r *http.Request) {
 	// Create a new client and connect to the server
 	client, err := mongo.Connect(context.TODO(), opts)
 	if err != nil {
+		eventSequenceArray = append(eventSequenceArray, "could not connect to database client \n")
 		panic(err)
 	}
+	eventSequenceArray = append(eventSequenceArray, "connected to database client \n")
+
 	defer func() {
 		if err = client.Disconnect(context.TODO()); err != nil {
 			eventSequenceArray = append(eventSequenceArray, "could not connect to database \n")
 			panic(err)
 		}
-		eventSequenceArray = append(eventSequenceArray, "connected to database \n")
-
 	}()
 
 	// polygon API connection
@@ -88,64 +90,54 @@ func descriptionService(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//log ticker
+	// log ticker
 	eventSequenceArray = append(eventSequenceArray, "ticker collected \n")
 
-	// set params
-	params := models.GetTickerDetailsParams{
-		Ticker: ticker,
-	}.WithDate(models.Date(time.Date(time.Now().Year(), 1, 1, 0, 0, 0, 0, time.UTC)))
+	params := models.ListStockFinancialsParams{}.
+		WithTicker(ticker)
 
 	// make request
-	res, err := c.GetTickerDetails(context.Background(), params)
-	if err != nil {
-		log.Println(err)
-	}
-	fmt.Println(res)
-	eventSequenceArray = append(eventSequenceArray, "Collected response from polygon: \n")
+	iter := c.VX.ListStockFinancials(context.Background(), params)
 
+	// do something with the result
+
+	var collection string
+	for iter.Next() {
+		res := fmt.Sprint(iter.Item())
+		collection += res
+	}
+
+	if iter.Err() != nil {
+		eventSequenceArray = append(eventSequenceArray, "could not collect financial statements"+iter.Err().Error()+"\n")
+
+	}
+	eventSequenceArray = append(eventSequenceArray, "Collected financial statements \n")
+
+	targetSubstring := "equity_attributable_to_noncontrolling_interest"
+	index := strings.Index(collection, targetSubstring)
+	if index != -1 {
+		collection = collection[:index]
+		print(collection)
+	} else {
+		eventSequenceArray = append(eventSequenceArray, "could not properly collect financial statements \n")
+	}
+
+	// log execution time
 	endTime := time.Now()
 	elapsedTime := endTime.Sub(startTime)
-	descLog.ExecutionTimeMs = float32(elapsedTime.Milliseconds())
+	finLog.ExecutionTimeMs = float32(elapsedTime.Milliseconds())
 	w.Header().Set("Content-Type", "application/json")
-	w.Write([]byte(fmt.Sprint(res)))
-	descLog.Timestamp = time.Now()
+	w.Write([]byte(fmt.Sprint(collection)))
+	finLog.Timestamp = time.Now()
 
 	// insert the log into the database
-	eventSequenceArray = append(eventSequenceArray, "successfully served ytd data \n")
-	descLog.EventSequence = eventSequenceArray
+	eventSequenceArray = append(eventSequenceArray, "successfully served financials data \n")
+	finLog.EventSequence = eventSequenceArray
 	db := client.Database("MicroserviceLogs")
-	collection := db.Collection("DescriptionServiceLogs")
-	_, err = collection.InsertOne(context.TODO(), descLog)
+	DBcollection := db.Collection("FinancialsServiceLogs")
+	_, err = DBcollection.InsertOne(context.TODO(), finLog)
 	if err != nil {
 		log.Fatal(err)
 	}
-
-}
-
-func descAuthMiddleware(w http.ResponseWriter, r *http.Request, eventSequenceArray []string, passHash string) bool {
-
-	// Get the Authorization header value
-	authHeader := r.Header.Get("Authorization")
-
-	// Check if the Authorization header is present and starts with "Bearer "
-	if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		eventSequenceArray = append(eventSequenceArray, "passhash unauthorized \n")
-		return false
-	}
-
-	// Extract the token from the Authorization header
-	token := strings.TrimPrefix(authHeader, "Bearer ")
-
-	// Perform token validation (e.g., check if it's a valid token)
-	if token != passHash {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		eventSequenceArray = append(eventSequenceArray, "passhash unauthorized \n")
-		return false
-	}
-
-	eventSequenceArray = append(eventSequenceArray, "passhash passed \n")
-	return true
 
 }
