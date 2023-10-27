@@ -2,11 +2,9 @@ To Do List:
 
 Backend (GoLang)
 
-- Test chatbot on data for the same ticker on different days
 - Write script which calls aggregator and chatbotdataingestor for every ticker to feed data into pinecone db for dev testing
 - Refactor from net/http to fiber
 - Refactor log tracing
-- Refactor file directory structure
 (After demo)
 - Set up user session handling api and database
 - Set up payment systems api and user membership handling in database
