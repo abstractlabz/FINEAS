@@ -18,6 +18,7 @@ import (
 
 	polygon "github.com/polygon-io/client-go/rest"
 	"github.com/polygon-io/client-go/rest/models"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -166,12 +167,45 @@ func STKService(w http.ResponseWriter, r *http.Request) {
 	stkLog.Timestamp = time.Now()
 	fmt.Println(string(stkJson))
 
+	// Check if information is already in the database
+	db := client.Database("FinancialInformation")
+	db_collection := db.Collection("RawInformation")
+
+	// Try to find the document in the database
+	var existingDocument bson.M
+	err = db_collection.FindOne(context.Background(), stkJson).Decode(&existingDocument)
+
+	if err == nil {
+		// Document found in the database
+		eventSequenceArray = append(eventSequenceArray, "found stk info in database \n")
+		w.Header().Set("Content-Type", "text/plain")
+		w.Write([]byte("400 Bad Request"))
+	} else if err == mongo.ErrNoDocuments {
+		// Document not found, insert it into the database
+		eventSequenceArray = append(eventSequenceArray, "could not find stk info in database \n")
+		_, err := db_collection.InsertOne(context.Background(), stkJson)
+		if err != nil {
+			eventSequenceArray = append(eventSequenceArray, "could not insert stk info into database \n")
+			log.Println("Error inserting document:", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("500 Internal Server Error"))
+			return
+		}
+		eventSequenceArray = append(eventSequenceArray, "successfully inserted stk info into database \n")
+	} else {
+		// Other error occurred during the FindOne operation
+		log.Println("Error finding document:", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("500 Internal Server Error"))
+		return
+	}
+
 	// insert the log into the database
 	eventSequenceArray = append(eventSequenceArray, "successfully served stk data \n")
 	stkLog.EventSequence = eventSequenceArray
-	db := client.Database("MicroserviceLogs")
-	collection := db.Collection("stkServiceLogs")
-	_, err = collection.InsertOne(context.TODO(), stkLog)
+	db = client.Database("MicroserviceLogs")
+	db_collection = db.Collection("stkServiceLogs")
+	_, err = db_collection.InsertOne(context.TODO(), stkLog)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -116,6 +116,39 @@ func NewsService(w http.ResponseWriter, r *http.Request) {
 	jsonResult := fmt.Sprintf(`{"Result": "%s"}`, textFromDiv)
 	fmt.Println(jsonResult)
 
+	// Check if information is already in the database
+	db := client.Database("FinancialInformation")
+	db_collection := db.Collection("RawInformation")
+
+	// Try to find the document in the database
+	var existingDocument bson.M
+	err = db_collection.FindOne(context.Background(), jsonResult).Decode(&existingDocument)
+
+	if err == nil {
+		// Document found in the database
+		eventSequenceArray = append(eventSequenceArray, "found stk info in database \n")
+		w.Header().Set("Content-Type", "text/plain")
+		w.Write([]byte("400 Bad Request"))
+	} else if err == mongo.ErrNoDocuments {
+		// Document not found, insert it into the database
+		eventSequenceArray = append(eventSequenceArray, "could not find stk info in database \n")
+		_, err := db_collection.InsertOne(context.Background(), jsonResult)
+		if err != nil {
+			eventSequenceArray = append(eventSequenceArray, "could not insert stk info into database \n")
+			log.Println("Error inserting document:", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("500 Internal Server Error"))
+			return
+		}
+		eventSequenceArray = append(eventSequenceArray, "successfully inserted stk info into database \n")
+	} else {
+		// Other error occurred during the FindOne operation
+		log.Println("Error finding document:", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("500 Internal Server Error"))
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(jsonResult))
 	newsLog.Timestamp = time.Now()
@@ -123,7 +156,7 @@ func NewsService(w http.ResponseWriter, r *http.Request) {
 	// insert the log into the database
 	eventSequenceArray = append(eventSequenceArray, "successfully served news data for: "+ticker+"\n")
 	newsLog.EventSequence = eventSequenceArray
-	db := client.Database("MicroserviceLogs")
+	db = client.Database("MicroserviceLogs")
 	DBcollection := db.Collection("NewsServiceLogs")
 	_, err = DBcollection.InsertOne(context.TODO(), newsLog)
 	if err != nil {

@@ -160,33 +160,53 @@ func HandleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(desc_info)
 
 	// stock perfomance
-	stkTemplate := STK_TEMPLATE
-	stkInference := getPromptInference(string(queriedInfoAggregate.YtdInfo), stkTemplate, "/llm", "http://127.0.0.1:5000", eventSequenceArray, passHash)
-	stkInference = strings.Trim(stkInference, "{}")
-	promptInference.StockPerformance = stkInference
-	eventSequenceArray = append(eventSequenceArray, "collected stk prompt inference \n")
-
+	if stk_info != "400 Bad Request" {
+		stkTemplate := STK_TEMPLATE
+		stkInference := getPromptInference(string(queriedInfoAggregate.YtdInfo), stkTemplate, "/llm", "http://127.0.0.1:5000", eventSequenceArray, passHash)
+		stkInference = strings.Trim(stkInference, "{}")
+		promptInference.StockPerformance = stkInference
+		eventSequenceArray = append(eventSequenceArray, "collected stk prompt inference \n")
+	} else {
+		//
+		promptInference.StockPerformance = "N/A"
+		eventSequenceArray = append(eventSequenceArray, "stk prompt inference failed \n")
+	}
 	// financial health
-	finTemplate := FIN_TEMPLATE
-	finInference := getPromptInference(string(queriedInfoAggregate.FinInfo), finTemplate, "/llm", "http://127.0.0.1:5000", eventSequenceArray, passHash)
-	finInference = strings.Trim(finInference, "{}")
-	promptInference.FinancialHealth = finInference
-	eventSequenceArray = append(eventSequenceArray, "collected fin prompt inference \n")
-
+	if fin_info != "400 Bad Request" {
+		finTemplate := FIN_TEMPLATE
+		finInference := getPromptInference(string(queriedInfoAggregate.FinInfo), finTemplate, "/llm", "http://127.0.0.1:5000", eventSequenceArray, passHash)
+		finInference = strings.Trim(finInference, "{}")
+		promptInference.FinancialHealth = finInference
+		eventSequenceArray = append(eventSequenceArray, "collected fin prompt inference \n")
+	} else {
+		//
+		promptInference.FinancialHealth = "N/A"
+		eventSequenceArray = append(eventSequenceArray, "fin prompt inference failed \n")
+	}
 	// news summary
-	newsTemplate := NEWS_TEMPLATE
-	newsInference := getPromptInference(string(queriedInfoAggregate.NewsInfo), newsTemplate, "/llm", "http://127.0.0.1:5000", eventSequenceArray, passHash)
-	newsInference = strings.Trim(newsInference, "{}")
-	promptInference.NewsSummary = newsInference
-	eventSequenceArray = append(eventSequenceArray, "collected news prompt inference \n")
-
+	if news_info != "400 Bad Request" {
+		newsTemplate := NEWS_TEMPLATE
+		newsInference := getPromptInference(string(queriedInfoAggregate.NewsInfo), newsTemplate, "/llm", "http://127.0.0.1:5000", eventSequenceArray, passHash)
+		newsInference = strings.Trim(newsInference, "{}")
+		promptInference.NewsSummary = newsInference
+		eventSequenceArray = append(eventSequenceArray, "collected news prompt inference \n")
+	} else {
+		//
+		promptInference.NewsSummary = "N/A"
+		eventSequenceArray = append(eventSequenceArray, "news prompt inference failed \n")
+	}
 	// company description
-	descTemplate := DESC_TEMPLATE
-	descInference := getPromptInference(string(queriedInfoAggregate.DescInfo), descTemplate, "/llm", "http://127.0.0.1:5000", eventSequenceArray, passHash)
-	descInference = strings.Trim(descInference, "{}")
-	promptInference.CompanyDesc = descInference
-	eventSequenceArray = append(eventSequenceArray, "collected desc prompt inference \n")
-
+	if desc_info != "400 Bad Request" {
+		descTemplate := DESC_TEMPLATE
+		descInference := getPromptInference(string(queriedInfoAggregate.DescInfo), descTemplate, "/llm", "http://127.0.0.1:5000", eventSequenceArray, passHash)
+		descInference = strings.Trim(descInference, "{}")
+		promptInference.CompanyDesc = descInference
+		eventSequenceArray = append(eventSequenceArray, "collected desc prompt inference \n")
+	} else {
+		//
+		promptInference.CompanyDesc = "N/A"
+		eventSequenceArray = append(eventSequenceArray, "desc prompt inference failed \n")
+	}
 	//constructs valid json string
 	stockperformace := strings.Replace(promptInference.StockPerformance, "{", "|", -1)
 	stockperformace = strings.Replace(stockperformace, "}", "|", -1)
