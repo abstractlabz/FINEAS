@@ -134,7 +134,7 @@ func FinService(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Log the accumulated values for debugging
-		collection = "The balance sheet for " + ticker + " is " + collection + " as of " + time.Now().Format("01-02-2006")
+		collection = "The balance sheet for " + ticker + " is " + collection
 	} else {
 		eventSequenceArray = append(eventSequenceArray, "could not properly collect financial statements \n")
 	}
@@ -180,6 +180,9 @@ func FinService(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("500 Internal Server Error"))
 		return
 	}
+
+	collection = "The balance sheet for " + ticker + " is " + collection + ", as of " + time.Now().Format("01-02-2006 15:04:05")
+	jsonResult = fmt.Sprintf(`{"Result": "%s"}`, strings.ReplaceAll(collection, "\n", ", "))
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(jsonResult)) // Return the accumulated financial values in JSON format

@@ -150,22 +150,13 @@ func STKService(w http.ResponseWriter, r *http.Request) {
 	eventSequenceArray = append(eventSequenceArray, "stk recent stock percent change calculated \n")
 
 	// construct the output string
-	stkOutput := "The yearly stock percent change for " + ticker + " is " + fmt.Sprint(stk.stkRecentStockPercentChange) + "%" + ", as of the date: " + time.Now().Format("01-02-2006")
+	stkOutput := "The yearly stock percent change for " + ticker + " is " + fmt.Sprint(stk.stkRecentStockPercentChange)
 	output.Result = stkOutput
-
 	stkJson, err := json.Marshal(output) // marshal the stk struct into json
 	if err != nil {
-		eventSequenceArray = append(eventSequenceArray, "Error: could not marshal stk struct into json"+err.Error()+"\n")
+		eventSequenceArray = append(eventSequenceArray, "Error: could not marshal stk struct into json for redundancy checks"+err.Error()+"\n")
 
 	}
-
-	endTime := time.Now()
-	elapsedTime := endTime.Sub(startTime)
-	stkLog.ExecutionTimeMs = float32(elapsedTime.Milliseconds())
-	w.Header().Set("Content-Type", "application/json")
-	w.Write([]byte(fmt.Sprint(string(stkJson))))
-	stkLog.Timestamp = time.Now()
-	fmt.Println(string(stkJson))
 
 	// Check if information is already in the database
 	db := client.Database("FinancialInformation")
@@ -199,6 +190,24 @@ func STKService(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("500 Internal Server Error"))
 		return
 	}
+
+	// update stk output string with date
+	stkOutput = "The yearly stock percent change for " + ticker + " is " + fmt.Sprint(stk.stkRecentStockPercentChange) + "%" + ", as of " + time.Now().Format("01-02-2006 15:04:05")
+	output.Result = stkOutput
+
+	stkJson, err = json.Marshal(output) // marshal the stk struct into json
+	if err != nil {
+		eventSequenceArray = append(eventSequenceArray, "Error: could not marshal stk struct into json"+err.Error()+"\n")
+
+	}
+
+	endTime := time.Now()
+	elapsedTime := endTime.Sub(startTime)
+	stkLog.ExecutionTimeMs = float32(elapsedTime.Milliseconds())
+	w.Header().Set("Content-Type", "application/json")
+	w.Write([]byte(fmt.Sprint(string(stkJson))))
+	stkLog.Timestamp = time.Now()
+	fmt.Println(string(stkJson))
 
 	// insert the log into the database
 	eventSequenceArray = append(eventSequenceArray, "successfully served stk data \n")
