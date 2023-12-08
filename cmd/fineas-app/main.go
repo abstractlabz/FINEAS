@@ -14,7 +14,7 @@ func main() {
 	}()
 
 	go func() {
-		http.HandleFunc("/ytd", api.YtdService)
+		http.HandleFunc("/stk", api.STKService)
 		log.Println(http.ListenAndServe(":8081", nil))
 	}()
 

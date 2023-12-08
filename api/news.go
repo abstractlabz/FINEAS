@@ -111,9 +111,13 @@ func NewsService(w http.ResponseWriter, r *http.Request) {
 	endTime := time.Now()
 	elapsedTime := endTime.Sub(startTime)
 	newsLog.ExecutionTimeMs = float32(elapsedTime.Milliseconds())
-	w.Header().Set("Content-Type", "text/plain")
-	fmt.Println(textFromDiv)
-	w.Write([]byte(fmt.Sprint(textFromDiv)))
+
+	// Convert accumulated financial values to JSON format
+	jsonResult := fmt.Sprintf(`{"Result": "%s"}`, textFromDiv)
+	fmt.Println(jsonResult)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write([]byte(jsonResult))
 	newsLog.Timestamp = time.Now()
 
 	// insert the log into the database
@@ -149,7 +153,7 @@ func scrapeTextFromDiv(url string, collectionSize int) (string, error) {
 
 	// Find the text within the div with class "Yfwt5"
 	text := ""
-	doc.Find("a.DY5T1d.RZIKme").Each(func(i int, s *goquery.Selection) {
+	doc.Find("h4.JtKRv").Each(func(i int, s *goquery.Selection) {
 		if i <= collectionSize {
 			text += s.Text() + "\n"
 		}

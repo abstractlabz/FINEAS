@@ -17,3 +17,6 @@ curl -X GET "http://127.0.0.1:6002/chat?prompt=Is%20Apple%20turning%20bearish%3F
 
 curl -X GET "http://127.0.0.1:6002/chat?prompt=By%20what%20percentage%20did%20Amazon%20stock%20move%20within%20the%20past%20year%20to%20date%3F" -H "Authorization: Bearer 671b31a4e4d59e1f4e344e91fb343c6988462a0afcf828bcd3f55404058819f2"
 
+
+
+curl -X GET "http://localhost:8082/?ticker=AAPL" -H "Authorization: Bearer 671b31a4e4d59e1f4e344e91fb343c6988462a0afcf828bcd3f55404058819f2"

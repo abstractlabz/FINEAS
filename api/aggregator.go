@@ -98,11 +98,11 @@ func HandleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 	eventSequenceArray = append(eventSequenceArray, "collected request ip \n")
 	aggLog.RequestIP = ip
 
-	YTD_SERVICE_URL := os.Getenv("YTD_SERVICE_URL")
+	STK_SERVICE_URL := os.Getenv("STK_SERVICE_URL")
 	FIN_SERVICE_URL := os.Getenv("FIN_SERVICE_URL")
 	NEWS_SERVICE_URL := os.Getenv("NEWS_SERVICE_URL")
 	DESC_SERVICE_URL := os.Getenv("DESC_SERVICE_URL")
-	YTD_TEMPLATE := os.Getenv("YTD_TEMPLATE")
+	STK_TEMPLATE := os.Getenv("STK_TEMPLATE")
 	FIN_TEMPLATE := os.Getenv("FIN_TEMPLATE")
 	NEWS_TEMPLATE := os.Getenv("NEWS_TEMPLATE")
 	DESC_TEMPLATE := os.Getenv("DESC_TEMPLATE")
@@ -137,9 +137,9 @@ func HandleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 	queriedInfoAggregate.Ticker = ticker
 	eventSequenceArray = append(eventSequenceArray, "queried ticker \n")
 
-	ytd_info := getFinancialInfo(ticker, "/ytd", YTD_SERVICE_URL, passHash, eventSequenceArray)
-	queriedInfoAggregate.YtdInfo = ytd_info
-	eventSequenceArray = append(eventSequenceArray, "queried ytd info \n")
+	stk_info := getFinancialInfo(ticker, "/stk", STK_SERVICE_URL, passHash, eventSequenceArray)
+	queriedInfoAggregate.YtdInfo = stk_info
+	eventSequenceArray = append(eventSequenceArray, "queried stk info \n")
 
 	fin_info := getFinancialInfo(ticker, "/fin", FIN_SERVICE_URL, passHash, eventSequenceArray)
 	queriedInfoAggregate.FinInfo = fin_info
@@ -153,12 +153,18 @@ func HandleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 	queriedInfoAggregate.DescInfo = desc_info
 	eventSequenceArray = append(eventSequenceArray, "queried desc info \n")
 
+	fmt.Println("TEST PRINTS")
+	fmt.Println(stk_info)
+	fmt.Println(fin_info)
+	fmt.Println(news_info)
+	fmt.Println(desc_info)
+
 	// stock perfomance
-	ytdTemplate := YTD_TEMPLATE
-	ytdInference := getPromptInference(string(queriedInfoAggregate.YtdInfo), ytdTemplate, "/llm", "http://127.0.0.1:5000", eventSequenceArray, passHash)
-	ytdInference = strings.Trim(ytdInference, "{}")
-	promptInference.StockPerformance = ytdInference
-	eventSequenceArray = append(eventSequenceArray, "collected ytd prompt inference \n")
+	stkTemplate := STK_TEMPLATE
+	stkInference := getPromptInference(string(queriedInfoAggregate.YtdInfo), stkTemplate, "/llm", "http://127.0.0.1:5000", eventSequenceArray, passHash)
+	stkInference = strings.Trim(stkInference, "{}")
+	promptInference.StockPerformance = stkInference
+	eventSequenceArray = append(eventSequenceArray, "collected stk prompt inference \n")
 
 	// financial health
 	finTemplate := FIN_TEMPLATE

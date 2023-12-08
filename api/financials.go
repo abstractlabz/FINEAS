@@ -7,9 +7,12 @@ import (
 	"fineas/pkg/serviceauth"
 	"fmt"
 	"log"
+	"math/big"
 	"net"
 	"net/http"
 	"os"
+	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -22,7 +25,6 @@ import (
 
 // handles the fin request
 func FinService(w http.ResponseWriter, r *http.Request) {
-
 	type FINLOG struct {
 		Timestamp       time.Time
 		ExecutionTimeMs float32
@@ -33,13 +35,14 @@ func FinService(w http.ResponseWriter, r *http.Request) {
 	var finLog FINLOG
 	var eventSequenceArray []string
 
-	//load information structures
+	// Load information structures
 	startTime := time.Now()
 	queryParams := r.URL.Query()
-	err := godotenv.Load("../../.env") // load the .env file
+	err := godotenv.Load("../../.env") // Load the .env file
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
+
 	ip, _, err := net.SplitHostPort(r.RemoteAddr)
 	if err != nil {
 		fmt.Fprintf(w, "Error parsing IP address: %v", err)
@@ -48,7 +51,7 @@ func FinService(w http.ResponseWriter, r *http.Request) {
 	eventSequenceArray = append(eventSequenceArray, "collected request ip \n")
 	finLog.RequestIP = ip
 
-	// secure service with pass key hash
+	// Secure service with pass key hash
 	PASS_KEY := os.Getenv("PASS_KEY")
 	hash := sha256.New()
 	hash.Write([]byte(PASS_KEY))
@@ -56,11 +59,12 @@ func FinService(w http.ResponseWriter, r *http.Request) {
 	passHash := hex.EncodeToString(getPassHash)
 	serviceauth.ServiceAuthMiddleware(w, r, eventSequenceArray, passHash)
 
-	// connnect to mongodb
+	// Connect to MongoDB
 	MONGO_DB_LOGGER_PASSWORD := os.Getenv("MONGO_DB_LOGGER_PASSWORD")
 	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
 	mongoURI := "mongodb+srv://kobenaidun:" + MONGO_DB_LOGGER_PASSWORD + "@cluster0.z9znpv9.mongodb.net/?retryWrites=true&w=majority"
 	opts := options.Client().ApplyURI(mongoURI).SetServerAPIOptions(serverAPI)
+
 	// Create a new client and connect to the server
 	client, err := mongo.Connect(context.TODO(), opts)
 	if err != nil {
@@ -76,11 +80,11 @@ func FinService(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
-	// polygon API connection
+	// Polygon API connection
 	API_KEY := os.Getenv("API_KEY")
 	c := polygon.New(API_KEY)
 
-	// ticker input checking
+	// Ticker input checking
 	ticker := queryParams.Get("ticker")
 	if len(ticker) == 0 {
 		log.Println("Missing required parameter 'ticker' in the query string")
@@ -90,17 +94,16 @@ func FinService(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// log ticker
+	// Log ticker
 	eventSequenceArray = append(eventSequenceArray, "ticker collected \n")
 
+	// Make request to Polygon API for stock financials
 	params := models.ListStockFinancialsParams{}.
 		WithTicker(ticker)
 
-	// make request
 	iter := c.VX.ListStockFinancials(context.Background(), params)
 
-	// do something with the result
-
+	// Accumulate financial values
 	var collection string
 	for iter.Next() {
 		res := fmt.Sprint(iter.Item())
@@ -109,35 +112,133 @@ func FinService(w http.ResponseWriter, r *http.Request) {
 
 	if iter.Err() != nil {
 		eventSequenceArray = append(eventSequenceArray, "could not collect financial statements"+iter.Err().Error()+"\n")
-
 	}
+
 	eventSequenceArray = append(eventSequenceArray, "Collected financial statements \n")
 
+	// Integrate financial statement accumulation here
 	targetSubstring := "equity_attributable_to_noncontrolling_interest"
 	index := strings.Index(collection, targetSubstring)
 	if index != -1 {
 		collection = collection[:index]
-		print(collection)
+		collection = deleteNumberBeforeUSD(collection)
+
+		// Accumulate financial values
+		accumulatedValues, err := accumulateFinancialValues(collection)
+		if err != nil {
+			eventSequenceArray = append(eventSequenceArray, "error accumulating financial values: "+err.Error()+"\n")
+		} else {
+			// Assign the accumulated values to the 'collection' variable
+			collection = accumulatedValues
+		}
+
+		// Log the accumulated values for debugging
+		collection = "The balance sheet for " + ticker + " is " + collection + " as of " + time.Now().Format("01-02-2006")
 	} else {
 		eventSequenceArray = append(eventSequenceArray, "could not properly collect financial statements \n")
 	}
 
-	// log execution time
+	// Log execution time
 	endTime := time.Now()
 	elapsedTime := endTime.Sub(startTime)
 	finLog.ExecutionTimeMs = float32(elapsedTime.Milliseconds())
+
+	// Convert accumulated financial values to JSON format
+	jsonResult := fmt.Sprintf(`{"Result": "%s"}`, strings.ReplaceAll(collection, "\n", ", "))
+	fmt.Println(jsonResult)
+
 	w.Header().Set("Content-Type", "application/json")
-	w.Write([]byte(fmt.Sprint(collection)))
+	w.Write([]byte(jsonResult)) // Return the accumulated financial values in JSON format
 	finLog.Timestamp = time.Now()
 
-	// insert the log into the database
+	// Insert the log into the database
 	eventSequenceArray = append(eventSequenceArray, "successfully served financials data \n")
-	finLog.EventSequence = eventSequenceArray
 	db := client.Database("MicroserviceLogs")
 	DBcollection := db.Collection("FinancialsServiceLogs")
 	_, err = DBcollection.InsertOne(context.TODO(), finLog)
 	if err != nil {
 		log.Fatal(err)
 	}
+}
 
+func accumulateFinancialValues(input string) (string, error) {
+	re := regexp.MustCompile(`\b([A-Za-z\s]+)\s+USD\s+([0-9e\+\-\.]+)\s*\}`)
+	matches := re.FindAllStringSubmatch(input, -1)
+
+	accumulatedValues := make(map[string]float64)
+	for _, match := range matches {
+		account := match[1]
+		value := match[2]
+
+		decimalValue, err := convertScientificToDecimal(value)
+		if err != nil {
+			return "", err
+		}
+
+		floatValue, err := strconv.ParseFloat(decimalValue, 64)
+		if err != nil {
+			return "", err
+		}
+
+		// Accumulate the values for each account
+		accumulatedValues[account] += floatValue
+	}
+
+	var result strings.Builder
+	first := true
+	for account, value := range accumulatedValues {
+		if !first {
+			result.WriteString(", ")
+		} else {
+			first = false
+		}
+		formattedValue := formatCurrency(value)
+		result.WriteString(fmt.Sprintf(`"%s": "%s"`, account, formattedValue))
+	}
+
+	return result.String(), nil
+}
+
+func formatCurrency(amount float64) string {
+	formattedValue := fmt.Sprintf("$%.2f", amount)
+
+	parts := strings.Split(formattedValue, ".")
+	integralPart := parts[0]
+
+	// Add commas to the integral part
+	integralPartWithCommas := addCommasToIntegralPart(integralPart)
+
+	// Combine the integral part with commas and the decimal part
+	return integralPartWithCommas + "." + parts[1]
+}
+
+func addCommasToIntegralPart(integralPart string) string {
+	n := len(integralPart)
+	if n <= 3 {
+		return integralPart
+	}
+
+	var result strings.Builder
+	for i, ch := range integralPart {
+		if i > 0 && (n-i)%3 == 0 {
+			result.WriteString(",")
+		}
+		result.WriteRune(ch)
+	}
+
+	return result.String()
+}
+
+func deleteNumberBeforeUSD(input string) string {
+	re := regexp.MustCompile(`(\d+)\s+USD`)
+	output := re.ReplaceAllString(input, "USD")
+	return output
+}
+
+func convertScientificToDecimal(scientificNotation string) (string, error) {
+	f, _, err := big.ParseFloat(scientificNotation, 10, 0, big.ToNearestEven)
+	if err != nil {
+		return "", err
+	}
+	return f.Text('f', -1), nil
 }

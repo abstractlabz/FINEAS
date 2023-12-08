@@ -22,26 +22,31 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// handles the ytd request
-func YtdService(w http.ResponseWriter, r *http.Request) {
+// handles the stk request
+func STKService(w http.ResponseWriter, r *http.Request) {
 
-	type YTD struct {
+	type STK struct {
 		Ticker                      string
 		RecentDateStockPrice        float64
 		YearBeforeRecentStockPrice  float64
-		YTDRecentStockPercentChange float64
+		stkRecentStockPercentChange float64
 	}
 
-	type YTDLOG struct {
+	type stkLOG struct {
 		Timestamp       time.Time
 		ExecutionTimeMs float32
 		RequestIP       string
 		EventSequence   []string
 	}
 
-	var ytdLog YTDLOG
+	type stkOUTPUT struct {
+		Result string
+	}
+
+	var stkLog stkLOG
 	var eventSequenceArray []string
-	var ytd YTD
+	var stk STK
+	var output stkOUTPUT
 
 	//load information structures
 	startTime := time.Now()
@@ -56,7 +61,7 @@ func YtdService(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	eventSequenceArray = append(eventSequenceArray, "collected request ip \n")
-	ytdLog.RequestIP = ip
+	stkLog.RequestIP = ip
 
 	// secure service with pass key hash
 	PASS_KEY := os.Getenv("PASS_KEY")
@@ -101,11 +106,11 @@ func YtdService(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Println(ticker)
-	ytd.Ticker = ticker
+	stk.Ticker = ticker
 	eventSequenceArray = append(eventSequenceArray, "ticker collected \n")
 	//get the previous closing price
 	res, err := sendPreviousCloseInfo(c, ticker)
-	ytd.RecentDateStockPrice = res.Results[0].Close
+	stk.RecentDateStockPrice = res.Results[0].Close
 
 	//calculating dates
 	currentYear := time.Now().Year()
@@ -133,36 +138,40 @@ func YtdService(w http.ResponseWriter, r *http.Request) {
 		recentDay -= 1
 		count2 += 1
 	}
-	ytd.YearBeforeRecentStockPrice = res1.Open
+	stk.YearBeforeRecentStockPrice = res1.Open
 	eventSequenceArray = append(eventSequenceArray, "year before recent date stock price found \n")
 
-	//calculate the ytd recent stock percent change
-	ytdInfoRes := roundDecimal(((ytd.RecentDateStockPrice-
-		ytd.YearBeforeRecentStockPrice)/
-		ytd.YearBeforeRecentStockPrice)*100, 2) // calculate the ytd recent stock percent change
-	ytd.YTDRecentStockPercentChange = ytdInfoRes
-	eventSequenceArray = append(eventSequenceArray, "ytd recent stock percent change calculated \n")
+	//calculate the stk recent stock percent change
+	stkInfoRes := roundDecimal(((stk.RecentDateStockPrice-
+		stk.YearBeforeRecentStockPrice)/
+		stk.YearBeforeRecentStockPrice)*100, 2) // calculate the stk recent stock percent change
+	stk.stkRecentStockPercentChange = stkInfoRes
+	eventSequenceArray = append(eventSequenceArray, "stk recent stock percent change calculated \n")
 
-	ytdJson, err := json.Marshal(ytd) // marshal the ytd struct into json
+	// construct the output string
+	stkOutput := "The yearly stock percent change for " + ticker + " is " + fmt.Sprint(stk.stkRecentStockPercentChange) + "%" + ", as of the date: " + time.Now().Format("01-02-2006")
+	output.Result = stkOutput
+
+	stkJson, err := json.Marshal(output) // marshal the stk struct into json
 	if err != nil {
-		eventSequenceArray = append(eventSequenceArray, "Error: could not marshal ytd struct into json"+err.Error()+"\n")
+		eventSequenceArray = append(eventSequenceArray, "Error: could not marshal stk struct into json"+err.Error()+"\n")
 
 	}
 
 	endTime := time.Now()
 	elapsedTime := endTime.Sub(startTime)
-	ytdLog.ExecutionTimeMs = float32(elapsedTime.Milliseconds())
+	stkLog.ExecutionTimeMs = float32(elapsedTime.Milliseconds())
 	w.Header().Set("Content-Type", "application/json")
-	w.Write([]byte(fmt.Sprint(string(ytdJson))))
-	ytdLog.Timestamp = time.Now()
-	fmt.Println(string(ytdJson))
+	w.Write([]byte(fmt.Sprint(string(stkJson))))
+	stkLog.Timestamp = time.Now()
+	fmt.Println(string(stkJson))
 
 	// insert the log into the database
-	eventSequenceArray = append(eventSequenceArray, "successfully served ytd data \n")
-	ytdLog.EventSequence = eventSequenceArray
+	eventSequenceArray = append(eventSequenceArray, "successfully served stk data \n")
+	stkLog.EventSequence = eventSequenceArray
 	db := client.Database("MicroserviceLogs")
-	collection := db.Collection("YtdServiceLogs")
-	_, err = collection.InsertOne(context.TODO(), ytdLog)
+	collection := db.Collection("stkServiceLogs")
+	_, err = collection.InsertOne(context.TODO(), stkLog)
 	if err != nil {
 		log.Fatal(err)
 	}

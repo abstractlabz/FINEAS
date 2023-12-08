@@ -61,9 +61,9 @@ def chatbot():
     )
 
     #query the vector DB index for prompt
-    context = vectorstore.similarity_search(raw_data,k=5)
+    context = vectorstore.similarity_search(raw_data,k=2)
 
-    prompt_payload = "PROMPT :" + "\n" + raw_data + "The following information is the context which is the only reference the prompt will be answered from." + "\n" + "CONTEXT" + "\n" + str(context)
+    prompt_payload = "You are an AI named FINEAS tasked to generate investment advice about the following company for the user. You will analyze, make inferences and value judgements off of financial data from the following prompt:" + "\n" + "PROMPT:" + "\n" + raw_data + "\n" + "The following is the only data context from which you will answer this prompt:" + "\n" + "CONTEXT:" + "\n" + str(context)
     
     url = LLM_SERVICE_URL + "/llm"
 

@@ -1,25 +1,14 @@
 To Do List:
 
-Backend (GoLang)
+Machine Learning (Python)
+- Restructure Knowledge Base
+- Fine tune prompt generation
+- Develop integration with historical data and knowledge Base
+- Develop integration with stock indicator data 
 
-- Write script which calls aggregator and chatbotdataingestor for every ticker to feed data into pinecone db for dev testing
-- Refactor from net/http to fiber
-- Refactor log tracing
-(After demo)
-- Set up user session handling api and database
-- Set up payment systems api and user membership handling in database
-
-Frontend (React)
-- Create card summaries page with respective card components
-(After demo)
-- Create google auth page with cookies and respective components
-- Create payments page with respective components
-
-Cloud (Akash)
+Infra (Akash, MongoDB, Pinecone)
 - Build docker images
-(After demo)
 - Deploy backend to Akash
-- Deploy frontend to Vercel
 
 
 Business (Marketing):
