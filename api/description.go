@@ -9,6 +9,8 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"regexp"
+	"strings"
 	"time"
 
 	"fineas/pkg/serviceauth"
@@ -31,8 +33,13 @@ func DescriptionService(w http.ResponseWriter, r *http.Request) {
 		EventSequence   []string
 	}
 
+	type descOUTPUT struct {
+		Result string
+	}
+
 	var descLog DESCLOG
 	var eventSequenceArray []string
+	var output descOUTPUT
 
 	//load information structures
 	startTime := time.Now()
@@ -103,7 +110,8 @@ func DescriptionService(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println(err)
 	}
-	fmt.Println(res)
+	output.Result = extractDescription(fmt.Sprint(res))
+	fmt.Println(output.Result)
 
 	// Check if information is already in the database
 	db := client.Database("FinancialInformation")
@@ -111,17 +119,28 @@ func DescriptionService(w http.ResponseWriter, r *http.Request) {
 
 	// Try to find the document in the database
 	var existingDocument bson.M
-	err = db_collection.FindOne(context.Background(), res).Decode(&existingDocument)
+
+	bsonData, err := bson.Marshal(output)
+	if err != nil {
+		eventSequenceArray = append(eventSequenceArray, "could not marshal stkJson to BSON format \n")
+		log.Println("Error marshaling document to BSON:", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("500 Internal Server Error"))
+		return
+	}
+
+	err = db_collection.FindOne(context.Background(), bsonData).Decode(&existingDocument)
 
 	if err == nil {
 		// Document found in the database
 		eventSequenceArray = append(eventSequenceArray, "found stk info in database \n")
 		w.Header().Set("Content-Type", "text/plain")
 		w.Write([]byte("400 Bad Request"))
+		return
 	} else if err == mongo.ErrNoDocuments {
 		// Document not found, insert it into the database
 		eventSequenceArray = append(eventSequenceArray, "could not find stk info in database \n")
-		_, err := db_collection.InsertOne(context.Background(), res)
+		_, err := db_collection.InsertOne(context.Background(), bsonData)
 		if err != nil {
 			eventSequenceArray = append(eventSequenceArray, "could not insert stk info into database \n")
 			log.Println("Error inserting document:", err)
@@ -142,7 +161,7 @@ func DescriptionService(w http.ResponseWriter, r *http.Request) {
 	elapsedTime := endTime.Sub(startTime)
 	descLog.ExecutionTimeMs = float32(elapsedTime.Milliseconds())
 	w.Header().Set("Content-Type", "application/json")
-	w.Write([]byte(fmt.Sprint(res)))
+	w.Write([]byte(fmt.Sprint(output)))
 	descLog.Timestamp = time.Now()
 
 	// insert the log into the database
@@ -154,5 +173,30 @@ func DescriptionService(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+}
+
+func extractDescription(input string) string {
+
+	// Remove unnecessary characters and trim spaces
+	description := strings.ReplaceAll(input, "{", "")
+	description = strings.ReplaceAll(description, "}", "")
+	description = strings.TrimSpace(description)
+
+	startString := "<nil>"
+	endString := "<nil>"
+
+	re := regexp.MustCompile(fmt.Sprintf("%s(.*?)%s", startString, endString))
+
+	match := re.FindStringSubmatch(description)
+
+	if len(match) < 2 {
+		return "Extraction failed"
+	}
+
+	// Extract the text between the specified strings
+	extractedText := match[1]
+
+	return extractedText
 
 }

@@ -152,11 +152,6 @@ func STKService(w http.ResponseWriter, r *http.Request) {
 	// construct the output string
 	stkOutput := "The yearly stock percent change for " + ticker + " is " + fmt.Sprint(stk.stkRecentStockPercentChange)
 	output.Result = stkOutput
-	stkJson, err := json.Marshal(output) // marshal the stk struct into json
-	if err != nil {
-		eventSequenceArray = append(eventSequenceArray, "Error: could not marshal stk struct into json for redundancy checks"+err.Error()+"\n")
-
-	}
 
 	// Check if information is already in the database
 	db := client.Database("FinancialInformation")
@@ -164,17 +159,29 @@ func STKService(w http.ResponseWriter, r *http.Request) {
 
 	// Try to find the document in the database
 	var existingDocument bson.M
-	err = db_collection.FindOne(context.Background(), stkJson).Decode(&existingDocument)
+
+	// Convert stkJson to BSON format
+	bsonData, err := bson.Marshal(output)
+	if err != nil {
+		eventSequenceArray = append(eventSequenceArray, "could not marshal stkJson to BSON format \n")
+		log.Println("Error marshaling document to BSON:", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("500 Internal Server Error"))
+		return
+	}
+
+	err = db_collection.FindOne(context.Background(), (bsonData)).Decode(&existingDocument)
 
 	if err == nil {
 		// Document found in the database
 		eventSequenceArray = append(eventSequenceArray, "found stk info in database \n")
 		w.Header().Set("Content-Type", "text/plain")
 		w.Write([]byte("400 Bad Request"))
+		return
 	} else if err == mongo.ErrNoDocuments {
 		// Document not found, insert it into the database
 		eventSequenceArray = append(eventSequenceArray, "could not find stk info in database \n")
-		_, err := db_collection.InsertOne(context.Background(), stkJson)
+		_, err := db_collection.InsertOne(context.Background(), bsonData)
 		if err != nil {
 			eventSequenceArray = append(eventSequenceArray, "could not insert stk info into database \n")
 			log.Println("Error inserting document:", err)
@@ -192,10 +199,10 @@ func STKService(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// update stk output string with date
-	stkOutput = "The yearly stock percent change for " + ticker + " is " + fmt.Sprint(stk.stkRecentStockPercentChange) + "%" + ", as of " + time.Now().Format("01-02-2006 15:04:05")
+	stkOutput = "The yearly stock percent change for " + ticker + " is " + fmt.Sprint(stk.stkRecentStockPercentChange) + "%" + ", as of date and time " + time.Now().Format("01-02-2006 15:04:05")
 	output.Result = stkOutput
 
-	stkJson, err = json.Marshal(output) // marshal the stk struct into json
+	stkJson, err := json.Marshal(output) // marshal the stk struct into json
 	if err != nil {
 		eventSequenceArray = append(eventSequenceArray, "Error: could not marshal stk struct into json"+err.Error()+"\n")
 

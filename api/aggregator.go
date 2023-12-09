@@ -154,13 +154,13 @@ func HandleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 	eventSequenceArray = append(eventSequenceArray, "queried desc info \n")
 
 	fmt.Println("TEST PRINTS")
-	fmt.Println(stk_info)
-	fmt.Println(fin_info)
-	fmt.Println(news_info)
-	fmt.Println(desc_info)
+	fmt.Println("stk info " + stk_info)
+	fmt.Println("fin info " + fin_info)
+	fmt.Println("news info" + news_info)
+	fmt.Println("desc info" + desc_info)
 
 	// stock perfomance
-	if stk_info != "400 Bad Request" {
+	if stk_info != "400 Bad Request" && stk_info != "500 Internal Server Error" {
 		stkTemplate := STK_TEMPLATE
 		stkInference := getPromptInference(string(queriedInfoAggregate.YtdInfo), stkTemplate, "/llm", "http://127.0.0.1:5000", eventSequenceArray, passHash)
 		stkInference = strings.Trim(stkInference, "{}")
@@ -172,7 +172,7 @@ func HandleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 		eventSequenceArray = append(eventSequenceArray, "stk prompt inference failed \n")
 	}
 	// financial health
-	if fin_info != "400 Bad Request" {
+	if fin_info != "400 Bad Request" && fin_info != "500 Internal Server Error" {
 		finTemplate := FIN_TEMPLATE
 		finInference := getPromptInference(string(queriedInfoAggregate.FinInfo), finTemplate, "/llm", "http://127.0.0.1:5000", eventSequenceArray, passHash)
 		finInference = strings.Trim(finInference, "{}")
@@ -184,7 +184,7 @@ func HandleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 		eventSequenceArray = append(eventSequenceArray, "fin prompt inference failed \n")
 	}
 	// news summary
-	if news_info != "400 Bad Request" {
+	if news_info != "400 Bad Request" && news_info != "500 Internal Server Error" {
 		newsTemplate := NEWS_TEMPLATE
 		newsInference := getPromptInference(string(queriedInfoAggregate.NewsInfo), newsTemplate, "/llm", "http://127.0.0.1:5000", eventSequenceArray, passHash)
 		newsInference = strings.Trim(newsInference, "{}")
@@ -196,7 +196,7 @@ func HandleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 		eventSequenceArray = append(eventSequenceArray, "news prompt inference failed \n")
 	}
 	// company description
-	if desc_info != "400 Bad Request" {
+	if desc_info != "400 Bad Request" && desc_info != "500 Internal Server Error" {
 		descTemplate := DESC_TEMPLATE
 		descInference := getPromptInference(string(queriedInfoAggregate.DescInfo), descTemplate, "/llm", "http://127.0.0.1:5000", eventSequenceArray, passHash)
 		descInference = strings.Trim(descInference, "{}")

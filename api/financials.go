@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"fineas/pkg/serviceauth"
 	"fmt"
 	"log"
@@ -33,8 +34,13 @@ func FinService(w http.ResponseWriter, r *http.Request) {
 		EventSequence   []string
 	}
 
+	type finOUTPUT struct {
+		Result string
+	}
+
 	var finLog FINLOG
 	var eventSequenceArray []string
+	var output finOUTPUT
 
 	// Load information structures
 	startTime := time.Now()
@@ -145,8 +151,8 @@ func FinService(w http.ResponseWriter, r *http.Request) {
 	finLog.ExecutionTimeMs = float32(elapsedTime.Milliseconds())
 
 	// Convert accumulated financial values to JSON format
-	jsonResult := fmt.Sprintf(`{"Result": "%s"}`, strings.ReplaceAll(collection, "\n", ", "))
-	fmt.Println(jsonResult)
+	collection = strings.ReplaceAll(collection, "\n", ", ")
+	output.Result = collection
 
 	// Check if information is already in the database
 	db := client.Database("FinancialInformation")
@@ -154,25 +160,35 @@ func FinService(w http.ResponseWriter, r *http.Request) {
 
 	// Try to find the document in the database
 	var existingDocument bson.M
-	err = db_collection.FindOne(context.Background(), jsonResult).Decode(&existingDocument)
+
+	bsonData, err := bson.Marshal(output)
+	if err != nil {
+		eventSequenceArray = append(eventSequenceArray, "could not marshal stkJson to BSON format \n")
+		log.Println("Error marshaling document to BSON:", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("500 Internal Server Error"))
+		return
+	}
+	err = db_collection.FindOne(context.Background(), bsonData).Decode(&existingDocument)
 
 	if err == nil {
 		// Document found in the database
-		eventSequenceArray = append(eventSequenceArray, "found stk info in database \n")
+		eventSequenceArray = append(eventSequenceArray, "found fin info in database \n")
 		w.Header().Set("Content-Type", "text/plain")
 		w.Write([]byte("400 Bad Request"))
+		return
 	} else if err == mongo.ErrNoDocuments {
 		// Document not found, insert it into the database
-		eventSequenceArray = append(eventSequenceArray, "could not find stk info in database \n")
-		_, err := db_collection.InsertOne(context.Background(), jsonResult)
+		eventSequenceArray = append(eventSequenceArray, "could not find fin info in database \n")
+		_, err := db_collection.InsertOne(context.Background(), bsonData)
 		if err != nil {
-			eventSequenceArray = append(eventSequenceArray, "could not insert stk info into database \n")
+			eventSequenceArray = append(eventSequenceArray, "could not insert fin info into database \n")
 			log.Println("Error inserting document:", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte("500 Internal Server Error"))
 			return
 		}
-		eventSequenceArray = append(eventSequenceArray, "successfully inserted stk info into database \n")
+		eventSequenceArray = append(eventSequenceArray, "successfully inserted fin info into database \n")
 	} else {
 		// Other error occurred during the FindOne operation
 		log.Println("Error finding document:", err)
@@ -181,11 +197,17 @@ func FinService(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	collection = "The balance sheet for " + ticker + " is " + collection + ", as of " + time.Now().Format("01-02-2006 15:04:05")
-	jsonResult = fmt.Sprintf(`{"Result": "%s"}`, strings.ReplaceAll(collection, "\n", ", "))
+	collection = "The balance sheet for " + ticker + " is " + collection + ", as of date and time " + time.Now().Format("01-02-2006 15:04:05")
+	output.Result = collection
+
+	finJson, err := json.Marshal(output) // marshal the stk struct into json
+	if err != nil {
+		eventSequenceArray = append(eventSequenceArray, "Error: could not marshal stk struct into json"+err.Error()+"\n")
+
+	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.Write([]byte(jsonResult)) // Return the accumulated financial values in JSON format
+	w.Write([]byte(finJson)) // Return the accumulated financial values in JSON format
 	finLog.Timestamp = time.Now()
 
 	// Insert the log into the database
