@@ -89,10 +89,13 @@ func FinService(w http.ResponseWriter, r *http.Request) {
 
 	// Polygon API connection
 	API_KEY := os.Getenv("API_KEY")
+	WRITE_KEY := os.Getenv("WRITE_KEY")
 	c := polygon.New(API_KEY)
 
 	// Ticker input checking
 	ticker := queryParams.Get("ticker")
+	writeKey := queryParams.Get("writekey")
+
 	if len(ticker) == 0 {
 		log.Println("Missing required parameter 'ticker' in the query string")
 		w.Write([]byte(http.StatusText(http.StatusBadRequest)))
@@ -154,46 +157,50 @@ func FinService(w http.ResponseWriter, r *http.Request) {
 	collection = strings.ReplaceAll(collection, "\n", ", ")
 	output.Result = collection
 
-	// Check if information is already in the database
-	db := client.Database("FinancialInformation")
-	db_collection := db.Collection("RawInformation")
+	if (writeKey == WRITE_KEY) && (len(writeKey) != 0) {
+		fmt.Println("write key correct")
+		// Check if information is already in the database
+		db := client.Database("FinancialInformation")
+		db_collection := db.Collection("RawInformation")
 
-	// Try to find the document in the database
-	var existingDocument bson.M
+		// Try to find the document in the database
+		var existingDocument bson.M
 
-	bsonData, err := bson.Marshal(output)
-	if err != nil {
-		eventSequenceArray = append(eventSequenceArray, "could not marshal stkJson to BSON format \n")
-		log.Println("Error marshaling document to BSON:", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("500 Internal Server Error"))
-		return
-	}
-	err = db_collection.FindOne(context.Background(), bsonData).Decode(&existingDocument)
-
-	if err == nil {
-		// Document found in the database
-		eventSequenceArray = append(eventSequenceArray, "found fin info in database \n")
-		w.Header().Set("Content-Type", "text/plain")
-		w.Write([]byte("400 Bad Request"))
-		return
-	} else if err == mongo.ErrNoDocuments {
-		// Document not found, insert it into the database
-		eventSequenceArray = append(eventSequenceArray, "could not find fin info in database \n")
-		_, err := db_collection.InsertOne(context.Background(), bsonData)
+		bsonData, err := bson.Marshal(output)
 		if err != nil {
-			eventSequenceArray = append(eventSequenceArray, "could not insert fin info into database \n")
-			log.Println("Error inserting document:", err)
+			eventSequenceArray = append(eventSequenceArray, "could not marshal stkJson to BSON format \n")
+			log.Println("Error marshaling document to BSON:", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte("500 Internal Server Error"))
 			return
 		}
-		eventSequenceArray = append(eventSequenceArray, "successfully inserted fin info into database \n")
-	} else {
-		// Other error occurred during the FindOne operation
-		log.Println("Error finding document:", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("500 Internal Server Error"))
+		err = db_collection.FindOne(context.Background(), bsonData).Decode(&existingDocument)
+
+		if err == nil {
+			// Document found in the database
+			eventSequenceArray = append(eventSequenceArray, "found fin info in database \n")
+			w.Header().Set("Content-Type", "text/plain")
+			w.Write([]byte("400 Bad Request"))
+			return
+		} else if err == mongo.ErrNoDocuments {
+			// Document not found, insert it into the database
+			eventSequenceArray = append(eventSequenceArray, "could not find fin info in database \n")
+			_, err := db_collection.InsertOne(context.Background(), bsonData)
+			if err != nil {
+				eventSequenceArray = append(eventSequenceArray, "could not insert fin info into database \n")
+				log.Println("Error inserting document:", err)
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte("500 Internal Server Error"))
+				return
+			}
+			eventSequenceArray = append(eventSequenceArray, "successfully inserted fin info into database \n")
+		} else {
+			// Other error occurred during the FindOne operation
+			log.Println("Error finding document:", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("500 Internal Server Error"))
+			return
+		}
 		return
 	}
 
@@ -212,7 +219,7 @@ func FinService(w http.ResponseWriter, r *http.Request) {
 
 	// Insert the log into the database
 	eventSequenceArray = append(eventSequenceArray, "successfully served financials data \n")
-	db = client.Database("MicroserviceLogs")
+	db := client.Database("MicroserviceLogs")
 	DBcollection := db.Collection("FinancialsServiceLogs")
 	_, err = DBcollection.InsertOne(context.TODO(), finLog)
 	if err != nil {

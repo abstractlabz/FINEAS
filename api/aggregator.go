@@ -74,6 +74,7 @@ func HandleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 	startTime := time.Now()
 	queryParams := r.URL.Query()
 	ticker := queryParams.Get("ticker")
+	writekey := queryParams.Get("writekey")
 	if len(ticker) == 0 {
 		log.Println("Missing required parameter 'ticker' in the query string")
 		w.Write([]byte(http.StatusText(http.StatusBadRequest)))
@@ -107,6 +108,7 @@ func HandleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 	NEWS_TEMPLATE := os.Getenv("NEWS_TEMPLATE")
 	DESC_TEMPLATE := os.Getenv("DESC_TEMPLATE")
 	PASS_KEY := os.Getenv("PASS_KEY")
+	WRITE_KEY := os.Getenv("WRITE_KEY")
 
 	// connnect to mongodb
 	MONGO_DB_LOGGER_PASSWORD := os.Getenv("MONGO_DB_LOGGER_PASSWORD")
@@ -137,19 +139,19 @@ func HandleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 	queriedInfoAggregate.Ticker = ticker
 	eventSequenceArray = append(eventSequenceArray, "queried ticker \n")
 
-	stk_info := getFinancialInfo(ticker, "/stk", STK_SERVICE_URL, passHash, eventSequenceArray)
+	stk_info := getFinancialInfo(ticker, "/stk", STK_SERVICE_URL, passHash, writekey, eventSequenceArray)
 	queriedInfoAggregate.YtdInfo = stk_info
 	eventSequenceArray = append(eventSequenceArray, "queried stk info \n")
 
-	fin_info := getFinancialInfo(ticker, "/fin", FIN_SERVICE_URL, passHash, eventSequenceArray)
+	fin_info := getFinancialInfo(ticker, "/fin", FIN_SERVICE_URL, passHash, writekey, eventSequenceArray)
 	queriedInfoAggregate.FinInfo = fin_info
 	eventSequenceArray = append(eventSequenceArray, "queried fin info \n")
 
-	news_info := getFinancialInfo(ticker, "/news", NEWS_SERVICE_URL, passHash, eventSequenceArray)
+	news_info := getFinancialInfo(ticker, "/news", NEWS_SERVICE_URL, passHash, writekey, eventSequenceArray)
 	queriedInfoAggregate.NewsInfo = news_info
 	eventSequenceArray = append(eventSequenceArray, "queried news info \n")
 
-	desc_info := getFinancialInfo(ticker, "/desc", DESC_SERVICE_URL, passHash, eventSequenceArray)
+	desc_info := getFinancialInfo(ticker, "/desc", DESC_SERVICE_URL, passHash, writekey, eventSequenceArray)
 	queriedInfoAggregate.DescInfo = desc_info
 	eventSequenceArray = append(eventSequenceArray, "queried desc info \n")
 
@@ -217,28 +219,32 @@ func HandleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 	companydesc := strings.Replace(promptInference.CompanyDesc, "{", "|", -1)
 	companydesc = strings.Replace(companydesc, "}", "|", -1)
 
-	postDataInfo := PostDataInfo{
-		Ticker:           ticker,
-		StockPerformance: stockperformace,
-		FinancialHealth:  financialhealth,
-		NewsSummary:      newssummary,
-		CompanyDesc:      companydesc,
-	}
+	// if writekey is valid, post the data to the data ingestor
+	if (writekey == WRITE_KEY) && (len(writekey) != 0) {
+		fmt.Println("write key correct")
+		postDataInfo := PostDataInfo{
+			Ticker:           ticker,
+			StockPerformance: stockperformace,
+			FinancialHealth:  financialhealth,
+			NewsSummary:      newssummary,
+			CompanyDesc:      companydesc,
+		}
 
-	// Marshal the struct into JSON
-	postJsonData, err := json.Marshal(postDataInfo)
-	if err != nil {
-		fmt.Println("Error marshaling JSON:", err)
-		return
-	}
+		// Marshal the struct into JSON
+		postJsonData, err := json.Marshal(postDataInfo)
+		if err != nil {
+			fmt.Println("Error marshaling JSON:", err)
+			return
+		}
 
-	// Posts the whole financial data blob to the data ingestor
-	resPostFinancialData := postFinancialData(string(postJsonData), eventSequenceArray, passHash)
-	if resPostFinancialData != "200 Status OK" {
-		panic(err)
-	}
-	if err != nil {
-		panic(err)
+		// Posts the whole financial data blob to the data ingestor
+		resPostFinancialData := postFinancialData(string(postJsonData), eventSequenceArray, passHash)
+		if resPostFinancialData != "200 Status OK" {
+			panic(err)
+		}
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	// Return the PromptInference json object as the response
@@ -264,14 +270,14 @@ func HandleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 }
 
 // gets the financial information from the polygon.io services
-func getFinancialInfo(ticker string, handlerID string, handlerURL string, passHash string, eventSequenceArray []string) string {
+func getFinancialInfo(ticker string, handlerID string, handlerURL string, passHash string, writekey string, eventSequenceArray []string) string {
 
 	// Create a new HTTP client
 	client := &http.Client{}
 
 	// Construct the URL with query parameters
 	base_url := handlerURL + handlerID
-	url := base_url + "?" + "ticker=" + ticker
+	url := base_url + "?" + "ticker=" + ticker + "&writekey=" + writekey
 
 	// Create a GET request
 	req, err := http.NewRequest("GET", url, nil)

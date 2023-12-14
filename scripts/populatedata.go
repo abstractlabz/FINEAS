@@ -2,10 +2,20 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
+	"os"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
+
+	err := godotenv.Load("../.env") // load the .env file
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+	WRITE_KEY := os.Getenv("WRITE_KEY")
 	stockTickers := []string{
 		// S&P 500
 		"AAPL",
@@ -182,8 +192,9 @@ func main() {
 
 		// Construct the URL with query parameters
 		base_url := "http://localhost:8080/"
-		url := base_url + "?" + "ticker=" + ticker
-
+		url := base_url + "?" + "ticker=" + ticker + "&writekey=" + WRITE_KEY
+		fmt.Println("WRITE_KEY:", WRITE_KEY)
+		fmt.Println(url)
 		// Create a GET request
 		req, err := http.NewRequest("GET", url, nil)
 		if err != nil {
