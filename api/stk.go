@@ -153,7 +153,7 @@ func STKService(w http.ResponseWriter, r *http.Request) {
 	eventSequenceArray = append(eventSequenceArray, "stk recent stock percent change calculated \n")
 
 	// construct the output string
-	stkOutput := "The yearly stock percent change for " + ticker + " is " + fmt.Sprint(stk.stkRecentStockPercentChange)
+	stkOutput := stk.Ticker + " stock previously closed at " + "$" + fmt.Sprint(stk.RecentDateStockPrice) + "." + "The yearly stock percent change for " + ticker + " is " + fmt.Sprint(stk.stkRecentStockPercentChange)
 	output.Result = stkOutput
 
 	if (writeKey == WRITE_KEY) && (len(writeKey) != 0) {
@@ -206,7 +206,7 @@ func STKService(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// update stk output string with date
-	stkOutput = "The yearly stock percent change for " + ticker + " is " + fmt.Sprint(stk.stkRecentStockPercentChange) + "%" + ", as of date and time " + time.Now().Format("01-02-2006 15:04:05")
+	stkOutput = stk.Ticker + " stock previously closed at " + "$" + fmt.Sprint(stk.RecentDateStockPrice) + "." + "The yearly stock percent change for " + ticker + " is " + fmt.Sprint(stk.stkRecentStockPercentChange) + "%" + ", as of date and time " + time.Now().Format("01-02-2006 15:04:05")
 	output.Result = stkOutput
 
 	stkJson, err := json.Marshal(output) // marshal the stk struct into json
@@ -253,16 +253,17 @@ func sendClosingPriceAtDate(c *polygon.Client, ticker string, currentYear int, c
 
 // sends the request to the Polygon API
 func sendPreviousCloseInfo(c *polygon.Client, ticker string) (*models.GetPreviousCloseAggResponse, error) {
-	paramsGDOC := models.GetPreviousCloseAggParams{ // params for recent date stock price
+	params := models.GetPreviousCloseAggParams{
 		Ticker: ticker,
 	}.WithAdjusted(true)
 
-	res, err := c.GetPreviousCloseAgg(context.Background(), paramsGDOC) // get recent date stock price
+	// make request
+	res, err := c.GetPreviousCloseAgg(context.Background(), params)
 	if err != nil {
-		log.Println(err)
-		return res, err
+		log.Fatal(err)
 	}
 
+	// do something with the result
 	return res, err
 }
 
