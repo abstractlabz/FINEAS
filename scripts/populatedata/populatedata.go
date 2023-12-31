@@ -1,21 +1,23 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/joho/godotenv"
 )
 
 func main() {
-
-	err := godotenv.Load("../.env") // load the .env file
+	err := godotenv.Load("../../.env")
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
 	WRITE_KEY := os.Getenv("WRITE_KEY")
+
 	stockTickers := []string{
 		// S&P 500
 		"AAPL",
@@ -185,29 +187,54 @@ func main() {
 		"TTD",
 	}
 
-	// iterate through the list of stock tickers
-	for _, ticker := range stockTickers {
-		// Create a new HTTP client
-		client := &http.Client{}
+	// Add a command-line flag for manual execution
+	manualExecution := flag.Bool("manual", false, "Set to true to execute manually")
+	flag.Parse()
 
-		// Construct the URL with query parameters
-		base_url := "http://localhost:8080/"
+	if *manualExecution {
+		// Manual execution
+		fetchData(stockTickers, WRITE_KEY)
+	} else {
+		// Scheduled execution
+		scheduleFetchData(stockTickers, WRITE_KEY)
+	}
+}
+
+func scheduleFetchData(stockTickers []string, WRITE_KEY string) {
+	ticker := time.NewTicker(1 * time.Minute)
+	defer ticker.Stop()
+
+	for {
+		<-ticker.C
+		now := time.Now()
+		if now.Hour() == 3 && now.Weekday() >= time.Monday && now.Weekday() <= time.Friday {
+			fetchData(stockTickers, WRITE_KEY)
+		}
+	}
+}
+
+func fetchData(stockTickers []string, WRITE_KEY string) {
+	client := &http.Client{}
+	base_url := "http://localhost:8080/"
+
+	for _, ticker := range stockTickers {
 		url := base_url + "?" + "ticker=" + ticker + "&writekey=" + WRITE_KEY
-		fmt.Println("WRITE_KEY:", WRITE_KEY)
-		fmt.Println(url)
-		// Create a GET request
+		fmt.Println("Requesting data for:", ticker)
+
 		req, err := http.NewRequest("GET", url, nil)
 		if err != nil {
-			panic(err)
+			log.Printf("Error creating request for %s: %v", ticker, err)
+			continue
 		}
-		// Send the request
+
 		resp, err := client.Do(req)
 		if err != nil {
-			panic(err)
+			log.Printf("Error fetching data for %s: %v", ticker, err)
+			continue
 		}
 		defer resp.Body.Close()
 
-		fmt.Println(ticker)
+		// Handle response here as needed
+		// For example, you might read and process the response body
 	}
-
 }

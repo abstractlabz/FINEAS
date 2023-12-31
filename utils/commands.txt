@@ -20,3 +20,7 @@ curl -X GET "http://127.0.0.1:6002/chat?prompt=By%20what%20percentage%20did%20Am
 
 
 curl -X GET "http://localhost:8082/?ticker=AAPL" -H "Authorization: Bearer 671b31a4e4d59e1f4e344e91fb343c6988462a0afcf828bcd3f55404058819f2"
+
+go run populateData.go
+
+go run populateData.go -manual=true
