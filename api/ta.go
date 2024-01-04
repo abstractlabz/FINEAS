@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fineas/pkg/serviceauth"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
@@ -26,11 +27,12 @@ import (
 func TechnicalAnalysisService(w http.ResponseWriter, r *http.Request) {
 
 	type TA struct {
-		Ticker string
-		SMA    string
-		MACD   string
-		RSI    string
-		EMA    string
+		Ticker    string
+		StockInfo string
+		SMA       string
+		MACD      string
+		RSI       string
+		EMA       string
 	}
 
 	type taLOG struct {
@@ -72,19 +74,16 @@ func TechnicalAnalysisService(w http.ResponseWriter, r *http.Request) {
 	passHash := hex.EncodeToString(getPassHash)
 	serviceauth.ServiceAuthMiddleware(w, r, eventSequenceArray, passHash)
 
-	// connnect to mongodb
 	MONGO_DB_LOGGER_PASSWORD := os.Getenv("MONGO_DB_LOGGER_PASSWORD")
 	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
 	mongoURI := "mongodb+srv://kobenaidun:" + MONGO_DB_LOGGER_PASSWORD + "@cluster0.z9znpv9.mongodb.net/?retryWrites=true&w=majority"
 	opts := options.Client().ApplyURI(mongoURI).SetServerAPIOptions(serverAPI)
-	// Create a new client and connect to the server
 	client, err := mongo.Connect(context.TODO(), opts)
 	if err != nil {
 		eventSequenceArray = append(eventSequenceArray, "could not connect to database client \n")
 		panic(err)
 	}
 	eventSequenceArray = append(eventSequenceArray, "connected to database client \n")
-
 	defer func() {
 		if err = client.Disconnect(context.TODO()); err != nil {
 			eventSequenceArray = append(eventSequenceArray, "could not connect to database \n")
@@ -93,12 +92,10 @@ func TechnicalAnalysisService(w http.ResponseWriter, r *http.Request) {
 		eventSequenceArray = append(eventSequenceArray, "connected to database \n")
 	}()
 
-	// polygon API connection
 	API_KEY := os.Getenv("API_KEY")
 	WRITE_KEY := os.Getenv("WRITE_KEY")
 	c := polygon.New(API_KEY)
 
-	// ticker input checking
 	ticker := queryParams.Get("ticker")
 	writeKey := queryParams.Get("writekey")
 
@@ -113,18 +110,11 @@ func TechnicalAnalysisService(w http.ResponseWriter, r *http.Request) {
 	ta.Ticker = ticker
 	eventSequenceArray = append(eventSequenceArray, "ticker collected \n")
 
-	//collect technical analysis information
-
 	if (writeKey == WRITE_KEY) && (len(writeKey) != 0) {
 		fmt.Println("write key correct")
-		// Check if information is already in the database
 		db := client.Database("FinancialInformation")
 		db_collection := db.Collection("RawInformation")
-
-		// Try to find the document in the database
 		var existingDocument bson.M
-
-		// Convert stkJson to BSON format
 		bsonData, err := bson.Marshal(output)
 		if err != nil {
 			eventSequenceArray = append(eventSequenceArray, "could not marshal stkJson to BSON format \n")
@@ -137,13 +127,11 @@ func TechnicalAnalysisService(w http.ResponseWriter, r *http.Request) {
 		err = db_collection.FindOne(context.Background(), (bsonData)).Decode(&existingDocument)
 
 		if err == nil {
-			// Document found in the database
 			eventSequenceArray = append(eventSequenceArray, "found stk info in database \n")
 			w.Header().Set("Content-Type", "text/plain")
 			w.Write([]byte("400 Bad Request"))
 			return
 		} else if err == mongo.ErrNoDocuments {
-			// Document not found, insert it into the database
 			eventSequenceArray = append(eventSequenceArray, "could not find stk info in database \n")
 			_, err := db_collection.InsertOne(context.Background(), bsonData)
 			if err != nil {
@@ -155,30 +143,44 @@ func TechnicalAnalysisService(w http.ResponseWriter, r *http.Request) {
 			}
 			eventSequenceArray = append(eventSequenceArray, "successfully inserted stk info into database \n")
 		} else {
-			// Other error occurred during the FindOne operation
 			log.Println("Error finding document:", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte("500 Internal Server Error"))
 			return
 		}
-		return
 	}
 
-	// update ta output with date
-	getTaMACD, err := sendMACD(c, ticker)
-	getTaSMA, err := sendSMA(c, ticker)
-	getTaEMA, err := sendEMA(c, ticker)
-	getTaRSI, err := getRSI(c, ticker)
-	taMACD := getTaMACD.Results.Values[0]
-	taSMA := getTaSMA.Results.Values[0]
-	taEMA := getTaEMA.Results.Values[0]
-	taRSI := getTaRSI.Results.Values[0]
+	ta.StockInfo, err = getSTKData(ticker, passHash)
+	if err != nil {
+		log.Printf("Error fetching STK data: %v\n", err)
+		eventSequenceArray = append(eventSequenceArray, "could not collect stk info \n")
+	} else {
+		eventSequenceArray = append(eventSequenceArray, "stk info collected \n")
+	}
 
-	ta.MACD = fmt.Sprintln("Moving Average Convergence/Divergence Indicator: ", taMACD)
-	ta.SMA = fmt.Sprintln("Simple Moving Average: ", taSMA)
-	ta.EMA = fmt.Sprintln("Exponential Moving Average: ", taEMA)
-	ta.RSI = fmt.Sprintln("Relative Strength Index: ", taRSI)
-	output.Result = ta.MACD + "\n" + ta.SMA + "\n" + ta.EMA + "\n" + ta.RSI + "\n"
+	getTaMACD, err := sendMACD(c, ticker)
+	if err != nil {
+		log.Println("Error fetching MACD data:", err)
+	}
+	getTaSMA, err := sendSMA(c, ticker)
+	if err != nil {
+		log.Println("Error fetching SMA data:", err)
+	}
+	getTaEMA, err := sendEMA(c, ticker)
+	if err != nil {
+		log.Println("Error fetching EMA data:", err)
+	}
+	getTaRSI, err := getRSI(c, ticker)
+	if err != nil {
+		log.Println("Error fetching RSI data:", err)
+	}
+
+	ta.MACD = formatIndicatorResult("MACD", getTaMACD)
+	ta.SMA = formatIndicatorResult("SMA", getTaSMA)
+	ta.EMA = formatIndicatorResult("EMA", getTaEMA)
+	ta.RSI = formatIndicatorResult("RSI", getTaRSI)
+
+	output.Result = fmt.Sprintf("Stock Info: %s, %s, %s, %s, %s", ta.StockInfo, ta.MACD, ta.SMA, ta.EMA, ta.RSI)
 	if err != nil {
 		eventSequenceArray = append(eventSequenceArray, "could not collect stk info \n")
 		fmt.Println(err)
@@ -276,4 +278,72 @@ func getRSI(c *polygon.Client, ticker string) (*models.GetRSIResponse, error) {
 
 	// do something with the result
 	return res, err
+}
+
+func formatIndicatorResult(indicator string, value interface{}) string {
+	// Assuming the value is of type *models.GetIndicatorResponse
+	// where GetIndicatorResponse represents the response type for each indicator
+	switch v := value.(type) {
+	case *models.GetMACDResponse:
+		if len(v.Results.Values) > 0 {
+			return fmt.Sprintf("%s: %s %f %s %f %s %f", indicator, "MACD Value: ", v.Results.Values[0].Value, "Signal: ", v.Results.Values[0].Signal, "Histogram: ", v.Results.Values[0].Histogram)
+		}
+	case *models.GetSMAResponse:
+		if len(v.Results.Values) > 0 {
+			return fmt.Sprintf("%s: %s %f", indicator, "SMA Value: ", v.Results.Values[0].Value)
+		}
+	case *models.GetEMAResponse:
+		if len(v.Results.Values) > 0 {
+			return fmt.Sprintf("%s: %s %f", indicator, "EMA Value: ", v.Results.Values[0].Value)
+		}
+	case *models.GetRSIResponse:
+		if len(v.Results.Values) > 0 {
+			return fmt.Sprintf("%s: %s %f", indicator, "RSI Value: ", v.Results.Values[0].Value)
+		}
+	}
+
+	return fmt.Sprintf("%s: Data not available", indicator)
+}
+
+func getSTKData(ticker string, passHash string) (string, error) {
+	stkServiceURL := "http://localhost:8081/stk" // Replace with actual URL
+	req, err := http.NewRequest("GET", stkServiceURL, nil)
+	if err != nil {
+		return "", err
+	}
+
+	q := req.URL.Query()
+	q.Add("ticker", ticker)
+	req.URL.RawQuery = q.Encode()
+
+	client := &http.Client{}
+	req.Header.Set("Authorization", "Bearer "+passHash)
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	// Check the status code
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("received non-OK HTTP status code: %d", resp.StatusCode)
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	// Log the raw response
+	fmt.Printf("Raw STK response: %s\n", string(body))
+	type STKResponse struct {
+		Result string
+	}
+	var stkResp STKResponse
+	err = json.Unmarshal(body, &stkResp)
+	if err != nil {
+		return "", err
+	}
+
+	return stkResp.Result, nil
 }
