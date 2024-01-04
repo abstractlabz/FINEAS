@@ -33,6 +33,11 @@ func main() {
 		log.Println(http.ListenAndServe(":8084", nil))
 	}()
 
+	go func() {
+		http.HandleFunc("/ta", api.TechnicalAnalysisService)
+		log.Println(http.ListenAndServe(":8089", nil))
+	}()
+
 	// Keep the main goroutine running to prevent the program from exiting
 	select {}
 }

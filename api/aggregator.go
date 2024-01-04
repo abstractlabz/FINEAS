@@ -31,23 +31,26 @@ func HandleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 		FinInfo  string
 		NewsInfo string
 		DescInfo string
+		TaInfo   string
 	}
 
 	//to represent the aggregate of all prompt inferences
 	type PromptInference struct {
-		StockPerformance string
-		FinancialHealth  string
-		NewsSummary      string
-		CompanyDesc      string
+		StockPerformance  string
+		FinancialHealth   string
+		NewsSummary       string
+		CompanyDesc       string
+		TechnicalAnalysis string
 	}
 
 	// to represent data posted to the data ingestor
 	type PostDataInfo struct {
-		Ticker           string
-		StockPerformance string
-		FinancialHealth  string
-		NewsSummary      string
-		CompanyDesc      string
+		Ticker            string
+		StockPerformance  string
+		FinancialHealth   string
+		NewsSummary       string
+		CompanyDesc       string
+		TechnicalAnalysis string
 	}
 
 	// aggregate of all event sequences
@@ -103,10 +106,12 @@ func HandleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 	FIN_SERVICE_URL := os.Getenv("FIN_SERVICE_URL")
 	NEWS_SERVICE_URL := os.Getenv("NEWS_SERVICE_URL")
 	DESC_SERVICE_URL := os.Getenv("DESC_SERVICE_URL")
+	TA_SERVICE_URL := os.Getenv("TA_SERVICE_URL")
 	STK_TEMPLATE := os.Getenv("STK_TEMPLATE")
 	FIN_TEMPLATE := os.Getenv("FIN_TEMPLATE")
 	NEWS_TEMPLATE := os.Getenv("NEWS_TEMPLATE")
 	DESC_TEMPLATE := os.Getenv("DESC_TEMPLATE")
+	TA_TEMPLATE := os.Getenv("TA_TEMPLATE")
 	PASS_KEY := os.Getenv("PASS_KEY")
 	WRITE_KEY := os.Getenv("WRITE_KEY")
 
@@ -155,11 +160,16 @@ func HandleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 	queriedInfoAggregate.DescInfo = desc_info
 	eventSequenceArray = append(eventSequenceArray, "queried desc info \n")
 
+	ta_info := getFinancialInfo(ticker, "/ta", TA_SERVICE_URL, passHash, writekey, eventSequenceArray)
+	queriedInfoAggregate.TaInfo = ta_info
+	eventSequenceArray = append(eventSequenceArray, "queried ta info \n")
+
 	fmt.Println("TEST PRINTS")
 	fmt.Println("stk info " + stk_info)
 	fmt.Println("fin info " + fin_info)
 	fmt.Println("news info" + news_info)
 	fmt.Println("desc info" + desc_info)
+	fmt.Println("ta info" + ta_info)
 
 	// stock perfomance
 	if stk_info != "400 Bad Request" && stk_info != "500 Internal Server Error" {
@@ -209,6 +219,18 @@ func HandleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 		promptInference.CompanyDesc = "N/A"
 		eventSequenceArray = append(eventSequenceArray, "desc prompt inference failed \n")
 	}
+	// company description
+	if ta_info != "400 Bad Request" && ta_info != "500 Internal Server Error" {
+		taTemplate := TA_TEMPLATE
+		taInference := getPromptInference(string(queriedInfoAggregate.DescInfo), taTemplate, "/llm", "http://127.0.0.1:5000", eventSequenceArray, passHash)
+		taInference = strings.Trim(taInference, "{}")
+		promptInference.TechnicalAnalysis = taInference
+		eventSequenceArray = append(eventSequenceArray, "collected ta prompt inference \n")
+	} else {
+		//
+		promptInference.TechnicalAnalysis = "N/A"
+		eventSequenceArray = append(eventSequenceArray, "ta prompt inference failed \n")
+	}
 	//constructs valid json string
 	stockperformace := strings.Replace(promptInference.StockPerformance, "{", "|", -1)
 	stockperformace = strings.Replace(stockperformace, "}", "|", -1)
@@ -218,16 +240,19 @@ func HandleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 	newssummary = strings.Replace(newssummary, "}", "|", -1)
 	companydesc := strings.Replace(promptInference.CompanyDesc, "{", "|", -1)
 	companydesc = strings.Replace(companydesc, "}", "|", -1)
+	technicalanalysis := strings.Replace(promptInference.TechnicalAnalysis, "{", "|", -1)
+	technicalanalysis = strings.Replace(technicalanalysis, "}", "|", -1)
 
 	// if writekey is valid, post the data to the data ingestor
 	if (writekey == WRITE_KEY) && (len(writekey) != 0) {
 		fmt.Println("write key correct")
 		postDataInfo := PostDataInfo{
-			Ticker:           ticker,
-			StockPerformance: stockperformace,
-			FinancialHealth:  financialhealth,
-			NewsSummary:      newssummary,
-			CompanyDesc:      companydesc,
+			Ticker:            ticker,
+			StockPerformance:  stockperformace,
+			FinancialHealth:   financialhealth,
+			NewsSummary:       newssummary,
+			CompanyDesc:       companydesc,
+			TechnicalAnalysis: technicalanalysis,
 		}
 
 		// Marshal the struct into JSON
