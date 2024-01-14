@@ -123,11 +123,14 @@ func HandleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 	// Create a new client and connect to the server
 	client, err := mongo.Connect(context.TODO(), opts)
 	if err != nil {
+		eventSequenceArray = append(eventSequenceArray, "could not connect to database \n")
+		w.Write([]byte("Error: Could not connect to database"))
 		panic(err)
 	}
 	defer func() {
 		if err = client.Disconnect(context.TODO()); err != nil {
 			eventSequenceArray = append(eventSequenceArray, "could not connect to database \n")
+			w.Write([]byte("Error: Could not connect to database"))
 			panic(err)
 		}
 		eventSequenceArray = append(eventSequenceArray, "connected to the database \n")
@@ -265,7 +268,9 @@ func HandleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 		// Posts the whole financial data blob to the data ingestor
 		resPostFinancialData := postFinancialData(string(postJsonData), eventSequenceArray, passHash)
 		if resPostFinancialData != "200 Status OK" {
-			panic(err)
+
+			eventSequenceArray = append(eventSequenceArray, "data ingestor post failed \n")
+			w.Write([]byte("Error: Data Ingestor Post Failed."))
 		}
 		if err != nil {
 			panic(err)
@@ -307,9 +312,12 @@ func getFinancialInfo(ticker string, handlerID string, handlerURL string, passHa
 	// Create a GET request
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		panic(err)
+		//Write the error to the client
+		//write to event sequence
+		eventSequenceArray = append(eventSequenceArray, "could not create request \n")
+		http.Error(nil, err.Error(), http.StatusBadRequest)
+		return "400 Bad Request"
 	}
-
 	// Set the Authorization header with the Bearer token
 	req.Header.Set("Authorization", "Bearer "+passHash)
 
@@ -323,7 +331,10 @@ func getFinancialInfo(ticker string, handlerID string, handlerURL string, passHa
 	// Read the response body as a string
 	responseBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		panic(err)
+		//write to event sequence
+		eventSequenceArray = append(eventSequenceArray, "could not read response body \n")
+		http.Error(nil, err.Error(), http.StatusInternalServerError)
+		return "500 Internal Server Error"
 	}
 
 	return string(responseBody)
@@ -344,7 +355,10 @@ func getPromptInference(prompt string, template string, handlerID string, handle
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		panic(err)
+		//write to event sequence
+		eventSequenceArray = append(eventSequenceArray, "could not create request \n")
+		http.Error(nil, err.Error(), http.StatusFailedDependency)
+		return "400 Bad Request"
 	}
 
 	// Set the Authorization header with the Bearer token
@@ -353,14 +367,18 @@ func getPromptInference(prompt string, template string, handlerID string, handle
 	// Send the request
 	resp, err := client.Do(req)
 	if err != nil {
-		panic(err)
+		eventSequenceArray = append(eventSequenceArray, "could not create request \n")
+		http.Error(nil, err.Error(), http.StatusFailedDependency)
+		return "400 Bad Request"
 	}
 	defer resp.Body.Close()
 
 	// Read the response body as a string
 	responseBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		panic(err)
+		eventSequenceArray = append(eventSequenceArray, "could not create request \n")
+		http.Error(nil, err.Error(), http.StatusFailedDependency)
+		return "400 Bad Request"
 	}
 
 	return string(responseBody)
