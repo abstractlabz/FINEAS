@@ -4,21 +4,18 @@ import pinecone
 from langchain.embeddings.openai import OpenAIEmbeddings
 import openai
 import os
-from dotenv import load_dotenv
 import urllib.parse
 import hashlib
-
 import requests
 
 app = Flask(__name__)
 
-load_dotenv()
-PASS_KEY = os.environ.get("PASS_KEY")
-OPEN_AI_API_KEY = os.environ.get("OPEN_AI_API_KEY")
+PASS_KEY = os.getenv("PASS_KEY")
+OPEN_AI_API_KEY = os.getenv("OPEN_AI_API_KEY")
 openai.api_key = OPEN_AI_API_KEY
 MODEL = 'text-embedding-ada-002'
-PINECONE_API_KEY = os.environ.get("PINECONE_API_KEY")
-LLM_SERVICE_URL = os.environ.get("LLM_SERVICE_URL")
+PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
+LLM_SERVICE_URL = os.getenv("LLM_SERVICE_URL")
 
 @app.route('/chat', methods=['POST'])
 def chatbot():
@@ -42,7 +39,7 @@ def chatbot():
     raw_data = urllib.parse.unquote(raw_data)  # Decode URL-encoded prompt
         
     text_field = "text"
-    index_name = "langchain-retrieval-augmentation"
+    index_name = "pre-alpha-vectorstore-prd"
 
     embed = OpenAIEmbeddings(
     document_model_name=MODEL,

@@ -1,17 +1,16 @@
 from flask import Flask, request, jsonify
 import openai
 import os
-from dotenv import load_dotenv
 import urllib.parse
 import hashlib
 
 app = Flask(__name__)
 
 # Loading information structures
-load_dotenv("../../.env/file")
-OPEN_AI_API_KEY = os.environ.get("OPEN_AI_API_KEY")
+OPEN_AI_API_KEY = os.getenv("OPEN_AI_API_KEY")
 openai.api_key = OPEN_AI_API_KEY
-PASS_KEY = os.environ.get("PASS_KEY")
+PASS_KEY = os.getenv("PASS_KEY")
+
 @app.route('/llm', methods=['GET'])
 def generate_response():
     #get params
@@ -30,13 +29,18 @@ def generate_response():
     decoded_prompt = urllib.parse.unquote(prompt)  # Decode URL-encoded prompt
     print(decoded_prompt)
     try:
-        response = openai.Completion.create(
-            engine="text-davinci-001",
-            prompt=decoded_prompt,
-            max_tokens=225  # Adjust as needed
+        # Use the chat completion endpoint
+        response = openai.ChatCompletion.create(
+            model="gpt-4",  # Adjust model as needed
+            messages=[
+                {"role": "system", "content": """You are an AI purposed with summarizing and analyzing financial information for market research. 
+                 Your response will follow the task template given to you based off of the financial data given to you. Give your summarized response.
+                 If the data containing the information is not relevant nor sufficient, you may ask for more information in the response. Nothing more nothing less."""},
+                {"role": "user", "content": decoded_prompt}
+            ]
         )
 
-        generated_text = response.choices[0].text.strip()
+        generated_text = response.choices[0].message['content'].strip()
         print(generated_text)
 
         return generated_text
@@ -49,4 +53,4 @@ def generate_response():
         return jsonify({'error': 'Failed to generate response'}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='127.0.0.1', port=5432, debug=True)

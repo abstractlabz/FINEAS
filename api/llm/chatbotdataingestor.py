@@ -8,7 +8,6 @@ from flask import Flask, request, jsonify
 from langchain.embeddings.openai import OpenAIEmbeddings
 import openai
 import os
-from dotenv import load_dotenv
 import urllib.parse
 import hashlib
 from datasets import Dataset
@@ -16,12 +15,11 @@ import datetime
 
 app = Flask(__name__)
 
-load_dotenv()
-PASS_KEY = os.environ.get("PASS_KEY")
-OPEN_AI_API_KEY = os.environ.get("OPEN_AI_API_KEY")
+PASS_KEY = os.getenv("PASS_KEY")
+OPEN_AI_API_KEY = os.getenv("OPEN_AI_API_KEY")
 openai.api_key = OPEN_AI_API_KEY
 MODEL = 'text-embedding-ada-002'
-PINECONE_API_KEY = os.environ.get("PINECONE_API_KEY")
+PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 
 @app.route('/ingestor', methods=['POST'])
 def ingest_data():
@@ -62,7 +60,7 @@ def ingest_data():
     openai_api_key=OPEN_AI_API_KEY
     )
     
-    index_name = 'langchain-retrieval-augmentation'
+    index_name = 'pre-alpha-vectorstore-prd'
 
     pinecone.init(
             api_key=PINECONE_API_KEY,  # find api key in console at app.pinecone.io

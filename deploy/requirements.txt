@@ -1,0 +1,9 @@
+tiktoken
+pinecone
+tqdm
+langchain
+flask
+openai
+python-dotenv
+datasets
+requests
