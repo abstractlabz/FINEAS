@@ -24,3 +24,7 @@ go.work
 
 #misc
 app/todo.txt
+
+#ignore everything under the utils folder
+utils/
+utils/*

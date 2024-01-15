@@ -1,9 +1,9 @@
 tiktoken
-pinecone
+pinecone-client
 tqdm
 langchain
 flask
-openai
+openai==0.28
 python-dotenv
 datasets
 requests

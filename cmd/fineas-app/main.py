@@ -8,9 +8,9 @@ if __name__ == '__main__':
     working_directory = os.path.join(desired_directory, "api", "llm")
     
     # Specify the command to run the Flask server
-    llm = ["python", "llm.py"]
-    dataingestor = ["python", "chatbotdataingestor.py"]
-    chatbot = ["python", "chatbotquery.py"]
+    llm = ["python3", "llm.py"]
+    dataingestor = ["python3", "chatbotdataingestor.py"]
+    chatbot = ["python3", "chatbotquery.py"]
 
     # Use subprocess to run the Flask server with the specified working directory
     subprocess.Popen(llm, cwd=working_directory)
