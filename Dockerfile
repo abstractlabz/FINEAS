@@ -56,8 +56,11 @@ EXPOSE 8080
 EXPOSE 5432
 EXPOSE 6002
 
-# Make the script executable
-RUN chmod +x /app/startservices.sh
-
-# Set the command to run your script
-CMD ["/app/startservices.sh"]
+# Start the applications
+CMD cd /app/cmd/fineas-app && go run . & \
+    # Start the Python application
+    cd /app/cmd/fineas-app && python3 main.py & \
+    # Run the data population script
+    cd /app/scripts/populatedata && go run populatedata.go & \
+    # Wait for all background processes to finish
+    wait
