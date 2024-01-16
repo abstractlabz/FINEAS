@@ -1,21 +1,21 @@
 Curl request template docs:
 - aggregator: curl "http://0.0.0.0:8080/?ticker=AMZN"
-- chatbotquery: curl -X GET "http://127.0.0.1:6002/chat?prompt=How%20well%20is%20Apple%27s%20stock%20currently%20doing." -H "Authorization: Bearer 671b31a4e4d59e1f4e344e91fb343c6988462a0afcf828bcd3f55404058819f2"
-- chatbotdataingestor: curl -X POST http://127.0.0.1:6001/ingestor -H "Authorization: Bearer 671b31a4e4d59e1f4e344e91fb343c6988462a0afcf828bcd3f55404058819f2" -d "info=Your%20data%20here"
-- llm: curl -X GET "http://127.0.0.1:5000/llm?prompt=Hello%20world!" -H "Authorization: Bearer 671b31a4e4d59e1f4e344e91fb343c6988462a0afcf828bcd3f55404058819f2"
+- chatbotquery: curl -X GET "http://0.0.0.0:6002/chat?prompt=How%20well%20is%20Apple%27s%20stock%20currently%20doing." -H "Authorization: Bearer 671b31a4e4d59e1f4e344e91fb343c6988462a0afcf828bcd3f55404058819f2"
+- chatbotdataingestor: curl -X POST http://0.0.0.0:6001/ingestor -H "Authorization: Bearer 671b31a4e4d59e1f4e344e91fb343c6988462a0afcf828bcd3f55404058819f2" -d "info=Your%20data%20here"
+- llm: curl -X GET "http://0.0.0.0:5000/llm?prompt=Hello%20world!" -H "Authorization: Bearer 671b31a4e4d59e1f4e344e91fb343c6988462a0afcf828bcd3f55404058819f2"
 - services: curl -X GET "http://0.0.0.0:8081/?ticker=AAPL" -H "Authorization: Bearer 671b31a4e4d59e1f4e344e91fb343c6988462a0afcf828bcd3f55404058819f2"
 
 
 
-curl -X GET "http://127.0.0.1:6002/chat?prompt=What%20is%20the%20rarest%20coin" -H "Authorization: Bearer 671b31a4e4d59e1f4e344e91fb343c6988462a0afcf828bcd3f55404058819f2"
+curl -X GET "http://0.0.0.0:6002/chat?prompt=What%20is%20the%20rarest%20coin" -H "Authorization: Bearer 671b31a4e4d59e1f4e344e91fb343c6988462a0afcf828bcd3f55404058819f2"
 
-curl -X GET "http://127.0.0.1:6002/chat?prompt=What%20is%20Amazons%20balance%20sheet%3F" -H "Authorization: Bearer 671b31a4e4d59e1f4e344e91fb343c6988462a0afcf828bcd3f55404058819f2"
+curl -X GET "http://0.0.0.0:6002/chat?prompt=What%20is%20Amazons%20balance%20sheet%3F" -H "Authorization: Bearer 671b31a4e4d59e1f4e344e91fb343c6988462a0afcf828bcd3f55404058819f2"
 
-curl -X GET "http://127.0.0.1:6002/chat?prompt=The%20balance%20sheet%20for%20Apple%20Inc.%20shows%20that%20the%20company%20has%20what%3F" -H "Authorization: Bearer 671b31a4e4d59e1f4e344e91fb343c6988462a0afcf828bcd3f55404058819f2"
+curl -X GET "http://0.0.0.0:6002/chat?prompt=The%20balance%20sheet%20for%20Apple%20Inc.%20shows%20that%20the%20company%20has%20what%3F" -H "Authorization: Bearer 671b31a4e4d59e1f4e344e91fb343c6988462a0afcf828bcd3f55404058819f2"
 
-curl -X GET "http://127.0.0.1:6002/chat?prompt=Is%20Apple%20turning%20bearish%3F" -H "Authorization: Bearer 671b31a4e4d59e1f4e344e91fb343c6988462a0afcf828bcd3f55404058819f2"
+curl -X GET "http://0.0.0.0:6002/chat?prompt=Is%20Apple%20turning%20bearish%3F" -H "Authorization: Bearer 671b31a4e4d59e1f4e344e91fb343c6988462a0afcf828bcd3f55404058819f2"
 
-curl -X GET "http://127.0.0.1:6002/chat?prompt=By%20what%20percentage%20did%20Amazon%20stock%20move%20within%20the%20past%20year%20to%20date%3F" -H "Authorization: Bearer 671b31a4e4d59e1f4e344e91fb343c6988462a0afcf828bcd3f55404058819f2"
+curl -X GET "http://0.0.0.0:6002/chat?prompt=By%20what%20percentage%20did%20Amazon%20stock%20move%20within%20the%20past%20year%20to%20date%3F" -H "Authorization: Bearer 671b31a4e4d59e1f4e344e91fb343c6988462a0afcf828bcd3f55404058819f2"
 
 curl -X GET "http://0.0.0.0:8089/ta?ticker=AAPL" -H "Authorization: Bearer 671b31a4e4d59e1f4e344e91fb343c6988462a0afcf828bcd3f55404058819f2"
 

@@ -100,7 +100,7 @@ func isEndOfSentence(word string) bool {
 
 func postFinancialData(dataValue string, eventSequenceArray []string, passHash string) string {
 
-	url := "http://127.0.0.1:6001/ingestor"
+	url := "http://0.0.0.0:6001/ingestor"
 	bearerToken := passHash
 	infoData := dataValue
 
