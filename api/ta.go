@@ -306,7 +306,7 @@ func formatIndicatorResult(indicator string, value interface{}) string {
 }
 
 func getSTKData(ticker string, passHash string) (string, error) {
-	stkServiceURL := "http://localhost:8081/stk" // Replace with actual URL
+	stkServiceURL := "http://0.0.0.0:8081/stk" // Replace with actual URL
 	req, err := http.NewRequest("GET", stkServiceURL, nil)
 	if err != nil {
 		return "", err

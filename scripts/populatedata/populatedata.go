@@ -215,7 +215,7 @@ func scheduleFetchData(stockTickers []string, WRITE_KEY string) {
 
 func fetchData(stockTickers []string, WRITE_KEY string) {
 	client := &http.Client{}
-	base_url := "http://localhost:8080/"
+	base_url := "http://0.0.0.0:8080/"
 
 	for _, ticker := range stockTickers {
 		url := base_url + "?" + "ticker=" + ticker + "&writekey=" + WRITE_KEY

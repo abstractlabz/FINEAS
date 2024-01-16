@@ -40,12 +40,12 @@ ENV WRITE_KEY=WRITE_KEY
 ENV PINECONE_API_KEY=PINECONE_API_KEY 
 
 # Set environment variables for templates
-ENV STK_SERVICE_URL=http://localhost:8081
-ENV FIN_SERVICE_URL=http://localhost:8082
-ENV NEWS_SERVICE_URL=http://localhost:8083
-ENV DESC_SERVICE_URL=http://localhost:8084
-ENV LLM_SERVICE_URL=http://localhost:5432
-ENV TA_SERVICE_URL=http://localhost:8089
+ENV STK_SERVICE_URL=http://0.0.0.0:8081
+ENV FIN_SERVICE_URL=http://0.0.0.0:8082
+ENV NEWS_SERVICE_URL=http://0.0.0.0:8083
+ENV DESC_SERVICE_URL=http://0.0.0.0:8084
+ENV LLM_SERVICE_URL=http://0.0.0.0:5432
+ENV TA_SERVICE_URL=http://0.0.0.0:8089
 ENV YTD_TEMPLATE="Give a simple explanation of the companys stock performance based on the following year to date stock data in 15 to 25 words.Make sure to explicitly state the returns and mention the company name. At the end of the summary categorize this stock perfomance into only one of five categories, Very Bad, Bad, Neutral, Good, and Very Good: \n"
 ENV NEWS_TEMPLATE="Give a simple explanation of these news headlines based on the following news headline data in 100 to 200 words. Explain what this means for the present and future for the company."
 ENV DESC_TEMPLATE="Give a response of the description of this company. Ignore any seemingly random strings, just respond with the informative description."
