@@ -9,32 +9,32 @@ import (
 // entry point
 func main() {
 	go func() {
-		http.HandleFunc("/", api.HandleQuoteRequest)
+		http.Handle("/", api.CorsMiddleware(http.HandlerFunc(api.HandleQuoteRequest)))
 		log.Println(http.ListenAndServe(":8080", nil))
 	}()
 
 	go func() {
-		http.HandleFunc("/stk", api.STKService)
+		http.Handle("/stk", api.CorsMiddleware(http.HandlerFunc(api.STKService)))
 		log.Println(http.ListenAndServe(":8081", nil))
 	}()
 
 	go func() {
-		http.HandleFunc("/fin", api.FinService)
+		http.Handle("/fin", api.CorsMiddleware(http.HandlerFunc(api.FinService)))
 		log.Println(http.ListenAndServe(":8082", nil))
 	}()
 
 	go func() {
-		http.HandleFunc("/news", api.NewsService)
+		http.Handle("/news", api.CorsMiddleware(http.HandlerFunc(api.NewsService)))
 		log.Fatal(http.ListenAndServe(":8083", nil))
 	}()
 
 	go func() {
-		http.HandleFunc("/desc", api.DescriptionService)
+		http.Handle("/desc", api.CorsMiddleware(http.HandlerFunc(api.DescriptionService)))
 		log.Println(http.ListenAndServe(":8084", nil))
 	}()
 
 	go func() {
-		http.HandleFunc("/ta", api.TechnicalAnalysisService)
+		http.Handle("/ta", api.CorsMiddleware(http.HandlerFunc(api.TechnicalAnalysisService)))
 		log.Println(http.ListenAndServe(":8089", nil))
 	}()
 

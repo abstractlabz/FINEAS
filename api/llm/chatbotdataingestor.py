@@ -12,8 +12,10 @@ import urllib.parse
 import hashlib
 from datasets import Dataset
 import datetime
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 
 PASS_KEY = os.getenv("PASS_KEY")
 OPEN_AI_API_KEY = os.getenv("OPEN_AI_API_KEY")
