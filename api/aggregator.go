@@ -117,9 +117,14 @@ func HandleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 
 	// connnect to mongodb
 	MONGO_DB_LOGGER_PASSWORD := os.Getenv("MONGO_DB_LOGGER_PASSWORD")
+	//serverAPI := options.ServerAPI(options.ServerAPIVersion1)
+	//caFile := "../../utils/keys/ca.cer"
+	//certFile := "../../utils/keys/fineasapp.io.cer"
+	//keyFile := "../../utils/keys/fineasapp.io.key"
+	// Loads CA certificate file
+	// Use the SetServerAPIOptions() method to set the Stable API version to 1
 	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
-	mongoURI := "mongodb+srv://kobenaidun:" + MONGO_DB_LOGGER_PASSWORD + "@cluster0.z9znpv9.mongodb.net/?retryWrites=true&w=majority"
-	opts := options.Client().ApplyURI(mongoURI).SetServerAPIOptions(serverAPI)
+	opts := options.Client().ApplyURI("mongodb+srv://kobenaidun:" + MONGO_DB_LOGGER_PASSWORD + "@cluster0.z9znpv9.mongodb.net/?retryWrites=true&w=majority").SetServerAPIOptions(serverAPI)
 	// Create a new client and connect to the server
 	client, err := mongo.Connect(context.TODO(), opts)
 	if err != nil {
@@ -387,7 +392,7 @@ func getPromptInference(prompt string, template string, handlerID string, handle
 // Posts financial data to data ingestor service
 func postFinancialData(dataValue string, eventSequenceArray []string, passHash string) string {
 
-	url := "http://0.0.0.0:6001/ingestor"
+	url := "https://0.0.0.0:6001/ingestor"
 	bearerToken := passHash
 	infoData := dataValue
 

@@ -4,7 +4,6 @@ import os
 import urllib.parse
 import hashlib
 from flask_cors import CORS
-
 app = Flask(__name__)
 CORS(app)
 

@@ -8,6 +8,9 @@
 *.dll
 *.so
 *.dylib
+*.pem
+*.key
+*
 
 # Test binary, built with `go test -c`
 *.test
@@ -24,7 +27,3 @@ go.work
 
 #misc
 app/todo.txt
-
-#ignore everything under the utils folder
-utils/
-utils/*

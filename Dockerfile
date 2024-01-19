@@ -29,7 +29,7 @@ COPY . .
 RUN go mod download
 
 # Install Python dependencies
-RUN pip3 install --no-cache-dir -r requirements.txt
+RUN pip3 install --no-cache-dir -r utils/requirements.txt
 
 # Set environment variables for keys
 ENV API_KEY=API_KEY
@@ -56,11 +56,10 @@ EXPOSE 8080
 EXPOSE 5432
 EXPOSE 6002
 
-# Start the applications
-CMD cd /app/cmd/fineas-app && go run . & \
-    # Start the Python application
-    cd /app/cmd/fineas-app && python3 main.py & \
-    # Run the data population script
-    cd /app/scripts/populatedata && go run populatedata.go & \
-    # Wait for all background processes to finish
-    wait
+# Run the application
+CMD cd ../cmd/fineas-app && go run . && echo "Waiting for the Go application to start..." \
+    && cd ../cmd/fineas-app && python3 main.py && echo "Waiting for the Python application to start..." \
+    && cd ../scripts/populatedata && go run populatedata.go && echo "Waiting for the data population script to finish..." \
+    && wait && echo "All processes have started up..."
+
+

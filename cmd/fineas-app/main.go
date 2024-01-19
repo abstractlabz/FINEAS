@@ -8,9 +8,11 @@ import (
 
 // entry point
 func main() {
+	certFile := "../../utils/keys/fineasapp.io.cer"
+	keyFile := "../../utils/keys/fineasapp.io.key"
 	go func() {
 		http.Handle("/", api.CorsMiddleware(http.HandlerFunc(api.HandleQuoteRequest)))
-		log.Println(http.ListenAndServe(":8080", nil))
+		log.Println(http.ListenAndServeTLS(":8080", certFile, keyFile, nil))
 	}()
 
 	go func() {
