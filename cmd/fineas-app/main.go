@@ -8,11 +8,11 @@ import (
 
 // entry point
 func main() {
-	certFile := "../../utils/keys/fineasapp.io.cer"
-	keyFile := "../../utils/keys/fineasapp.io.key"
+	certFile := "../../utils/keys/data.fineasapp.io.cer"
+	keyFile := "../../utils/keys/data.fineasapp.io.key"
 	go func() {
 		http.Handle("/", api.CorsMiddleware(http.HandlerFunc(api.HandleQuoteRequest)))
-		log.Println(http.ListenAndServeTLS(":8080", certFile, keyFile, nil))
+		log.Println(http.ListenAndServe(":8080", nil))
 	}()
 
 	go func() {
@@ -38,6 +38,10 @@ func main() {
 	go func() {
 		http.Handle("/ta", api.CorsMiddleware(http.HandlerFunc(api.TechnicalAnalysisService)))
 		log.Println(http.ListenAndServe(":8089", nil))
+	}()
+	go func() {
+		http.Handle("/ret", api.CorsMiddleware(http.HandlerFunc(api.RetrieveData)))
+		log.Println(http.ListenAndServeTLS(":8035", certFile, keyFile, nil))
 	}()
 
 	// Keep the main goroutine running to prevent the program from exiting

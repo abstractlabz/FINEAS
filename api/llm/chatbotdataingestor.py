@@ -5,7 +5,7 @@ from tqdm.auto import tqdm
 from uuid import uuid4
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from flask import Flask, request, jsonify
-from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain_openai import OpenAIEmbeddings
 import openai
 import os
 import urllib.parse

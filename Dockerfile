@@ -36,7 +36,8 @@ ENV API_KEY=API_KEY
 ENV PASS_KEY=PASS_KEY
 ENV MONGO_DB_LOGGER_PASSWORD=MONGO_DB_LOGGER_PASSWORD
 ENV OPEN_AI_API_KEY=OPEN_AI_API_KEY
-ENV WRITE_KEY=WRITE_KEY
+ENV KB_WRITE_KEY=KB_WRITE_KEY
+ENV MR_WRITE_KEY=MR_WRITE_KEY
 ENV PINECONE_API_KEY=PINECONE_API_KEY 
 
 # Set environment variables for templates
@@ -52,14 +53,15 @@ ENV DESC_TEMPLATE="Give a response of the description of this company. Ignore an
 ENV TA_TEMPLATE="Give an in depth analysis of the company stock ticker future price action based off of the recent stock information and following technical indicators."
 
 # Exposing ports
-EXPOSE 8080
-EXPOSE 5432
+EXPOSE 8035
 EXPOSE 6002
 
-# Run the application
-CMD cd ../cmd/fineas-app && go run . && echo "Waiting for the Go application to start..." \
-    && cd ../cmd/fineas-app && python3 main.py && echo "Waiting for the Python application to start..." \
-    && cd ../scripts/populatedata && go run populatedata.go && echo "Waiting for the data population script to finish..." \
-    && wait && echo "All processes have started up..."
 
+# Run the application
+CMD cd cmd/fineas-app && \
+    go run . && echo "Waiting for the Go application to start..." && \
+    python3 main.py && echo "Waiting for the Python application to start..." && \
+    cd ../../scripts/populatedata && \
+    go run . && echo "Starting up data populator..." && \
+    echo "All applications started successfully!"
 

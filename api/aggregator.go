@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/joho/godotenv"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -36,6 +37,7 @@ func HandleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 
 	//to represent the aggregate of all prompt inferences
 	type PromptInference struct {
+		Ticker            string
 		StockPerformance  string
 		FinancialHealth   string
 		NewsSummary       string
@@ -86,6 +88,7 @@ func HandleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Println(ticker)
+	promptInference.Ticker = ticker
 
 	// Get the financial information from the services
 	// and return it as the response
@@ -113,16 +116,11 @@ func HandleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 	DESC_TEMPLATE := os.Getenv("DESC_TEMPLATE")
 	TA_TEMPLATE := os.Getenv("TA_TEMPLATE")
 	PASS_KEY := os.Getenv("PASS_KEY")
-	WRITE_KEY := os.Getenv("WRITE_KEY")
+	KB_WRITE_KEY := os.Getenv("KB_WRITE_KEY")
+	MR_WRITE_KEY := os.Getenv("MR_WRITE_KEY")
 
 	// connnect to mongodb
 	MONGO_DB_LOGGER_PASSWORD := os.Getenv("MONGO_DB_LOGGER_PASSWORD")
-	//serverAPI := options.ServerAPI(options.ServerAPIVersion1)
-	//caFile := "../../utils/keys/ca.cer"
-	//certFile := "../../utils/keys/fineasapp.io.cer"
-	//keyFile := "../../utils/keys/fineasapp.io.key"
-	// Loads CA certificate file
-	// Use the SetServerAPIOptions() method to set the Stable API version to 1
 	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
 	opts := options.Client().ApplyURI("mongodb+srv://kobenaidun:" + MONGO_DB_LOGGER_PASSWORD + "@cluster0.z9znpv9.mongodb.net/?retryWrites=true&w=majority").SetServerAPIOptions(serverAPI)
 	// Create a new client and connect to the server
@@ -252,7 +250,7 @@ func HandleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 	technicalanalysis = strings.Replace(technicalanalysis, "}", "|", -1)
 
 	// if writekey is valid, post the data to the data ingestor
-	if (writekey == WRITE_KEY) && (len(writekey) != 0) {
+	if (writekey == KB_WRITE_KEY) && (len(writekey) != 0) {
 		fmt.Println("write key correct")
 		postDataInfo := PostDataInfo{
 			Ticker:            ticker,
@@ -291,7 +289,42 @@ func HandleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println(err)
 	}
-	w.Write([]byte(promptInferenceJson))
+
+	if writekey == MR_WRITE_KEY && len(writekey) != 0 {
+		// Connect to the database and the collection
+		db := client.Database("FinancialInformation")
+		collection := db.Collection("TickersList")
+
+		// Check if ticker already exists in the collection
+		filter := bson.M{"Ticker": ticker}
+		existingDoc := collection.FindOne(context.TODO(), filter)
+
+		// If the document exists, delete it
+		if existingDoc.Err() == nil {
+			_, err = collection.DeleteOne(context.TODO(), filter)
+			if err != nil {
+				log.Printf("Error deleting existing document: %v", err)
+				return // Or handle the error as per your application logic
+			}
+		}
+
+		// Convert JSON to BSON format for MongoDB insertion
+		var bsonDoc bson.M
+		err = bson.UnmarshalExtJSON(promptInferenceJson, true, &bsonDoc)
+		if err != nil {
+			log.Printf("Error unmarshaling JSON to BSON: %v", err)
+			return // Or handle the error as per your application logic
+		}
+
+		// Insert the new document into MongoDB
+		_, err = collection.InsertOne(context.TODO(), bsonDoc)
+		if err != nil {
+			log.Printf("Error inserting new document: %v", err)
+			return // Or handle the error as per your application logic
+		}
+	}
+
+	//w.Write([]byte(promptInferenceJson))
 	aggLog.Timestamp = time.Now()
 	eventSequenceArray = append(eventSequenceArray, "sent prompt inference response \n")
 	aggLog.EventSequence = eventSequenceArray
@@ -392,7 +425,7 @@ func getPromptInference(prompt string, template string, handlerID string, handle
 // Posts financial data to data ingestor service
 func postFinancialData(dataValue string, eventSequenceArray []string, passHash string) string {
 
-	url := "https://0.0.0.0:6001/ingestor"
+	url := "http://0.0.0.0:6001/ingestor"
 	bearerToken := passHash
 	infoData := dataValue
 
