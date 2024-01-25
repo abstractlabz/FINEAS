@@ -47,12 +47,12 @@ func HandleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 
 	// to represent data posted to the data ingestor
 	type PostDataInfo struct {
-		Ticker            string
-		StockPerformance  string
-		FinancialHealth   string
-		NewsSummary       string
-		CompanyDesc       string
-		TechnicalAnalysis string
+		Ticker            string `json:"Ticker,omitempty"`
+		StockPerformance  string `json:"StockPerformance,omitempty"`
+		FinancialHealth   string `json:"FinancialHealth,omitempty"`
+		NewsSummary       string `json:"NewsSummary,omitempty"`
+		CompanyDesc       string `json:"CompanyDesc,omitempty"`
+		TechnicalAnalysis string `json:"TechnicalAnalysis,omitempty"`
 	}
 
 	// aggregate of all event sequences
@@ -186,7 +186,7 @@ func HandleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 		eventSequenceArray = append(eventSequenceArray, "collected stk prompt inference \n")
 	} else {
 		//
-		promptInference.StockPerformance = "N/A"
+		promptInference.StockPerformance = ""
 		eventSequenceArray = append(eventSequenceArray, "stk prompt inference failed \n")
 	}
 	// financial health
@@ -198,7 +198,7 @@ func HandleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 		eventSequenceArray = append(eventSequenceArray, "collected fin prompt inference \n")
 	} else {
 		//
-		promptInference.FinancialHealth = "N/A"
+		promptInference.FinancialHealth = ""
 		eventSequenceArray = append(eventSequenceArray, "fin prompt inference failed \n")
 	}
 	// news summary
@@ -210,7 +210,7 @@ func HandleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 		eventSequenceArray = append(eventSequenceArray, "collected news prompt inference \n")
 	} else {
 		//
-		promptInference.NewsSummary = "N/A"
+		promptInference.NewsSummary = ""
 		eventSequenceArray = append(eventSequenceArray, "news prompt inference failed \n")
 	}
 	// company description
@@ -222,7 +222,7 @@ func HandleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 		eventSequenceArray = append(eventSequenceArray, "collected desc prompt inference \n")
 	} else {
 		//
-		promptInference.CompanyDesc = "N/A"
+		promptInference.CompanyDesc = ""
 		eventSequenceArray = append(eventSequenceArray, "desc prompt inference failed \n")
 	}
 	// company description
@@ -234,7 +234,7 @@ func HandleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 		eventSequenceArray = append(eventSequenceArray, "collected ta prompt inference \n")
 	} else {
 		//
-		promptInference.TechnicalAnalysis = "N/A"
+		promptInference.TechnicalAnalysis = ""
 		eventSequenceArray = append(eventSequenceArray, "ta prompt inference failed \n")
 	}
 	//constructs valid json string
