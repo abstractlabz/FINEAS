@@ -51,28 +51,24 @@ func main() {
 		"CAT",
 	}
 
-	// Add a command-line flag for manual execution
+	// Command-line flags
 	manualExecution := flag.Bool("manual", false, "Set to true to execute manually")
 	executeKBWRITE := flag.Bool("kbwrite", false, "Set to true to execute writes to knowledge base")
 	executeMRWRITE := flag.Bool("mrwrite", false, "Set to true to execute writes for market research")
 	flag.Parse()
 
-	if *manualExecution && *executeKBWRITE {
+	// Determining the mode of operation based on flags
+	if *manualExecution {
 		// Manual execution
-		fetchData(stockTickers, KB_WRITE_KEY)
-		scheduleFetchData(stockTickers, MR_WRITE_KEY)
-		scheduleFetchData(stockTickers, KB_WRITE_KEY)
-	} else if *manualExecution && *executeMRWRITE {
-		// Scheduled execution
-		fetchData(stockTickers, MR_WRITE_KEY)
-		scheduleFetchData(stockTickers, KB_WRITE_KEY)
-		scheduleFetchData(stockTickers, MR_WRITE_KEY)
-	} else if (*manualExecution && *executeKBWRITE && *executeMRWRITE) || (*manualExecution && !*executeKBWRITE && !*executeMRWRITE) {
-		// Scheduled execution
-		fetchData(stockTickers, MR_WRITE_KEY)
-		fetchData(stockTickers, KB_WRITE_KEY)
-		scheduleFetchData(stockTickers, KB_WRITE_KEY)
-		scheduleFetchData(stockTickers, MR_WRITE_KEY)
+		if *executeKBWRITE {
+			fetchData(stockTickers, KB_WRITE_KEY)
+		}
+		if *executeMRWRITE {
+			fetchData(stockTickers, MR_WRITE_KEY)
+		}
+		if !*executeKBWRITE && !*executeMRWRITE {
+			log.Println("No action specified for manual execution. Please set either -kbwrite or -mrwrite.")
+		}
 	} else {
 		// Scheduled execution
 		scheduleFetchData(stockTickers, KB_WRITE_KEY)
@@ -80,15 +76,17 @@ func main() {
 	}
 }
 
-func scheduleFetchData(stockTickers []string, KB_WRITE_KEY string) {
+func scheduleFetchData(stockTickers []string, writeKey string) {
 	ticker := time.NewTicker(1 * time.Minute)
 	defer ticker.Stop()
 
 	for {
-		<-ticker.C
-		now := time.Now()
-		if now.Hour() == 3 && now.Weekday() >= time.Monday && now.Weekday() <= time.Friday {
-			fetchData(stockTickers, KB_WRITE_KEY)
+		select {
+		case <-ticker.C:
+			now := time.Now()
+			if now.Hour() == 3 && now.Weekday() >= time.Monday && now.Weekday() <= time.Friday {
+				fetchData(stockTickers, writeKey)
+			}
 		}
 	}
 }
