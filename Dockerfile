@@ -55,6 +55,7 @@ ENV TA_TEMPLATE="Give an in depth analysis of the company stock ticker future pr
 # Exposing ports
 EXPOSE 8035
 EXPOSE 6002
+EXPOSE 6001
 
 
 # Run the application

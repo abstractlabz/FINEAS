@@ -6,6 +6,7 @@ from uuid import uuid4
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from flask import Flask, request, jsonify
 from langchain_openai import OpenAIEmbeddings
+from pinecone import Pinecone, Config, PodSpec
 import openai
 import os
 import urllib.parse
@@ -22,6 +23,17 @@ OPEN_AI_API_KEY = os.getenv("OPEN_AI_API_KEY")
 openai.api_key = OPEN_AI_API_KEY
 MODEL = 'text-embedding-ada-002'
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
+
+# Initialize Pinecone client
+pinecone_config = Config(api_key=PINECONE_API_KEY,host='pre-alpha-vectorstore-prd-d284fae.svc.gcp-starter.pinecone.io')
+print(pinecone_config)
+pinecone_client = Pinecone(config=pinecone_config)
+
+# Create/Open Pinecone index
+index = pinecone_client.Index(host='pre-alpha-vectorstore-prd-d284fae.svc.gcp-starter.pinecone.io', name='pre-alpha-vectorstore-prd')
+
+# Initialize OpenAI Embeddings
+embed = OpenAIEmbeddings(api_key=OPEN_AI_API_KEY)
 
 @app.route('/ingestor', methods=['POST'])
 def ingest_data():
@@ -55,29 +67,8 @@ def ingest_data():
         list_dict.append(dict_item)
     dataset = Dataset.from_list(list_dict)
     print(dataset[0])
-
-    embed = OpenAIEmbeddings(
-    document_model_name=MODEL,
-    query_model_name=MODEL,
-    openai_api_key=OPEN_AI_API_KEY
-    )
-    
-    index_name = 'pre-alpha-vectorstore-prd'
-
-    pinecone.init(
-            api_key=PINECONE_API_KEY,  # find api key in console at app.pinecone.io
-            environment="gcp-starter"  # find next to api key in console
-    )
-
     # we create a new index
-
-    if index_name not in pinecone.list_indexes():
-        pinecone.create_index(
-                name=index_name,
-                metric='dotproduct',
-                dimension=1536 # 1536 dim of text-embedding-ada-002
-        )
-    index = pinecone.Index(index_name)
+    index = pinecone_client.Index(host='pre-alpha-vectorstore-prd-d284fae.svc.gcp-starter.pinecone.io', name='pre-alpha-vectorstore-prd')
 
     batch_limit = 1
 
@@ -132,4 +123,4 @@ def tiktoken_len(text):
     return len(tokens)
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=6001, debug=False)
+    app.run(host='0.0.0.0', port=6001, debug=False, ssl_context=('../../utils/keys/ingestor.fineasapp.io.cer', '../../utils/keys/ingestor.fineasapp.io.key'))

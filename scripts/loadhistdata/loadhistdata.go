@@ -99,8 +99,7 @@ func isEndOfSentence(word string) bool {
 }
 
 func postFinancialData(dataValue string, eventSequenceArray []string, passHash string) string {
-
-	url := "http://0.0.0.0:6001/ingestor"
+	url := "https://ingestor.fineasapp.io:6001/ingestor"
 	bearerToken := passHash
 	infoData := dataValue
 
@@ -114,7 +113,7 @@ func postFinancialData(dataValue string, eventSequenceArray []string, passHash s
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
 	if err != nil {
 		fmt.Println("Error creating request:", err)
-
+		return ""
 	}
 
 	// Set Authorization header
@@ -125,16 +124,16 @@ func postFinancialData(dataValue string, eventSequenceArray []string, passHash s
 	resp, err := client.Do(req)
 	if err != nil {
 		fmt.Println("Error sending request:", err)
-
+		return ""
 	}
+	defer resp.Body.Close()
 
 	// Read response
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		fmt.Println("Error reading response:", err)
-
+		return ""
 	}
-	defer resp.Body.Close()
 
 	fmt.Println("Response:", string(respBody))
 	return string(respBody)
