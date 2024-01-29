@@ -57,7 +57,6 @@ EXPOSE 8035
 EXPOSE 6002
 EXPOSE 6001
 
-
 # Run the application
 CMD cd cmd/fineas-app && \
     go run . && echo "Waiting for the Go application to start..." && \

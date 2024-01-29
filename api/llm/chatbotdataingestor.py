@@ -123,4 +123,4 @@ def tiktoken_len(text):
     return len(tokens)
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=6001, debug=False, ssl_context=('../../utils/keys/ingestor.fineasapp.io.cer', '../../utils/keys/ingestor.fineasapp.io.key'))
+    app.run(host='0.0.0.0', port=6001, debug=False)
