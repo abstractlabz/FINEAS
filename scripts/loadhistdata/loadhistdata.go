@@ -99,6 +99,7 @@ func isEndOfSentence(word string) bool {
 }
 
 func postFinancialData(dataValue string, eventSequenceArray []string, passHash string) string {
+	// sends request to the ingestor running locally
 	url := "https://ingestor.fineasapp.io:6001/ingestor"
 	bearerToken := passHash
 	infoData := dataValue

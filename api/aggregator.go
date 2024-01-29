@@ -425,7 +425,8 @@ func getPromptInference(prompt string, template string, handlerID string, handle
 // Posts financial data to data ingestor service
 func postFinancialData(dataValue string, eventSequenceArray []string, passHash string) string {
 
-	url := "http://0.0.0.0:6001/ingestor"
+	// sends request to the ingestor running on akash
+	url := "https://ingestor.fineasapp.io:2053/ingestor"
 	bearerToken := passHash
 	infoData := dataValue
 
