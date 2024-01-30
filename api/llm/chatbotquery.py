@@ -45,9 +45,12 @@ def chatbot():
     raw_data = urllib.parse.unquote(raw_data)  # Decode URL-encoded prompt
         
     query_vector = embed.embed_query(raw_data)
-    context = index.query(vector=query_vector, top_k=2)
+    context = index.query(vector=query_vector, top_k=2, include_metadata=True)
+    context = [match['metadata']['text'] for match in context['matches']]
 
     prompt_payload = f"You are an AI named FINEAS tasked to generate investment advice about the following company for the user. You will analyze, make inferences and value judgements off of financial data from the following prompt:\n\nPROMPT:\n{raw_data}\n\nThe following is the only data context from which you will answer this prompt:\n\nCONTEXT:\n{str(context)}"
+
+    print(str(context))
     
     url = LLM_SERVICE_URL + "/llm"
 
