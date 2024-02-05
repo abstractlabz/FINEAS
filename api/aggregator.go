@@ -260,6 +260,7 @@ func HandleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 			CompanyDesc:       companydesc,
 			TechnicalAnalysis: technicalanalysis,
 		}
+		postDataInfo.Ticker = ""
 
 		// Marshal the struct into JSON
 		postJsonData, err := json.Marshal(postDataInfo)
@@ -281,6 +282,7 @@ func HandleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Return the PromptInference json object as the response
+
 	endTime := time.Now()
 	elapsedTime := endTime.Sub(startTime)
 	aggLog.ExecutionTimeMs = float32(elapsedTime.Milliseconds())

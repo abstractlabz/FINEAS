@@ -6,7 +6,7 @@ from uuid import uuid4
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from flask import Flask, request, jsonify
 from langchain_openai import OpenAIEmbeddings
-from pinecone import Pinecone, Config, PodSpec
+from pinecone import Pinecone, Config, PodSpec, ServerlessSpec
 import openai
 import os
 import urllib.parse
@@ -25,12 +25,13 @@ MODEL = 'text-embedding-ada-002'
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 
 # Initialize Pinecone client
-pinecone_config = Config(api_key=PINECONE_API_KEY,host='pre-alpha-vectorstore-prd-d284fae.svc.gcp-starter.pinecone.io')
+host = "https://pre-alpha-vectorstore-prd-uajrq2f.svc.apw5-4e34-81fa.pinecone.io"
+pinecone_config = Config(api_key=PINECONE_API_KEY,host=host)
 print(pinecone_config)
 pinecone_client = Pinecone(config=pinecone_config)
 
 # Create/Open Pinecone index
-index = pinecone_client.Index(host='pre-alpha-vectorstore-prd-d284fae.svc.gcp-starter.pinecone.io', name='pre-alpha-vectorstore-prd')
+index = pinecone_client.Index(host=host, name='pre-alpha-vectorstore-prd')
 
 # Initialize OpenAI Embeddings
 embed = OpenAIEmbeddings(api_key=OPEN_AI_API_KEY)
@@ -68,7 +69,7 @@ def ingest_data():
     dataset = Dataset.from_list(list_dict)
     print(dataset[0])
     # we create a new index
-    index = pinecone_client.Index(host='pre-alpha-vectorstore-prd-d284fae.svc.gcp-starter.pinecone.io', name='pre-alpha-vectorstore-prd')
+    index = pinecone_client.Index(host=host, name='pre-alpha-vectorstore-prd')
 
     batch_limit = 1
 

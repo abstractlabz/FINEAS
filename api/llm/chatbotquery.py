@@ -17,12 +17,13 @@ PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 LLM_SERVICE_URL = os.getenv("LLM_SERVICE_URL")
 
 # Initialize Pinecone client
-pinecone_config = Config(api_key=PINECONE_API_KEY,host='pre-alpha-vectorstore-prd-d284fae.svc.gcp-starter.pinecone.io')
+host = "https://pre-alpha-vectorstore-prd-uajrq2f.svc.apw5-4e34-81fa.pinecone.io"
+pinecone_config = Config(api_key=PINECONE_API_KEY,host=host)
 print(pinecone_config)
 pinecone_client = Pinecone(config=pinecone_config)
 
 # Create/Open Pinecone index
-index = pinecone_client.Index(host='pre-alpha-vectorstore-prd-d284fae.svc.gcp-starter.pinecone.io', name='pre-alpha-vectorstore-prd')
+index = pinecone_client.Index(host=host, name='pre-alpha-vectorstore-prd')
 
 # Initialize OpenAI Embeddings
 embed = OpenAIEmbeddings(api_key=OPEN_AI_API_KEY)
@@ -45,11 +46,21 @@ def chatbot():
     raw_data = urllib.parse.unquote(raw_data)  # Decode URL-encoded prompt
         
     query_vector = embed.embed_query(raw_data)
-    context = index.query(vector=query_vector, top_k=2, include_metadata=True)
+    context = index.query(vector=query_vector, top_k=7, include_metadata=True)
     context = [match['metadata']['text'] for match in context['matches']]
 
-    prompt_payload = f"You are an AI named FINEAS tasked to generate investment advice about the following company for the user. You will analyze, make inferences and value judgements off of financial data from the following prompt:\n\nPROMPT:\n{raw_data}\n\nThe following is the only data context from which you will answer this prompt:\n\nCONTEXT:\n{str(context)}"
-
+    prompt_payload = f"""You are an AI assistant purposed with giving stock market alpha to retail investors
+                 by summarizing and analyzing financial information in the form of market research. 
+                 Your response will answer from the following prompt given to you., based off of its financial data.
+                 \n\nPROMPT:
+                 \n{raw_data}\n\n
+                 The following is the only data context from which you will answer this prompt:
+                 \n\nCONTEXT:
+                \n{str(context)} \n
+                 If the prompt given by the user is not relevant towards finance, you may respond to the prompt
+                 as a default AI agent mode. However, if the prompt given by the user is finance related but the
+                 context doesn't have relevant data to accurately respond to the prompt, then you may ask for more
+                 information. Nothing more, nothing less."""
     print(str(context))
     
     url = LLM_SERVICE_URL + "/llm"

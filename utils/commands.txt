@@ -1,7 +1,7 @@
 Curl request template docs:
 - aggregator: curl "http://0.0.0.0:8080/?ticker=AMZN"
 
-- chatbotquery: curl -X POST "https://query.fineasapp.io:2096/chat?prompt=By%20what%20percentage%20did%20Amazon%20stock" -H "Authorization: Bearer 671b31a4e4d59e1f4e344e91fb343c6988462a0afcf828bcd3f55404058819f2"
+- chatbotquery: curl -X POST "https://query.fineasapp.io:2096/chat?prompt=What%20is%20some%20relevant%20news%20around%amazon%3F" -H "Authorization: Bearer 671b31a4e4d59e1f4e344e91fb343c6988462a0afcf828bcd3f55404058819f2"
 
 - chatbotdataingestor: curl -X POST http://0.0.0.0:6001/ingestor -H "Authorization: Bearer 671b31a4e4d59e1f4e344e91fb343c6988462a0afcf828bcd3f55404058819f2" -d "info=Your%20data%20here"
 
@@ -41,3 +41,4 @@ curl "http://62.3.50.142:9563/?ticker=AMZN"
 
 
 
+curl -X POST "https://query.fineasapp.io:6002/chat?prompt=By%20what%20percentage%20did%20Amazon%20stock" -H "Authorization: Bearer 671b31a4e4d59e1f4e344e91fb343c6988462a0afcf828bcd3f55404058819f2"

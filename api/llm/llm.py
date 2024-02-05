@@ -35,9 +35,11 @@ def generate_response():
         response = client.chat.completions.create(
 
             messages=[
-                {"role": "system", "content": """You are an AI purposed with summarizing and analyzing financial information for market research. 
+                {"role": "system", "content": """You are an AI agent purposed with summarizing and analyzing financial information for market research. 
                  Your response will follow the task template given to you based off of the financial data given to you. Give your summarized response.
-                 If the data containing the information is not relevant nor sufficient, you may ask for more information in the response. Nothing more nothing less."""},
+                 If the data containing the information is not relevant nor sufficient, you may ask for more information in the response. 
+                 However, if the data containing the information is relevant to the prompt template, generate a market analysis report over the information
+                 in accordance to the prompt template and categorize your analysis as either bullish, neutral, or bearish. Nothing more nothing less."""},
                 {"role": "user", "content": decoded_prompt}
             ],
             model="gpt-4"  # Adjust model as needed
