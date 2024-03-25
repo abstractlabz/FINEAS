@@ -49,14 +49,16 @@ def chatbot():
     context = index.query(vector=query_vector, top_k=7, include_metadata=True)
     context = [match['metadata']['text'] for match in context['matches']]
 
-    prompt_payload = f"""You are an AI assistant purposed with giving stock market alpha to retail investors
+    prompt_payload = f"""You are an AI assistant named Fineas purposed with giving stock market alpha to retail investors
                  by summarizing and analyzing financial information in the form of market research. 
                  Your response will answer from the following prompt given to you., based off of its financial data.
                  \n\nPROMPT:
                  \n{raw_data}\n\n
-                 The following is the only data context from which you will answer this prompt:
+                 The following is the only data context from which you will answer this prompt. Please answer the prompt
+                 only based off of the most relevant information with 220 words maximum.:
                  \n\nCONTEXT:
                 \n{str(context)} \n
+                 If the prompt given by the user is a greeting such as "Hello" or "Hi", you may respond with a greeting.
                  If the prompt given by the user is not relevant towards finance, you may respond to the prompt
                  as a default AI agent mode. However, if the prompt given by the user is finance related but the
                  context doesn't have relevant data to accurately respond to the prompt, then you may ask for more

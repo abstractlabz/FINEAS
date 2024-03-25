@@ -56,6 +56,10 @@ ENV TA_TEMPLATE="Give an in depth analysis of the company stock ticker future pr
 EXPOSE 8035
 EXPOSE 6002
 EXPOSE 6001
+EXPOSE 7000
+EXPOSE 7001
+EXPOSE 7002
+
 
 # Run the application
 CMD cd cmd/fineas-app && \

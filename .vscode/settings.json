@@ -1,5 +1,6 @@
 {
     "python.analysis.extraPaths": [
         "./app/llm"
-    ]
+    ],
+    "python.analysis.typeCheckingMode": "off"
 }

@@ -18,4 +18,17 @@ if __name__ == '__main__':
     subprocess.Popen(chatbot, cwd=working_directory)
 
 
+    # Specify the directory where you want the subprocess to run
+    current_directory = os.getcwd()
+    desired_directory = os.path.abspath(os.path.join(current_directory, os.pardir, os.pardir))
+    working_directory = os.path.join(desired_directory, "api", "user")
+    
+    # Specify the command to run the Flask server
+    upgrade_webhook = ["python3", "upgrade-webhook.py"]
+    upgrade = ["python3", "upgrade.py"]
+
+    # Use subprocess to run the Flask server with the specified working directory
+    subprocess.Popen(upgrade_webhook, cwd=working_directory)
+    subprocess.Popen(upgrade, cwd=working_directory)
+
     print("LLM services are running...")

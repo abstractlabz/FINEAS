@@ -16,8 +16,8 @@ func main() {
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
-	KB_WRITE_KEY := os.Getenv("KB_WRITE_KEY")
 	MR_WRITE_KEY := os.Getenv("MR_WRITE_KEY")
+	KB_WRITE_KEY := os.Getenv("KB_WRITE_KEY")
 
 	stockTickers := []string{
 		//Tech stocks
@@ -53,26 +53,28 @@ func main() {
 
 	// Command-line flags
 	manualExecution := flag.Bool("manual", false, "Set to true to execute manually")
-	executeKBWRITE := flag.Bool("kbwrite", false, "Set to true to execute writes to knowledge base")
 	executeMRWRITE := flag.Bool("mrwrite", false, "Set to true to execute writes for market research")
+	executeKBWRITE := flag.Bool("kbwrite", false, "Set to true to execute writes to knowledge base")
+
 	flag.Parse()
 
 	// Determining the mode of operation based on flags
 	if *manualExecution {
 		// Manual execution
-		if *executeKBWRITE {
-			fetchData(stockTickers, KB_WRITE_KEY)
-		}
 		if *executeMRWRITE {
 			fetchData(stockTickers, MR_WRITE_KEY)
+		}
+		if *executeKBWRITE {
+			fetchData(stockTickers, KB_WRITE_KEY)
 		}
 		if !*executeKBWRITE && !*executeMRWRITE {
 			log.Println("No action specified for manual execution. Please set either -kbwrite or -mrwrite.")
 		}
 	} else {
 		// Scheduled execution
-		scheduleFetchData(stockTickers, KB_WRITE_KEY)
 		scheduleFetchData(stockTickers, MR_WRITE_KEY)
+		scheduleFetchData(stockTickers, KB_WRITE_KEY)
+
 	}
 }
 
