@@ -95,6 +95,8 @@ func NewsService(w http.ResponseWriter, r *http.Request) {
 	ticker := queryParams.Get("ticker")
 	writeKey := queryParams.Get("writekey")
 
+	ticker = removePrefixSuffix(ticker)
+
 	if len(ticker) == 0 {
 		log.Println("Missing required parameter 'ticker' in the query string")
 		w.Write([]byte(http.StatusText(http.StatusBadRequest)))
@@ -106,12 +108,18 @@ func NewsService(w http.ResponseWriter, r *http.Request) {
 	//log ticker
 	eventSequenceArray = append(eventSequenceArray, "ticker collected \n")
 
-	scrapeTickerURL := "https://news.google.com/search?q=" + strings.ToUpper(ticker) + "_stock&hl=en-US&gl=US&ceid=US%3Aen"
+	ticker = removePrefixSuffix(ticker)
+
+	scrapeTickerURL := "https://news.google.com/search?q=" + strings.ToUpper(ticker) + "-news&hl=en-US&gl=US&ceid=US%3Aen"
 
 	textFromDiv, err := scrapeTextFromDiv(scrapeTickerURL, 5)
 	if err != nil {
 		http.Error(w, "Failed to scrape data", http.StatusInternalServerError)
 		eventSequenceArray = append(eventSequenceArray, "Failed to scrape data \n")
+		log.Println(ticker, " Failed to scrape data:", err)
+		fmt.Println(ticker, " Failed to scrape data:", err)
+		w.Write([]byte(ticker + " Failed to scrape news data"))
+		w.Write([]byte("500 Internal Server Error"))
 		return
 	} else {
 		eventSequenceArray = append(eventSequenceArray, "Successfully scraped data \n")
@@ -224,4 +232,13 @@ func scrapeTextFromDiv(url string, collectionSize int) (string, error) {
 	})
 
 	return text, nil
+}
+
+func removePrefixSuffix(ticker string) string {
+	// Remove prefix 'x:' if it exists
+	ticker = strings.TrimPrefix(ticker, "X:")
+
+	ticker = strings.TrimSuffix(ticker, "USD")
+
+	return ticker
 }

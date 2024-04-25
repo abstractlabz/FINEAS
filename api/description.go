@@ -91,6 +91,12 @@ func DescriptionService(w http.ResponseWriter, r *http.Request) {
 	// ticker input checking
 	ticker := queryParams.Get("ticker")
 	writeKey := queryParams.Get("writekey")
+
+	if strings.HasPrefix(ticker, "X:") || strings.HasPrefix(ticker, "I:") {
+		w.Write([]byte("500 Internal Server Error"))
+		return
+
+	}
 	if len(ticker) == 0 {
 		log.Println("Missing required parameter 'ticker' in the query string")
 		w.Write([]byte(http.StatusText(http.StatusBadRequest)))

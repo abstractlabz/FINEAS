@@ -80,8 +80,10 @@ func HandleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 	queryParams := r.URL.Query()
 	ticker := queryParams.Get("ticker")
 	writekey := queryParams.Get("writekey")
+
 	if len(ticker) == 0 {
-		log.Println("Missing required parameter 'ticker' in the query string")
+		log.Println("Missing required parameter in aggregator 'ticker' in the query string")
+		log.Println("Writekey: ", writekey)
 		w.Write([]byte(http.StatusText(http.StatusBadRequest)))
 		w.Write([]byte("Error: Bad Request(400), Missing required parameter 'ticker' in the query string."))
 		eventSequenceArray = append(eventSequenceArray, "missing ticker \n")
@@ -126,12 +128,14 @@ func HandleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 	// Create a new client and connect to the server
 	client, err := mongo.Connect(context.TODO(), opts)
 	if err != nil {
+		log.Println("Couldn't connect to database")
 		eventSequenceArray = append(eventSequenceArray, "could not connect to database \n")
 		w.Write([]byte("Error: Could not connect to database"))
 		panic(err)
 	}
 	defer func() {
 		if err = client.Disconnect(context.TODO()); err != nil {
+			log.Println("Database disconnected")
 			eventSequenceArray = append(eventSequenceArray, "could not connect to database \n")
 			w.Write([]byte("Error: Could not connect to database"))
 			panic(err)
@@ -252,6 +256,9 @@ func HandleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 	// if writekey is valid, post the data to the data ingestor
 	if (writekey == KB_WRITE_KEY) && (len(writekey) != 0) {
 		fmt.Println("write key correct")
+		if strings.HasPrefix(ticker, "X:") || strings.HasPrefix(ticker, "I:") {
+			ticker = ticker[2:]
+		}
 		postDataInfo := PostDataInfo{
 			Ticker:            ticker,
 			StockPerformance:  stockperformace,

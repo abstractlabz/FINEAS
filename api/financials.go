@@ -95,7 +95,10 @@ func FinService(w http.ResponseWriter, r *http.Request) {
 	// Ticker input checking
 	ticker := queryParams.Get("ticker")
 	writeKey := queryParams.Get("writekey")
-
+	if strings.HasPrefix(ticker, "X:") || strings.HasPrefix(ticker, "I:") {
+		w.Write([]byte("500 Internal Server Error"))
+		return
+	}
 	if len(ticker) == 0 {
 		log.Println("Missing required parameter 'ticker' in the query string")
 		w.Write([]byte(http.StatusText(http.StatusBadRequest)))
@@ -120,8 +123,16 @@ func FinService(w http.ResponseWriter, r *http.Request) {
 		collection += res
 	}
 
+	if collection == "" {
+		eventSequenceArray = append(eventSequenceArray, "could not collect financial statements \n")
+		w.Write([]byte("500 Internal Server Error"))
+		return
+	}
+
 	if iter.Err() != nil {
 		eventSequenceArray = append(eventSequenceArray, "could not collect financial statements"+iter.Err().Error()+"\n")
+		w.Write([]byte("500 Internal Server Error"))
+		return
 	}
 
 	eventSequenceArray = append(eventSequenceArray, "Collected financial statements \n")

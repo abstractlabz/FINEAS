@@ -206,6 +206,7 @@ func STKService(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// update stk output string with date
+	stk.Ticker = removePrefixSuffix(stk.Ticker)
 	stkOutput = stk.Ticker + " stock previously closed at " + "$" + fmt.Sprint(stk.RecentDateStockPrice) + "." + "The yearly stock percent change for " + ticker + " is " + fmt.Sprint(stk.stkRecentStockPercentChange) + "%" + ", as of date and time " + time.Now().Format("01-02-2006 15:04:05")
 	output.Result = stkOutput
 
