@@ -38,6 +38,7 @@ func NewsService(w http.ResponseWriter, r *http.Request) {
 	var newsLog NEWSLOG
 	var output newsOUTPUT
 	var eventSequenceArray []string
+	var tag string
 
 	//load information structures
 	startTime := time.Now()
@@ -95,7 +96,7 @@ func NewsService(w http.ResponseWriter, r *http.Request) {
 	ticker := queryParams.Get("ticker")
 	writeKey := queryParams.Get("writekey")
 
-	ticker = removePrefixSuffix(ticker)
+	ticker, tag = removePrefixSuffix(ticker)
 
 	if len(ticker) == 0 {
 		log.Println("Missing required parameter 'ticker' in the query string")
@@ -108,9 +109,7 @@ func NewsService(w http.ResponseWriter, r *http.Request) {
 	//log ticker
 	eventSequenceArray = append(eventSequenceArray, "ticker collected \n")
 
-	ticker = removePrefixSuffix(ticker)
-
-	scrapeTickerURL := "https://news.google.com/search?q=" + strings.ToUpper(ticker) + "-news&hl=en-US&gl=US&ceid=US%3Aen"
+	scrapeTickerURL := "https://news.google.com/search?q=" + strings.ToUpper(ticker) + "-news" + tag + "&hl=en-US&gl=US&ceid=US%3Aen"
 
 	textFromDiv, err := scrapeTextFromDiv(scrapeTickerURL, 5)
 	if err != nil {
@@ -234,11 +233,15 @@ func scrapeTextFromDiv(url string, collectionSize int) (string, error) {
 	return text, nil
 }
 
-func removePrefixSuffix(ticker string) string {
+func removePrefixSuffix(ticker string) (string, string) {
 	// Remove prefix 'x:' if it exists
-	ticker = strings.TrimPrefix(ticker, "X:")
+	if strings.HasPrefix(ticker, "X:") {
+		ticker = strings.TrimPrefix(ticker, "X:")
 
-	ticker = strings.TrimSuffix(ticker, "USD")
+		ticker = strings.TrimSuffix(ticker, "USD")
 
-	return ticker
+		return ticker, "-crypto"
+	} else {
+		return ticker, "-stock"
+	}
 }

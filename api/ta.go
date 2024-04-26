@@ -179,7 +179,7 @@ func TechnicalAnalysisService(w http.ResponseWriter, r *http.Request) {
 	ta.SMA = formatIndicatorResult("SMA", getTaSMA)
 	ta.EMA = formatIndicatorResult("EMA", getTaEMA)
 	ta.RSI = formatIndicatorResult("RSI", getTaRSI)
-	ta.Ticker = removePrefixSuffix(ticker)
+	ta.Ticker, _ = removePrefixSuffix(ticker)
 
 	output.Result = fmt.Sprintf("Stock Info: %s, %s, %s, %s, %s", ta.StockInfo, ta.MACD, ta.SMA, ta.EMA, ta.RSI)
 	if err != nil {
