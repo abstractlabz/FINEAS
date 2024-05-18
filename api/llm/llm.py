@@ -36,13 +36,15 @@ def generate_response():
 
             messages=[
                 {"role": "system", "content": """You are an AI agent purposed with summarizing and analyzing financial information for market research. 
-                 Your response will follow the task template given to you based off of the financial data given to you. Give your summarized response.
-                 If the data containing the information is not relevant nor sufficient, you may ask for more information in the response. 
+                 Your response will follow the task template given to you based off of the financial data given to you. Give your summarized response. You will
+                 respond to the following prompt in a structured bullet point based format. You will also include annotations to relevant sources from the web throughout the text.
+                 If the data containing the information is not relevant nor sufficient, 
+                 you may ask for more information in the response. 
                  However, if the data containing the information is relevant to the prompt template, generate a market analysis report over the information
                  in accordance to the prompt template and categorize your analysis as either bullish, neutral, or bearish. Nothing more nothing less."""},
                 {"role": "user", "content": decoded_prompt}
             ],
-            model="gpt-4"  # Adjust model as needed
+            model="gpt-4o"  # Adjust model as needed
         )
 
         generated_text = response.choices[0].message.content

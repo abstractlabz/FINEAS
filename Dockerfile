@@ -29,8 +29,7 @@ COPY . .
 RUN go mod download
 
 # Install Python dependencies
-RUN pip3 install --no-cache-dir -r utils/requirements.txt
-
+RUN pip3 install --no-cache-dir --break-system-packages -r utils/requirements.txt
 # Set environment variables for keys
 ENV API_KEY=API_KEY
 ENV PASS_KEY=PASS_KEY
