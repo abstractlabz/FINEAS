@@ -12,6 +12,9 @@
 *.key
 *
 
+#Make the license file visible on GitHub
+!LICENSE
+
 # Test binary, built with `go test -c`
 *.test
 
