@@ -10,7 +10,9 @@
 *.dylib
 *.pem
 *.key
-*txt
+*.txt
+*.cer
+*.json
 
 #Make the license file visible on GitHub
 !LICENSE
