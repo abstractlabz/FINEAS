@@ -25,7 +25,7 @@ check_chatbot() {
 
 # Function to kill the chatbot process
 kill_chatbot() {
-    pid=$(pgrep -f "python3 ${MAIN_SCRIPT}")
+    pid=$(pgrep -f "${MAIN_SCRIPT}")
     if [ -n "$pid" ]; then
         echo "$(date): Killing chatbot process with PID $pid"
         kill -9 $pid
