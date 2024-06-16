@@ -51,5 +51,5 @@ while true; do
         start_chatbot
     fi
     # Wait for 2 minutes before checking again
-    sleep 120
+    sleep 600
 done
