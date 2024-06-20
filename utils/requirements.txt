@@ -1,0 +1,13 @@
+tiktoken
+pinecone-client
+tqdm
+flask-cors
+langchain_openai
+langchain
+flask
+openai
+python-dotenv
+datasets
+requests
+stripe
+pymongo
