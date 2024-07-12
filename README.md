@@ -81,7 +81,7 @@ Now you can locally interact with Fineas using http requests or any hosted front
 | ------ | ------ |
 | Collects aggregated data for a given ticker symbol.| curl "http://0.0.0.0:8080/?ticker=AMZN"
 | Processes a prompt and returns relevant financial information. | curl -X POST "https://query.fineasapp.io:443/chat?prompt=What%20is%20some%20relevant%20news%20around%20amazon%3F"
-| Retrieve the entire current cache of information for a ticker | curl -X GET "http://data.fineasapp.io:8443/ret?ticker=AAPL" -H "Authorization: Bearer [Access Token]" 
+| Retrieve the entire current cache of information for a ticker | curl -X GET "https://data.fineasapp.io:8443/ret?ticker=AAPL" -H "Authorization: Bearer [Access Token]" 
 | Collect recent technical analysis data for a ticker. | curl -X GET "http://0.0.0.0:8089/ta?ticker=AAPL" -H "Authorization: Bearer [Access Token]"
 | Collect recent description data for a ticker | curl -X GET "http://0.0.0.0:8084/desc?ticker=AAPL" -H "Authorization: Bearer [Access Token]" |
 | Collect recent news data for a ticker | curl -X GET "http://0.0.0.0:8083/news?ticker=AAPL" -H "Authorization: Bearer [Access Token]" |
