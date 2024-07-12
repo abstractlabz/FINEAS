@@ -12,6 +12,8 @@
 *.key
 *.cer
 *.json
+*startup.sh
+*monitor_chatbot.sh
 
 #Make the license file visible on GitHub
 !LICENSE
