@@ -14,6 +14,7 @@
 *.json
 *startup.sh
 *monitor_chatbot.sh
+*authenticator.sh 
 
 #Make the license file visible on GitHub
 !LICENSE

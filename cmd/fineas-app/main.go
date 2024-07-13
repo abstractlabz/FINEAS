@@ -8,8 +8,8 @@ import (
 
 // entry point
 func main() {
-	certFile := "../../utils/keys/data/data.fineasapp.io.cer"
-	keyFile := "../../utils/keys/data/data.fineasapp.io.key"
+	certFile := "../../utils/keys/data/fullchain.pem"
+	keyFile := "../../utils/keys/data/privkey.pem"
 	go func() {
 		http.Handle("/", api.CorsMiddleware(http.HandlerFunc(api.HandleQuoteRequest)))
 		log.Println(http.ListenAndServe(":8080", nil))

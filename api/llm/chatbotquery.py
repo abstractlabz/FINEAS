@@ -91,4 +91,4 @@ def chatbot():
         return jsonify({'error': 'Internal Server Error'}), 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=6002, debug=False, ssl_context=('../../utils/keys/query/query.fineasapp.io.cer', '../../utils/keys/query/query.fineasapp.io.key'))
+    app.run(host='0.0.0.0', port=6002, debug=False, ssl_context=('../../utils/keys/query/fullchain.pem', '../../utils/keys/query/privkey.pem'))
