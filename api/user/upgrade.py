@@ -284,4 +284,4 @@ def get_chat_names():
 
     
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=7002, debug=True, ssl_context=('../../utils/keys/upgrade.fineasapp.io.pem', '../../utils/keys/upgrade.fineasapp.io.key'))
+    app.run(host='0.0.0.0', port=7002, debug=True, ssl_context=('../../utils/keys/upgrade/fullchain.pem', '../../utils/keys/upgrade/privkey.pem'))
