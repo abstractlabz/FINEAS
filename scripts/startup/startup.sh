@@ -48,7 +48,7 @@ echo "Environment variables set."
 
 # Install Go
 echo "Installing Go..."
-GO_VERSION="1.16.6"
+GO_VERSION="1.21.6"
 GO_TAR="go${GO_VERSION}.linux-amd64.tar.gz"
 GO_URL="https://golang.org/dl/${GO_TAR}"
 
