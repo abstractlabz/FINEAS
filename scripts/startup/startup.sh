@@ -9,8 +9,8 @@ command_exists() {
 for cmd in jq wget tar; do
   if ! command_exists "$cmd"; then
     echo "$cmd is not installed. Installing $cmd..."
-    sudo apt-get update
-    sudo apt-get install -y "$cmd"
+    apt-get update
+    apt-get install -y "$cmd"
     if [ $? -ne 0 ]; then
       echo "Error: Failed to install $cmd." >&2
       exit 1
@@ -58,7 +58,7 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-sudo tar -C /usr/local -xzf "$GO_TAR"
+tar -C /usr/local -xzf "$GO_TAR"
 if [ $? -ne 0 ]; then
   echo "Failed to extract Go." >&2
   exit 1
@@ -81,15 +81,13 @@ nohup go run main.go > ../../scripts/logs/go_app.log 2>&1 &
 
 # Start the Python application
 echo "Starting the Python application..."
-cd "$OLDPWD"
-cd "../../cmd/python-app" || { echo "Failed to navigate to the Python application directory"; exit 1; }
 nohup python3 main.py > ../../scripts/logs/python_app.log 2>&1 &
 
 # Start automation and cron jobs
 echo "Starting cron jobs..."
-cd "$OLDPWD"
+cd - > /dev/null
 cd "../../scripts/automation" || { echo "Failed to navigate to automation script directory"; exit 1; }
 nohup ./monitor_process.sh "monitor_query_config.json" > ../logs/monitor_process_query.log 2>&1 &
-nohup ./monitor_process.sh "monitor_upgrade_config.json" > ../logs/monitor_upgrade_query.log 2>&1 &
+nohup ./monitor_process.sh "monitor_upgrade_config.json" > ../logs/monitor_process_upgrade.log 2>&1 &
 
 echo "All processes have started up..."

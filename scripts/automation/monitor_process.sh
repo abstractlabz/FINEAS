@@ -39,31 +39,32 @@ get_config_value() {
 # Read values from the configuration file and assign them to variables
 # Necessary to keep environment variables persistent for ssh connections
 
-export CHATBOT_URL=$(get_config_value "CHATBOT_URL")
-export CHATBOT_DIR=$(get_config_value "CHATBOT_DIR")
+export PROCESS_URL=$(get_config_value "PROCESS_URL")
+export PROCESS_DIR=$(get_config_value "PROCESS_DIR")
 export INPUT_SCRIPT=$(get_config_value "INPUT_SCRIPT")
+export LOG_FILE=$(get_config_value "LOG_FILE")
 export RETRY_LIMIT=$(get_config_value "RETRY_LIMIT")
 export RETRY_DELAY=$(get_config_value "RETRY_DELAY")
 export AUTH_BEARER=$(get_config_value "AUTH_BEARER")
 
 echo "Environment variables set."
 
-# Log file for the script
-LOG_FILE="../logs/monitor_process.log"
+# Ensure the log file directory exists
+mkdir -p "$(dirname "$LOG_FILE")"
 
 # Function to check if the process is up
 check_process() {
-    response=$(curl -k --write-out '%{http_code}' --silent --output /dev/null -X POST "${CHATBOT_URL}" -H "Authorization: Bearer ${AUTH_BEARER}")
+    response=$(curl -k --write-out '%{http_code}' --silent --output /dev/null -X POST "${PROCESS_URL}" -H "Authorization: Bearer ${AUTH_BEARER}")
     curl_exit_status=$?
     
     if [[ $curl_exit_status -ne 0 ]]; then
-        echo "$(date): Process is down (curl failed with exit status $curl_exit_status)" | tee -a $LOG_FILE
+        echo "$(date): Process is down (curl failed with exit status $curl_exit_status)" | tee -a "$LOG_FILE"
         return 1
     elif [[ "$response" -ne 400 && "$response" -ne 401 && "$response" -ne 500 && "$response" -ne 524 && "$response" -ne 521 && "$response" -ne 522 && "$response" -ne 523 ]]; then
-        echo "$(date): Process is down with response code $response" | tee -a $LOG_FILE
+        echo "$(date): Process is down with response code $response" | tee -a "$LOG_FILE"
         return 1
     else
-        echo "$(date): Process is up with response code $response" | tee -a $LOG_FILE
+        echo "$(date): Process is up with response code $response" | tee -a "$LOG_FILE"
         return 0
     fi
 }
@@ -72,34 +73,64 @@ check_process() {
 kill_process() {
     pid=$(pgrep -f "${INPUT_SCRIPT}")
     if [ -n "$pid" ]; then
-        echo "$(date): Sending SIGTERM to process with PID $pid" | tee -a $LOG_FILE
+        echo "$(date): Sending SIGTERM to process with PID $pid" | tee -a "$LOG_FILE"
         kill $pid
         sleep 5  # Wait for a few seconds to allow graceful shutdown
         
         # Check if the process is still running
         if pgrep -f "${INPUT_SCRIPT}" > /dev/null; then
-            echo "$(date): Process did not terminate, sending SIGKILL to PID $pid" | tee -a $LOG_FILE
+            echo "$(date): Process did not terminate, sending SIGKILL to PID $pid" | tee -a "$LOG_FILE"
             kill -9 $pid
         fi
     else
-        echo "$(date): No process found" | tee -a $LOG_FILE
+        echo "$(date): No process found" | tee -a "$LOG_FILE"
     fi
 }
 
 # Function to start the process
 start_process() {
-    echo "$(date): Starting process" | tee -a $LOG_FILE
-    cd "$CHATBOT_DIR"
-    nohup python3 "$INPUT_SCRIPT" &>> $LOG_FILE &
-    cd - > /dev/null  # Return to the previous directory
+    echo "$(date): Starting process" | tee -a "$LOG_FILE"
+
+    # Check if PROCESS_DIR is set and is a valid directory
+    if [ -z "$PROCESS_DIR" ]; then
+        echo "$(date): PROCESS_DIR is not set." | tee -a "$LOG_FILE"
+        return 1
+    elif [ ! -d "$PROCESS_DIR" ]; then
+        echo "$(date): PROCESS_DIR ($PROCESS_DIR) does not exist." | tee -a "$LOG_FILE"
+        return 1
+    fi
+
+    # Check if INPUT_SCRIPT is set and is a valid file
+    script_path="$PROCESS_DIR/$INPUT_SCRIPT"
+    if [ -z "$INPUT_SCRIPT" ]; then
+        echo "$(date): INPUT_SCRIPT is not set." | tee -a "$LOG_FILE"
+        return 1
+    elif [ ! -f "$script_path" ]; then
+        echo "$(date): INPUT_SCRIPT ($script_path) does not exist." | tee -a "$LOG_FILE"
+        return 1
+    fi
+
+    # Save the current directory
+    current_dir=$(pwd)
+
+    # Change to the process directory
+    cd "$PROCESS_DIR" || { echo "$(date): Failed to navigate to PROCESS_DIR ($PROCESS_DIR)"; return 1; }
+
+    # Start the process
+    nohup python3 "$script_path" &>> "$LOG_FILE" &
+    
+    # Return to the original directory
+    cd "$current_dir" || { echo "$(date): Failed to return to the original directory"; return 1; }
+
     sleep 10  # Give it some time to start up
 
     # Recheck if the process started
     pid=$(pgrep -f "${INPUT_SCRIPT}")
     if [ -n "$pid" ]; then
-        echo "$(date): Process started successfully with PID $pid" | tee -a $LOG_FILE
+        echo "$(date): Process started successfully with PID $pid" | tee -a "$LOG_FILE"
     else
-        echo "$(date): Failed to start process" | tee -a $LOG_FILE
+        echo "$(date): Failed to start process" | tee -a "$LOG_FILE"
+        return 1
     fi
 }
 
@@ -112,16 +143,16 @@ restart_process() {
         
         # Check if the process started successfully
         if pgrep -f "${INPUT_SCRIPT}" > /dev/null; then
-            echo "$(date): Process restarted successfully on attempt $i" | tee -a $LOG_FILE
+            echo "$(date): Process restarted successfully on attempt $i" | tee -a "$LOG_FILE"
             return 0
         else
-            echo "$(date): Failed to start process on attempt $i" | tee -a $LOG_FILE
+            echo "$(date): Failed to start process on attempt $i" | tee -a "$LOG_FILE"
             sleep $RETRY_DELAY
         fi
     done
 
     # If we reach here, all retries have failed
-    echo "$(date): Process failed to start after $RETRY_LIMIT attempts" | tee -a $LOG_FILE
+    echo "$(date): Process failed to start after $RETRY_LIMIT attempts" | tee -a "$LOG_FILE"
 }
 
 # Monitor loop
