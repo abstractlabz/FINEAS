@@ -1,0 +1,12 @@
+{
+    "API_KEY": "Ask the github organization owner for env key secrets",
+    "PASS_KEY": "",
+    "MONGO_DB_LOGGER_PASSWORD": "",
+    "OPEN_AI_API_KEY": "",
+    "KB_WRITE_KEY": "",
+    "MR_WRITE_KEY": "",
+    "PINECONE_API_KEY": "",
+    "STRIPE_ENDPOINT_SECRET": "",
+    "STRIPE_SECRET_KEY": "",
+    "REDIRECT_DOMAIN": "https://www.fineas.ai"
+}

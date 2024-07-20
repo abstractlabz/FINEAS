@@ -15,6 +15,8 @@
 
 #Make the license file visible on GitHub
 !LICENSE
+!startup_config_template.json
+!monitor_template_config.json 
 
 # Test binary, built with `go test -c`
 *.test

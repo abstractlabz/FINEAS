@@ -1,0 +1,9 @@
+{
+    "PROCESS_URL": "https://query.fineasapp.io:443/chat?prompt=Hello",
+    "PROCESS_DIR": "../../api/llm",
+    "INPUT_SCRIPT": "chatbotquery.py",
+    "LOG_FILE": "../logs",
+    "RETRY_LIMIT": 3,
+    "RETRY_DELAY": 10,
+    "AUTH_BEARER": "Ask the github organization owner for env key secrets"
+}
