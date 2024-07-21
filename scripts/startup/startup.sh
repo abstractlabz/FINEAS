@@ -47,6 +47,7 @@ export REDIRECT_DOMAIN=$(get_config_value "REDIRECT_DOMAIN")
 echo "Environment variables set."
 
 # Install Go
+cd ~ || { echo "Failed to navigate to the home directory"; exit 1; }
 echo "Installing Go..."
 GO_VERSION="1.21.6"
 GO_TAR="go${GO_VERSION}.linux-amd64.tar.gz"
@@ -71,12 +72,16 @@ echo "Go installed."
 # Make Go path persistent
 echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.profile
 
+# Directory to store Go projects
+cd - > /dev/null
 # Move to the application startup directory
 APP_DIR="../../cmd/fineas-app"
 cd "$APP_DIR" || { echo "Failed to navigate to the application directory"; exit 1; }
 
 # Start the Go application
 echo "Starting the Go application..."
+go mod tidy
+go clean -cache -modcache -i -r
 nohup go run main.go > ../../scripts/logs/go_app.log 2>&1 &
 
 # Start the Python application
