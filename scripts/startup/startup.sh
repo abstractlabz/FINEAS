@@ -94,5 +94,7 @@ cd - > /dev/null
 cd "../../scripts/automation" || { echo "Failed to navigate to automation script directory"; exit 1; }
 nohup ./monitor_process.sh "monitor_query_config.json" > ../logs/monitor_process_query.log 2>&1 &
 nohup ./monitor_process.sh "monitor_upgrade_config.json" > ../logs/monitor_process_upgrade.log 2>&1 &
+nohup ./monitor_process.sh "monitor_data_config.json" > ../logs/monitor_process_data.log 2>&1 &
+
 
 echo "All processes have started up..."

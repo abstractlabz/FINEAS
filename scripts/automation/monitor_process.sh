@@ -117,7 +117,7 @@ start_process() {
     cd "$PROCESS_DIR" || { echo "$(date): Failed to navigate to PROCESS_DIR ($PROCESS_DIR)"; return 1; }
 
     # Start the process
-    nohup python3 "$script_path" &>> "$LOG_FILE" &
+    nohup "$script_path" &>> "$LOG_FILE" &
     
     # Return to the original directory
     cd "$current_dir" || { echo "$(date): Failed to return to the original directory"; return 1; }
