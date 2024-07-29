@@ -65,10 +65,8 @@ EXPOSE 7002
 
 
 # Run the application
-CMD cd cmd/fineas-app && \
-    go run . && echo "Waiting for the Go application to start..." && \
-    python3 main.py && echo "Waiting for the Python application to start..." && \
-    cd ../../scripts/populatedata && \
-    go run . && echo "Starting up data populator..." && \
-    echo "All applications started successfully!"
+CMD cd scripts/startup && \
+    ./startup.sh startup_config.json && echo "Starting up the services..." && \
+    echo "All applications started successfully!" && \
+    tail -f /dev/null
 

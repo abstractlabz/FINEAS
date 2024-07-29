@@ -9,8 +9,8 @@ command_exists() {
 for cmd in jq wget tar curl; do
   if ! command_exists "$cmd"; then
     echo "$cmd is not installed. Installing $cmd..."
-    sudo apt-get update
-    sudo apt-get install -y "$cmd"
+    apt-get update
+    apt-get install -y "$cmd"
     if [ $? -ne 0 ]; then
       echo "Error: Failed to install $cmd." >&2
       exit 1

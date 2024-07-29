@@ -49,8 +49,8 @@ echo "Environment variables set."
 # Install Go
 cd ~ || { echo "Failed to navigate to the home directory"; exit 1; }
 cd .. || { echo "Failed to navigate to the parent directory"; exit 1; }
+rm -rf /usr/local/go
 cd /tmp || { echo "Failed to navigate to the temp directory"; exit 1; }
-
 
 echo "Installing Go..."
 GO_VERSION="1.21.6"
@@ -93,7 +93,6 @@ nohup python3 main.py > ../../scripts/logs/python_app.log 2>&1 &
 
 # Start automation and cron jobs
 echo "Starting cron jobs..."
-cd - > /dev/null
 cd "../../scripts/automation" || { echo "Failed to navigate to automation script directory"; exit 1; }
 nohup ./monitor_process.sh "monitor_query_config.json" > ../logs/monitor_process_query.log 2>&1 &
 nohup ./monitor_process.sh "monitor_upgrade_config.json" > ../logs/monitor_process_upgrade.log 2>&1 &

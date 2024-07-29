@@ -125,7 +125,7 @@ def get_user_info():
         # insert a new user document if not found
         user = {
             'id_hash': id_hash,
-            'credits': 5,
+            'credits': 25,
             'ismember': False
         }
         userlist.insert_one(user)
@@ -194,7 +194,7 @@ def enforce_credits():
         # User not found, insert a new document with default values
         user = {
             'id_hash': id_hash,
-            'credits': 5,
+            'credits': 25,
             'ismember': False,
             'stripe_customer_id': ''
         }
