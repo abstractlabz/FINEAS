@@ -130,9 +130,9 @@ def get_user_info():
         }
         userlist.insert_one(user)
         
-        return jsonify({'user': user})
+        return jsonify({'user': user}), 200
     
-    return jsonify({'user': user})
+    return jsonify({'user': user}), 200
 
 @app.route('/cancel-subscription', methods=['POST'])
 def cancel_subscription():
@@ -164,7 +164,7 @@ def cancel_subscription():
             # Document found but not modified - could indicate the values were already set
             return jsonify({'info': 'User found, but document was not modified'}), 200
 
-        return jsonify({'success': True, 'message': 'All subscriptions canceled and user updated in database'})
+        return jsonify({'success': True, 'message': 'All subscriptions canceled and user updated in database'}), 200
     except Exception as e:
         print(e)
         return jsonify({'error': 'Failed to cancel subscription'}), 500

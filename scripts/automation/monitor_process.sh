@@ -46,6 +46,8 @@ export LOG_FILE=$(get_config_value "LOG_FILE")
 export RETRY_LIMIT=$(get_config_value "RETRY_LIMIT")
 export RETRY_DELAY=$(get_config_value "RETRY_DELAY")
 export AUTH_BEARER=$(get_config_value "AUTH_BEARER")
+export COMMAND_PREFIX=$(get_config_value "COMMAND_PREFIX")
+
 
 echo "Environment variables set."
 
@@ -63,6 +65,9 @@ check_process() {
     elif [[ "$response" -ne 400 && "$response" -ne 401 && "$response" -ne 500 && "$response" -ne 524 && "$response" -ne 521 && "$response" -ne 522 && "$response" -ne 523 ]]; then
         echo "$(date): Process is down with response code $response" | tee -a "$LOG_FILE"
         return 1
+    elif [[ "$response" -eq 200 ]]; then
+        echo "$(date): Process is up with response code $response" | tee -a "$LOG_FILE"
+        return 0
     else
         echo "$(date): Process is up with response code $response" | tee -a "$LOG_FILE"
         return 0
@@ -101,12 +106,8 @@ start_process() {
     fi
 
     # Check if INPUT_SCRIPT is set and is a valid file
-    script_path="$PROCESS_DIR/$INPUT_SCRIPT"
     if [ -z "$INPUT_SCRIPT" ]; then
         echo "$(date): INPUT_SCRIPT is not set." | tee -a "$LOG_FILE"
-        return 1
-    elif [ ! -f "$script_path" ]; then
-        echo "$(date): INPUT_SCRIPT ($script_path) does not exist." | tee -a "$LOG_FILE"
         return 1
     fi
 
@@ -116,8 +117,9 @@ start_process() {
     # Change to the process directory
     cd "$PROCESS_DIR" || { echo "$(date): Failed to navigate to PROCESS_DIR ($PROCESS_DIR)"; return 1; }
 
+    cmd_script="$COMMAND_PREFIX $INPUT_SCRIPT"
     # Start the process
-    nohup "$script_path" &>> "$LOG_FILE" &
+    nohup $cmd_script &>> "$LOG_FILE" &
     
     # Return to the original directory
     cd "$current_dir" || { echo "$(date): Failed to return to the original directory"; return 1; }
@@ -142,6 +144,7 @@ restart_process() {
         start_process
         
         # Check if the process started successfully
+        
         if pgrep -f "${INPUT_SCRIPT}" > /dev/null; then
             echo "$(date): Process restarted successfully on attempt $i" | tee -a "$LOG_FILE"
             return 0
