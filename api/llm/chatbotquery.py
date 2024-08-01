@@ -38,7 +38,7 @@ logging.basicConfig(level=logging.INFO)
 def fetch_chat_response(url, headers, params):
     response = requests.get(url, headers=headers, params=params)
     response.raise_for_status()
-    return response, 200
+    return response
 
 @app.route('/chat', methods=['POST'])
 def chatbot():
@@ -81,7 +81,7 @@ def chatbot():
         params = {'prompt': prompt_payload}
 
         chatresponse = fetch_chat_response(url, headers, params)
-        return chatresponse.text, 200
+        return chatresponse.text
 
     except requests.RequestException as e:
         logging.error(f"Request error: {str(e)}")
