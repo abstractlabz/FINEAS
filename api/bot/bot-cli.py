@@ -5,6 +5,7 @@ import os
 import urllib.parse
 from dotenv import load_dotenv
 from discord.ext.commands import DefaultHelpCommand
+import re
 
 load_dotenv()
 
@@ -29,8 +30,36 @@ bot.help_command = CustomHelpCommand()
 async def on_ready():
     print(f'{bot.user} has connected to Discord!')
 
-def chunk_text(text, chunk_size=1024):
-    return [text[i:i + chunk_size] for i in range(0, len(text), chunk_size)]
+import re
+
+def chunk_text(text, max_chars=1024):
+    paragraphs = text.split('\n')
+    chunks = []
+    current_chunk = ""
+    current_char_count = 0
+
+    for paragraph in paragraphs:
+        if current_char_count + len(paragraph) + 1 > max_chars:
+            chunks.append(current_chunk)
+            current_chunk = paragraph
+            current_char_count = len(paragraph) + 1
+        else:
+            if current_chunk:
+                current_chunk += "\n" + paragraph
+            else:
+                current_chunk = paragraph
+            current_char_count += len(paragraph) + 1
+
+    if current_chunk:
+        chunks.append(current_chunk)
+
+    return chunks
+
+async def send_embed(ctx, title, content):
+    chunks = chunk_text(content)
+    for chunk in chunks:
+        embed = discord.Embed(title=title, description=chunk, color=discord.Color.blue())
+        await ctx.send(embed=embed)
 
 @bot.command(name='stk', help='Get stock information about a specific ticker')
 async def stk(ctx: commands.Context, symbol: str) -> None:
@@ -40,11 +69,8 @@ async def stk(ctx: commands.Context, symbol: str) -> None:
         print(f"Response Status Code: {response.status_code}")
         print(f"Response Content: {response.content}")
         data = response.json()
-        embed = discord.Embed(title=f"Information for {symbol}", color=discord.Color.blue())
         stock_performance = data.get('StockPerformance', 'N/A')
-        for chunk in chunk_text(stock_performance):
-            embed.add_field(name="Stock Performance", value=chunk, inline=False)
-        await ctx.send(embed=embed)
+        await send_embed(ctx, f"Information for {symbol}", stock_performance)
     except Exception as e:
         await ctx.send(f"Error retrieving information for {symbol}. Please try again later.")
         await ctx.send(f"An error occurred: {str(e)}")
@@ -57,11 +83,8 @@ async def fin(ctx: commands.Context, symbol: str) -> None:
         print(f"Response Status Code: {response.status_code}")
         print(f"Response Content: {response.content}")
         data = response.json()
-        embed = discord.Embed(title=f"Information for {symbol}", color=discord.Color.blue())
         financial_health = data.get('FinancialHealth', 'N/A')
-        for chunk in chunk_text(financial_health):
-            embed.add_field(name="Financial Health", value=chunk, inline=False)
-        await ctx.send(embed=embed)
+        await send_embed(ctx, f"Information for {symbol}", financial_health)
     except Exception as e:
         await ctx.send(f"Error retrieving information for {symbol}. Please try again later.")
         await ctx.send(f"An error occurred: {str(e)}")
@@ -74,11 +97,8 @@ async def news(ctx: commands.Context, symbol: str) -> None:
         print(f"Response Status Code: {response.status_code}")
         print(f"Response Content: {response.content}")
         data = response.json()
-        embed = discord.Embed(title=f"Information for {symbol}", color=discord.Color.blue())
         news_summary = data.get('NewsSummary', 'N/A')
-        for chunk in chunk_text(news_summary):
-            embed.add_field(name="News Summary", value=chunk, inline=False)
-        await ctx.send(embed=embed)
+        await send_embed(ctx, f"Information for {symbol}", news_summary)
     except Exception as e:
         await ctx.send(f"Error retrieving information for {symbol}. Please try again later.")
         await ctx.send(f"An error occurred: {str(e)}")
@@ -91,11 +111,8 @@ async def desc(ctx: commands.Context, symbol: str) -> None:
         print(f"Response Status Code: {response.status_code}")
         print(f"Response Content: {response.content}")
         data = response.json()
-        embed = discord.Embed(title=f"Information for {symbol}", color=discord.Color.blue())
         company_desc = data.get('CompanyDesc', 'N/A')
-        for chunk in chunk_text(company_desc):
-            embed.add_field(name="Company Description", value=chunk, inline=False)
-        await ctx.send(embed=embed)
+        await send_embed(ctx, f"Information for {symbol}", company_desc)
     except Exception as e:
         await ctx.send(f"Error retrieving information for {symbol}. Please try again later.")
         await ctx.send(f"An error occurred: {str(e)}")
@@ -108,11 +125,8 @@ async def ta(ctx: commands.Context, symbol: str) -> None:
         print(f"Response Status Code: {response.status_code}")
         print(f"Response Content: {response.content}")
         data = response.json()
-        embed = discord.Embed(title=f"Information for {symbol}", color=discord.Color.blue())
         technical_analysis = data.get('TechnicalAnalysis', 'N/A')
-        for chunk in chunk_text(technical_analysis):
-            embed.add_field(name="Technical Analysis", value=chunk, inline=False)
-        await ctx.send(embed=embed)
+        await send_embed(ctx, f"Information for {symbol}", technical_analysis)
     except Exception as e:
         await ctx.send(f"Error retrieving information for {symbol}. Please try again later.")
         await ctx.send(f"An error occurred: {str(e)}")
@@ -124,10 +138,7 @@ async def ask(ctx: commands.Context, *, question: str) -> None:
         headers = {"Authorization": f"Bearer {AUTH_BEARER}"}
         response = requests.post(f"{CHATBOT_API_URL}/chat?prompt={question}", headers=headers)
         answer = response.text
-        embed = discord.Embed(title="Fineas Says...", color=discord.Color.blue())
-        for chunk in chunk_text(answer):
-            embed.add_field(name="Response", value=chunk, inline=False)
-        await ctx.send(embed=embed)
+        await send_embed(ctx, "Answer to your question", answer)
     except Exception as e:
         await ctx.send("Error processing your question. Please try again later.")
         await ctx.send(f"An error occurred: {str(e)}")
