@@ -32,7 +32,7 @@ def upgrade_membership():
     if not user:
         user = {
             'id_hash': id_hash,
-            'credits': 5,
+            'credits': 25,
             'ismember': False
         }
         user['_id'] = userlist.insert_one(user).inserted_id
