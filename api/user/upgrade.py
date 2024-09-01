@@ -108,7 +108,6 @@ def upgrade_membership():
 @app.route('/session-status', methods=['GET'])
 def session_status():
   session = stripe.checkout.Session.retrieve(request.args.get('session_id'))
-
   return jsonify(status=session.status, customer_email=session.customer_details.email, metadata=session.metadata)
 
 @app.route('/get-user-info', methods=['GET'])

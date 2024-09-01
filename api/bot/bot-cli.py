@@ -92,7 +92,8 @@ async def enforce_credits(ctx):
 
 async def notify_credits(ctx, remaining_credits):
     if remaining_credits is not None:
-        await ctx.send(f"You have {remaining_credits} credits remaining.")
+        await send_embed(ctx, "", f"You have {remaining_credits} credits remaining.")
+
 
 @bot.command(name='stk', help='Get stock information about a specific ticker')
 async def stk(ctx: commands.Context, symbol: str) -> None:
@@ -194,10 +195,12 @@ async def ask(ctx: commands.Context, *, question: str) -> None:
 async def checkout(ctx: commands.Context) -> None:
     user_id = str(ctx.author.id)
     hashed_id = hash_user_id(user_id)
-    response = requests.post(f"{UPGRADE_API_URL}/upgrade_membership", json={"id_hash": hashed_id, "email": ctx.author.email})
+    response = requests.post(f"{UPGRADE_API_URL}/upgrade_membership", json={"id_hash": hashed_id, "email": None})
     if response.status_code == 200:
         data = response.json()
-        await ctx.send(f"Checkout link: {data['checkout_session_id']}")
+        checkoutSessionID = data['checkout_session_id']
+        stripeLink = f"https://checkout.stripe.com/c/pay/{checkoutSessionID}"
+        await ctx.send(f"Checkout link: {stripeLink}")
     else:
         await ctx.send("Error generating checkout link. Please try again later.")
 
@@ -208,9 +211,10 @@ async def credits(ctx: commands.Context) -> None:
     response = requests.get(f"{UPGRADE_API_URL}/get-user-info", params={"id_hash": hashed_id})
     if response.status_code == 200:
         data = response.json()
-        await ctx.send(f"You have {data['user']['credits']} credits remaining.")
+        await send_embed(ctx, "", f"You have {data['user']['credits']} credits remaining")
     else:
-        await ctx.send("Error retrieving credits. Please try again later.")
+        await send_embed(ctx, "", f"Error fetching credits")
+
 
 @bot.command(name='cancel', help='Cancel your Stripe subscription')
 async def cancel(ctx: commands.Context) -> None:
