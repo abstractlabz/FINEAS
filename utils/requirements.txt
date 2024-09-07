@@ -11,3 +11,5 @@ datasets
 requests
 stripe
 pymongo
+discord.py
+discord-ext-bot
