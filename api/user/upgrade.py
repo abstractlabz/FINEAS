@@ -99,7 +99,7 @@ def upgrade_membership():
             "stripe_customer_id": stripe_customer_id
         }
 
-        return jsonify({'checkout_session_id': checkout_session.id, 'user': user_info})
+        return jsonify({'checkout_session_id': checkout_session.id, 'user': user_info, 'url' : checkout_session.url})
 
     except Exception as e:
         print(e)

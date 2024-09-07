@@ -198,9 +198,8 @@ async def checkout(ctx: commands.Context) -> None:
     response = requests.post(f"{UPGRADE_API_URL}/upgrade_membership", json={"id_hash": hashed_id, "email": None})
     if response.status_code == 200:
         data = response.json()
-        checkoutSessionID = data['checkout_session_id']
-        stripeLink = f"https://checkout.stripe.com/c/pay/{checkoutSessionID}"
-        await ctx.send(f"Checkout link: {stripeLink}")
+        checkoutSessionURL = data['url']
+        await ctx.send(f"Checkout link: {checkoutSessionURL}")
     else:
         await ctx.send("Error generating checkout link. Please try again later.")
 
