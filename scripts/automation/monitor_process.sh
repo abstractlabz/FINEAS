@@ -62,6 +62,9 @@ check_process() {
     if [[ $curl_exit_status -ne 0 ]]; then
         echo "$(date): Process is down (curl failed with exit status $curl_exit_status)" | tee -a "$LOG_FILE"
         return 1
+    elif [[ "$response" -eq 522 ]]; then
+        echo "$(date): Process is down with response code 522" | tee -a "$LOG_FILE"
+        return 1
     elif [[ "$response" -ne 400 && "$response" -ne 401 && "$response" -ne 500 && "$response" -ne 524 && "$response" -ne 521 && "$response" -ne 522 && "$response" -ne 523 ]]; then
         echo "$(date): Process is down with response code $response" | tee -a "$LOG_FILE"
         return 1
