@@ -17,8 +17,14 @@ if __name__ == '__main__':
     llm_working_directory = os.path.join(desired_directory, "api", "llm")
 
     # LLM services commands (without SSL)
-    llm_command = ["gunicorn", "-w", "4", "-b", "0.0.0.0:5432", "llm:app"]
-    dataingestor_command = ["gunicorn", "-w", "4", "-b", "0.0.0.0:6001", "chatbotdataingestor:app"]
+    llm_command = [
+        "gunicorn", "-w", "4", "-b", "0.0.0.0:5432", 
+        "--max-requests", "200", "--limit-request-line", "8190", "llm:app"
+    ]
+    dataingestor_command = [
+        "gunicorn", "-w", "4", "-b", "0.0.0.0:6001", 
+        "--max-requests", "200", "--limit-request-line", "8190", "chatbotdataingestor:app"
+    ]
 
     # Start LLM services without SSL
     subprocess.Popen(llm_command, cwd=llm_working_directory)
@@ -27,12 +33,9 @@ if __name__ == '__main__':
     # Chatbotquery (query process) with SSL
     certfile_query, keyfile_query = get_ssl_paths('query')
     chatbot_command = [
-        "gunicorn",
-        "--certfile", certfile_query,
-        "--keyfile", keyfile_query,
-        "-w", "4",
-        "-b", "0.0.0.0:6002",
-        "chatbotquery:app"
+        "gunicorn", "--certfile", certfile_query, "--keyfile", keyfile_query,
+        "-w", "4", "-b", "0.0.0.0:6002", 
+        "--max-requests", "200", "--limit-request-line", "8190", "chatbotquery:app"
     ]
     subprocess.Popen(chatbot_command, cwd=llm_working_directory)
 
@@ -47,24 +50,18 @@ if __name__ == '__main__':
     # Upgrade-webhook with SSL
     certfile_webhook, keyfile_webhook = get_ssl_paths('webhook')
     upgrade_webhook_command = [
-        "gunicorn",
-        "--certfile", certfile_webhook,
-        "--keyfile", keyfile_webhook,
-        "-w", "4",
-        "-b", "0.0.0.0:7000",
-        "upgrade-webhook:app"
+        "gunicorn", "--certfile", certfile_webhook, "--keyfile", keyfile_webhook,
+        "-w", "4", "-b", "0.0.0.0:7000", 
+        "--max-requests", "200", "--limit-request-line", "8190", "upgrade-webhook:app"
     ]
     subprocess.Popen(upgrade_webhook_command, cwd=user_working_directory)
 
     # Upgrade process with SSL
     certfile_upgrade, keyfile_upgrade = get_ssl_paths('upgrade')
     upgrade_command = [
-        "gunicorn",
-        "--certfile", certfile_upgrade,
-        "--keyfile", keyfile_upgrade,
-        "-w", "4",
-        "-b", "0.0.0.0:7002",
-        "upgrade:app"
+        "gunicorn", "--certfile", certfile_upgrade, "--keyfile", keyfile_upgrade,
+        "-w", "4", "-b", "0.0.0.0:7002", 
+        "--max-requests", "200", "--limit-request-line", "8190", "upgrade:app"
     ]
     subprocess.Popen(upgrade_command, cwd=user_working_directory)
 
