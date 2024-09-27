@@ -72,8 +72,8 @@ check_process() {
         echo "$(date): Process is down with response code $response" | tee -a "$LOG_FILE"
         return 1
     else
-        echo "$(date): Process is up with response code $response" | tee -a "$LOG_FILE"
-        return 0
+        echo "$(date): Process is down with response code $response" | tee -a "$LOG_FILE"
+        return 1
     fi
 }
 
