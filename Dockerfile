@@ -65,8 +65,8 @@ EXPOSE 7002
 
 
 # Run the application
-CMD cd scripts/startup && \
-    ./startup.sh startup_config.json && echo "Starting up the services..." && \
-    echo "All applications started successfully!" && \
-    tail -f /dev/null
+#CMD cd scripts/startup && \
+#    ./startup.sh startup_config.json && echo "Starting up the services..." && \
+#    echo "All applications started successfully!" && \
+#    tail -f /dev/null
 

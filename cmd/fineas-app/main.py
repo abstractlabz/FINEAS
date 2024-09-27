@@ -2,33 +2,70 @@ import subprocess
 import os
 
 if __name__ == '__main__':
-    # Specify the directory where you want the subprocess to run
+    # Base directories
     current_directory = os.getcwd()
     desired_directory = os.path.abspath(os.path.join(current_directory, os.pardir, os.pardir))
-    working_directory = os.path.join(desired_directory, "api", "llm")
-    
-    # Specify the command to run the Flask server
-    llm = ["python3", "llm.py"]
-    dataingestor = ["python3", "chatbotdataingestor.py"]
-    chatbot = ["python3", "chatbotquery.py"]
 
-    # Use subprocess to run the Flask server with the specified working directory
-    subprocess.Popen(llm, cwd=working_directory)
-    subprocess.Popen(dataingestor, cwd=working_directory)
-    subprocess.Popen(chatbot, cwd=working_directory)
+    # Function to get SSL paths for a given process
+    def get_ssl_paths(process_name):
+        base_path = os.path.join(desired_directory, 'utils', 'keys', process_name)
+        certfile = os.path.join(base_path, 'fullchain.pem')
+        keyfile = os.path.join(base_path, 'privkey.pem')
+        return certfile, keyfile
 
+    # LLM services working directory
+    llm_working_directory = os.path.join(desired_directory, "api", "llm")
 
-    # Specify the directory where you want the subprocess to run
-    current_directory = os.getcwd()
-    desired_directory = os.path.abspath(os.path.join(current_directory, os.pardir, os.pardir))
-    working_directory = os.path.join(desired_directory, "api", "user")
-    
-    # Specify the command to run the Flask server
-    upgrade_webhook = ["python3", "upgrade-webhook.py"]
-    upgrade = ["python3", "upgrade.py"]
+    # LLM services commands (without SSL)
+    llm_command = ["gunicorn", "-w", "4", "-b", "0.0.0.0:5432", "llm:app"]
+    dataingestor_command = ["gunicorn", "-w", "4", "-b", "0.0.0.0:6001", "chatbotdataingestor:app"]
 
-    # Use subprocess to run the Flask server with the specified working directory
-    subprocess.Popen(upgrade_webhook, cwd=working_directory)
-    subprocess.Popen(upgrade, cwd=working_directory)
+    # Start LLM services without SSL
+    subprocess.Popen(llm_command, cwd=llm_working_directory)
+    subprocess.Popen(dataingestor_command, cwd=llm_working_directory)
+
+    # Chatbotquery (query process) with SSL
+    certfile_query, keyfile_query = get_ssl_paths('query')
+    chatbot_command = [
+        "gunicorn",
+        "--certfile", certfile_query,
+        "--keyfile", keyfile_query,
+        "-w", "4",
+        "-b", "0.0.0.0:6002",
+        "chatbotquery:app"
+    ]
+    subprocess.Popen(chatbot_command, cwd=llm_working_directory)
+
+    # Discord bot (run using python3)
+    bot_working_directory = os.path.join(desired_directory, "api", "bot")
+    discordbot_command = ["python3", "bot-cli.py"]
+    subprocess.Popen(discordbot_command, cwd=bot_working_directory)
+
+    # User services working directory
+    user_working_directory = os.path.join(desired_directory, "api", "user")
+
+    # Upgrade-webhook with SSL
+    certfile_webhook, keyfile_webhook = get_ssl_paths('webhook')
+    upgrade_webhook_command = [
+        "gunicorn",
+        "--certfile", certfile_webhook,
+        "--keyfile", keyfile_webhook,
+        "-w", "4",
+        "-b", "0.0.0.0:7000",
+        "upgrade-webhook:app"
+    ]
+    subprocess.Popen(upgrade_webhook_command, cwd=user_working_directory)
+
+    # Upgrade process with SSL
+    certfile_upgrade, keyfile_upgrade = get_ssl_paths('upgrade')
+    upgrade_command = [
+        "gunicorn",
+        "--certfile", certfile_upgrade,
+        "--keyfile", keyfile_upgrade,
+        "-w", "4",
+        "-b", "0.0.0.0:7002",
+        "upgrade:app"
+    ]
+    subprocess.Popen(upgrade_command, cwd=user_working_directory)
 
     print("LLM services are running...")

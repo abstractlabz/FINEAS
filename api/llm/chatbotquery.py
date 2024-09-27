@@ -81,7 +81,7 @@ def chatbot():
         params = {'prompt': prompt_payload}
 
         chatresponse = fetch_chat_response(url, headers, params)
-        return chatresponse.text
+        return chatresponse.text, 200
 
     except requests.RequestException as e:
         logging.error(f"Request error: {str(e)}")
@@ -91,4 +91,4 @@ def chatbot():
         return jsonify({'error': 'Internal Server Error'}), 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=6002, debug=False, ssl_context=('../../utils/keys/query/fullchain.pem', '../../utils/keys/query/privkey.pem'))
+    app.run()

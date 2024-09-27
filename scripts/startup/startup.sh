@@ -6,7 +6,7 @@ command_exists() {
 }
 
 # Ensure required commands are available
-for cmd in jq wget tar; do
+for cmd in jq wget tar python3 python3-pip gunicorn; do
   if ! command_exists "$cmd"; then
     echo "$cmd is not installed. Installing $cmd..."
     apt-get update
@@ -17,6 +17,26 @@ for cmd in jq wget tar; do
     fi
   fi
 done
+
+# Ensure pip is available
+if ! command_exists pip3; then
+  echo "pip is not installed. Installing pip..."
+  apt-get install -y python3-pip
+  if [ $? -ne 0 ]; then
+    echo "Error: Failed to install pip." >&2
+    exit 1
+  fi
+fi
+
+# Ensure Gunicorn is installed via pip
+if ! pip3 show gunicorn >/dev/null 2>&1; then
+  echo "Gunicorn is not installed. Installing Gunicorn..."
+  pip3 install gunicorn
+  if [ $? -ne 0 ]; then
+    echo "Error: Failed to install Gunicorn." >&2
+    exit 1
+  fi
+fi
 
 # Ensure the config file path is provided as an argument
 if [ "$#" -ne 1 ]; then
@@ -97,6 +117,5 @@ cd "../../scripts/automation" || { echo "Failed to navigate to automation script
 nohup ./monitor_process.sh "monitor_query_config.json" > ../logs/monitor_process_query.log 2>&1 &
 nohup ./monitor_process.sh "monitor_upgrade_config.json" > ../logs/monitor_process_upgrade.log 2>&1 &
 nohup ./monitor_process.sh "monitor_data_config.json" > ../logs/monitor_process_data.log 2>&1 &
-
 
 echo "All processes have started up..."

@@ -47,7 +47,7 @@ export RETRY_LIMIT=$(get_config_value "RETRY_LIMIT")
 export RETRY_DELAY=$(get_config_value "RETRY_DELAY")
 export AUTH_BEARER=$(get_config_value "AUTH_BEARER")
 export COMMAND_PREFIX=$(get_config_value "COMMAND_PREFIX")
-
+export REQUEST_METHOD=$(get_config_value "REQUEST_METHOD")
 
 echo "Environment variables set."
 
@@ -56,21 +56,21 @@ mkdir -p "$(dirname "$LOG_FILE")"
 
 # Function to check if the process is up
 check_process() {
-    response=$(curl -k --write-out '%{http_code}' --silent --output /dev/null -X POST "${PROCESS_URL}" -H "Authorization: Bearer ${AUTH_BEARER}")
+    response=$(curl -X "${REQUEST_METHOD}" -H "Authorization: Bearer ${AUTH_BEARER}" "${PROCESS_URL}" -I 2>/dev/null | awk 'NR==1 {print $2}')
     curl_exit_status=$?
     
     if [[ $curl_exit_status -ne 0 ]]; then
         echo "$(date): Process is down (curl failed with exit status $curl_exit_status)" | tee -a "$LOG_FILE"
         return 1
-    elif [[ "$response" -eq 522 ]]; then
-        echo "$(date): Process is down with response code 522" | tee -a "$LOG_FILE"
-        return 1
-    elif [[ "$response" -ne 400 && "$response" -ne 401 && "$response" -ne 500 && "$response" -ne 524 && "$response" -ne 521 && "$response" -ne 522 && "$response" -ne 523 ]]; then
+    elif [[ "$response" -eq 400 && "$response" -eq 401 && "$response" -eq 500 && "$response" -eq 524 && "$response" -eq 521 && "$response" -eq 522 && "$response" -eq 523 && "$response" -eq 000 ]]; then
         echo "$(date): Process is down with response code $response" | tee -a "$LOG_FILE"
         return 1
     elif [[ "$response" -eq 200 ]]; then
         echo "$(date): Process is up with response code $response" | tee -a "$LOG_FILE"
         return 0
+    elif [[ "$response" -ne 400 && "$response" -ne 401 && "$response" -ne 500 && "$response" -ne 524 && "$response" -ne 521 && "$response" -ne 522 && "$response" -ne 523 && "$response" -ne 200 && "$response" -ne 000 ]]; then
+        echo "$(date): Process is down with response code $response" | tee -a "$LOG_FILE"
+        return 1
     else
         echo "$(date): Process is up with response code $response" | tee -a "$LOG_FILE"
         return 0

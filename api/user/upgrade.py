@@ -99,7 +99,7 @@ def upgrade_membership():
             "stripe_customer_id": stripe_customer_id
         }
 
-        return jsonify({'checkout_session_id': checkout_session.id, 'user': user_info, 'url' : checkout_session.url})
+        return jsonify({'checkout_session_id': checkout_session.id, 'user': user_info, 'url' : checkout_session.url}, 200)
 
     except Exception as e:
         print(e)
@@ -283,4 +283,4 @@ def get_chat_names():
 
     
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=7002, debug=True, ssl_context=('../../utils/keys/upgrade/fullchain.pem', '../../utils/keys/upgrade/privkey.pem'))
+    app.run()
