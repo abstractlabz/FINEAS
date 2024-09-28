@@ -43,7 +43,8 @@ def fetch_chat_response(url, headers, params):
 @app.route('/chat', methods=['POST'])
 def chatbot():
     try:
-        raw_data = request.args.get('prompt')
+        data = request.get_json()
+        raw_data = data.get('prompt')  # Get prompt from JSON payload
         if not raw_data:
             return jsonify({'error': 'No data given'}), 400
 
@@ -54,8 +55,6 @@ def chatbot():
         if passhash != HASH_KEY:
             return jsonify({'error': 'Unauthorized access'}), 401
 
-        raw_data = urllib.parse.unquote(raw_data)  # Decode URL-encoded prompt
-        
         query_vector = embed.embed_query(raw_data)
         context = index.query(vector=query_vector, top_k=7, include_metadata=True)
         context = [match['metadata']['text'] for match in context['matches']]
@@ -89,6 +88,7 @@ def chatbot():
     except Exception as e:
         logging.error(f"Internal error: {str(e)}")
         return jsonify({'error': 'Internal Server Error'}), 500
+
 
 if __name__ == '__main__':
     app.run()
