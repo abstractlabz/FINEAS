@@ -391,43 +391,60 @@ func getFinancialInfo(ticker string, handlerID string, handlerURL string, passHa
 // gets the prompt inference from the LLM service
 func getPromptInference(prompt string, template string, handlerID string, handlerURL string, eventSequenceArray []string, passHash string) string {
 
-	//Create an HTTP client
+	// Create an HTTP client
 	client := &http.Client{}
 
+	// Construct the full URL for the handler
 	baseUrl := handlerURL + handlerID
 
-	url := baseUrl + "?" + "prompt=" + urlConverter(template+prompt)
+	// Construct the full prompt by combining the template and user prompt
+	fullPrompt := template + prompt
 
-	// Create a GET request
+	// Create the payload to be sent as JSON
+	payload := map[string]string{
+		"prompt": fullPrompt,
+	}
 
-	req, err := http.NewRequest("GET", url, nil)
+	// Encode the payload as JSON
+	jsonPayload, err := json.Marshal(payload)
 	if err != nil {
-		//write to event sequence
-		eventSequenceArray = append(eventSequenceArray, "could not create request \n")
-		http.Error(nil, err.Error(), http.StatusFailedDependency)
+		eventSequenceArray = append(eventSequenceArray, "could not marshal JSON payload \n")
 		return "400 Bad Request"
 	}
 
-	// Set the Authorization header with the Bearer token
+	// Create a POST request with the JSON payload
+	req, err := http.NewRequest("POST", baseUrl, bytes.NewBuffer(jsonPayload))
+	if err != nil {
+		eventSequenceArray = append(eventSequenceArray, "could not create request \n")
+		return "400 Bad Request"
+	}
+
+	// Set the necessary headers
 	req.Header.Set("Authorization", "Bearer "+passHash)
+	req.Header.Set("Content-Type", "application/json")
 
 	// Send the request
 	resp, err := client.Do(req)
 	if err != nil {
-		eventSequenceArray = append(eventSequenceArray, "could not create request \n")
-		http.Error(nil, err.Error(), http.StatusFailedDependency)
+		eventSequenceArray = append(eventSequenceArray, "could not send request \n")
 		return "400 Bad Request"
 	}
 	defer resp.Body.Close()
 
+	// Check if the response status is not 200 OK
+	if resp.StatusCode != http.StatusOK {
+		eventSequenceArray = append(eventSequenceArray, fmt.Sprintf("received non-OK response: %d\n", resp.StatusCode))
+		return fmt.Sprintf("%d %s", resp.StatusCode, http.StatusText(resp.StatusCode))
+	}
+
 	// Read the response body as a string
 	responseBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		eventSequenceArray = append(eventSequenceArray, "could not create request \n")
-		http.Error(nil, err.Error(), http.StatusFailedDependency)
-		return "400 Bad Request"
+		eventSequenceArray = append(eventSequenceArray, "could not read response body \n")
+		return "500 Internal Server Error"
 	}
 
+	// Return the response body as string
 	return string(responseBody)
 }
 
