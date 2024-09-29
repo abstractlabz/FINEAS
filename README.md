@@ -30,7 +30,7 @@ Fineas uses a number of open source projects to work properly:
 - [Polygon.io] - Reliable financial data API that supports streaming data via WSS
 - [Akash] - Blockchain based docker hosting platform
 
-## Installation
+## Setting Up Your Developer Environment
 
 Fineas requires [Python](https://www.python.org/) 3.9+, [Golang](https://go.dev/) 1.21.6+, and Docker to locally run.
 

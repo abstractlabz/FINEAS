@@ -43,6 +43,10 @@ func main() {
 		http.Handle("/ret", api.CorsMiddleware(http.HandlerFunc(api.RetrieveData)))
 		log.Println(http.ListenAndServeTLS(":8035", certFile, keyFile, nil))
 	}()
+	go func() {
+		http.Handle("/search", api.CorsMiddleware(http.HandlerFunc(api.SearchHandler)))
+		log.Println(http.ListenAndServe(":8070", nil))
+	}()
 
 	// Keep the main goroutine running to prevent the program from exiting
 	select {}
