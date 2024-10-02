@@ -66,6 +66,7 @@ EXPOSE 7002
 
 # Run the application
 CMD cd scripts/startup && \
+    chmod +x startup.sh && \
     ./startup.sh startup_config.json && echo "Starting up the services..." && \
     echo "All applications started successfully!" && \
     tail -f /dev/null
