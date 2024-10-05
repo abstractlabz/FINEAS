@@ -71,7 +71,8 @@ Run the docker image on your local machine
 docker run -d -p 8443:8035 -p 443:6002 -p 2087:6001 -p 2083:7000 -p 2096:7002 -e API_KEY=[API_KEY] -e PASS_KEY=[PASS_KEY] -e MONGO_DB_LOGGER_PASSWORD=[MONGO_DB_LOGGER_PASSWORD] -e OPEN_AI_API_KEY=[OPEN_AI_API_KEY] -e KB_WRITE_KEY=[KB_WRITE_KEY] -e MR_WRITE_KEY=[MR_WRITE_KEY] -e PINECONE_API_KEY=[PINECONE_API_KEY] -e STRIPE_ENDPOINT_SECRET=[STRIPE_ENDPOINT_SECRET] -e STRIPE_SECRET_KEY=[STRIPE_SECRET_KEY] -e REDIRECT_DOMAIN=https://fineas.ai fineas-image:latest
 ```
 
-**Note: These entries must only be used in a development environment. Comment out these entries using '#' to access Fineas' production level domains  
+**Note: These entries must only be used in a development environment. Comment out these entries using '#' to access Fineas' production level domains 
+**Note: If you receieve a port binding error, just change the exposed port number which maps to the port defined in the error message in the run command.
 
 ## API Spec
 
@@ -80,7 +81,7 @@ Now you can locally interact with Fineas using http requests or any hosted front
 | Description | Request Example |
 | ------ | ------ |
 | Collects aggregated data for a given ticker symbol.| curl "http://0.0.0.0:8080/?ticker=AMZN"
-| Processes a prompt and returns relevant financial information. | curl -X POST "https://query.fineasapp.io:443/chat?prompt=What%20is%20some%20relevant%20news%20around%20amazon%3F"
+| Processes a prompt and returns relevant financial information. | curl -X POST "https://query.fineasapp.io:443/chat?prompt=What%20is%20some%20relevant%20news%20around%20amazon%3F -H "Authorization: Bearer [Access Token]"
 | Retrieve the entire current cache of information for a ticker | curl -X GET "https://data.fineasapp.io:8443/ret?ticker=AAPL" -H "Authorization: Bearer [Access Token]" 
 | Collect recent technical analysis data for a ticker. | curl -X GET "http://0.0.0.0:8089/ta?ticker=AAPL" -H "Authorization: Bearer [Access Token]"
 | Collect recent description data for a ticker | curl -X GET "http://0.0.0.0:8084/desc?ticker=AAPL" -H "Authorization: Bearer [Access Token]" |
