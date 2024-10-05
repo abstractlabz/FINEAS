@@ -73,6 +73,12 @@ Cd into the root directory and build from root...
 
 ```sh
 cd ../..
+docker build -t fineas-image:latest .
+```
+
+**If you receive an error mid build, run 
+
+```sh
 docker build --platform linux/arm64 -t fineas-image:latest .
 ```
 
