@@ -73,6 +73,12 @@ Cd into the root directory and build from root...
 
 ```sh
 cd ../..
+docker build -t fineas-image:latest .
+```
+
+**If you receive an error mid build, run 
+
+```sh
 docker build --platform linux/arm64 -t fineas-image:latest .
 ```
 
@@ -115,6 +121,8 @@ With the entries uncommented out, run the docker image on your local machine
 ```sh
 docker run --platform linux/arm64 -d -p 8443:8035 -p 443:6002 -p 2087:6001 -p 2083:7000 -p 2096:7002 -e API_KEY=[API_KEY] -e PASS_KEY=[PASS_KEY] -e MONGO_DB_LOGGER_PASSWORD=[MONGO_DB_LOGGER_PASSWORD] -e OPEN_AI_API_KEY=[OPEN_AI_API_KEY] -e KB_WRITE_KEY=[KB_WRITE_KEY] -e MR_WRITE_KEY=[MR_WRITE_KEY] -e PINECONE_API_KEY=[PINECONE_API_KEY] -e STRIPE_ENDPOINT_SECRET=[STRIPE_ENDPOINT_SECRET] -e STRIPE_SECRET_KEY=[STRIPE_SECRET_KEY] -e REDIRECT_DOMAIN=https://app.fineas.ai fineas-image:latest
 ```
+
+**If you are getting port binding issues with this command, change the port number that is throwing the issue in the run command with one of these ports [9443, 10443, 5443, 6443, 60443]. Whatever ports you choose, consider them for the curl requests you make to the service running on it.
 
 ## API Spec
 
