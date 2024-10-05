@@ -11,12 +11,16 @@
 *.pem
 *.key
 *.cer
-*.log
 *.json
+*.log
+
 
 #Make the license file visible on GitHub
 !LICENSE
+!startup_config_template.json
+!monitor_template_config.json 
 !keys_template.json 
+
 # Test binary, built with `go test -c`
 *.test
 
@@ -33,4 +37,3 @@ node_modules/
 
 #misc
 app/todo.txt
-scripts/startup/startup_config_template.json

@@ -34,7 +34,7 @@ Fineas uses a number of open source projects to work properly:
 
 Fineas requires [Python](https://www.python.org/) 3.9+, [Golang](https://go.dev/) 1.21.6+, and Docker to locally run.
 
-Fork the repository on GitHub then open up your terminal in your desktop!
+Fork the repository on GitHub then open up your text editor or terminal in your desktop!
 
 Now clone the repo
 
@@ -48,8 +48,7 @@ Next Cd into FINEAS/scripts/startup
 cd FINEAS/scripts/startup
 ```
 
-Open up the file startup_config_template.json, contact the repository administrator for the development keys and replace those values in this file
-then save
+Open up the file startup_config_template.json it should look like this
 
 ```json
 {
@@ -62,32 +61,35 @@ then save
     "PINECONE_API_KEY": "",
     "STRIPE_ENDPOINT_SECRET": "",
     "STRIPE_SECRET_KEY": "",
-    "REDIRECT_DOMAIN": "https://www.fineas.ai"
+    "REDIRECT_DOMAIN": "https://app.fineas.ai"
 }
 
 ```
 
-In your text editor go to FINEAS root directory and locate .gitignore. Delete line 20.
+Create a new file in the directory named startup_config.json. Copy the contents of the template file there and ask the repo admin for the development keys. Then use those keys as values for the startup_config.json and save. 
 
-```sh
-cd FINEAS
-docker build -t fineas-image:latest .
-```
 
 Cd into the root directory and build from root...
 
 ```sh
-cd FINEAS
-docker build -t fineas-image:latest .
+cd ../..
+docker build --platform linux/arm64 -t fineas-image:latest .
 ```
 
 Now go to your local hosts file and add these entries
 **For Windows go to this directory and open the file:
+
+For Windows:
 ```sh
 C:/Windows/System32/Drivers/etc/hosts
 ```
 
-Now add these DNS entries to the bottom:
+For MacOS:
+```sh
+/etc/hosts
+```
+
+Open the hosts file as administrator in your text editor then add these DNS entries to the bottom:
 
 ```sh
 127.0.0.1 data.fineasapp.io
@@ -96,14 +98,23 @@ Now add these DNS entries to the bottom:
 127.0.0.1 webhook.fineasapp.io
 ```
 
-Run the docker image on your local machine 
-**contact core team for dev level environment variables
+**Note: These entries must only be used in a development environment. Comment out these entries using '#' to access Fineas' production level domains  
+
+Ex.
 
 ```sh
-docker run -d -p 8443:8035 -p 443:6002 -p 2087:6001 -p 2083:7000 -p 2096:7002 -e API_KEY=[API_KEY] -e PASS_KEY=[PASS_KEY] -e MONGO_DB_LOGGER_PASSWORD=[MONGO_DB_LOGGER_PASSWORD] -e OPEN_AI_API_KEY=[OPEN_AI_API_KEY] -e KB_WRITE_KEY=[KB_WRITE_KEY] -e MR_WRITE_KEY=[MR_WRITE_KEY] -e PINECONE_API_KEY=[PINECONE_API_KEY] -e STRIPE_ENDPOINT_SECRET=[STRIPE_ENDPOINT_SECRET] -e STRIPE_SECRET_KEY=[STRIPE_SECRET_KEY] -e REDIRECT_DOMAIN=https://fineas.ai fineas-image:latest
+#127.0.0.1 data.fineasapp.io
+#127.0.0.1 query.fineasapp.io
+#127.0.0.1 upgrade.fineasapp.io
+#127.0.0.1 webhook.fineasapp.io
 ```
 
-**Note: These entries must only be used in a development environment. Comment out these entries using '#' to access Fineas' production level domains  
+With the entries uncommented out, run the docker image on your local machine 
+**contact repo admin for development environment variables
+
+```sh
+docker run --platform linux/arm64 -d -p 8443:8035 -p 443:6002 -p 2087:6001 -p 2083:7000 -p 2096:7002 -e API_KEY=[API_KEY] -e PASS_KEY=[PASS_KEY] -e MONGO_DB_LOGGER_PASSWORD=[MONGO_DB_LOGGER_PASSWORD] -e OPEN_AI_API_KEY=[OPEN_AI_API_KEY] -e KB_WRITE_KEY=[KB_WRITE_KEY] -e MR_WRITE_KEY=[MR_WRITE_KEY] -e PINECONE_API_KEY=[PINECONE_API_KEY] -e STRIPE_ENDPOINT_SECRET=[STRIPE_ENDPOINT_SECRET] -e STRIPE_SECRET_KEY=[STRIPE_SECRET_KEY] -e REDIRECT_DOMAIN=https://app.fineas.ai fineas-image:latest
+```
 
 ## API Spec
 
@@ -111,8 +122,8 @@ Now you can locally interact with Fineas using http requests or any hosted front
 
 | Description | Request Example |
 | ------ | ------ |
-| Collects aggregated data for a given ticker symbol.| curl "http://0.0.0.0:8080/?ticker=AMZN"
-| Processes a prompt and returns relevant financial information. | curl -X POST "https://query.fineasapp.io:443/chat?prompt=What%20is%20some%20relevant%20news%20around%20amazon%3F"
+| collects new aggregated data for a given ticker symbol.| curl "http://0.0.0.0:8080/?ticker=AMZN -H "Authorization: Bearer [Access Token]"
+| Processes a prompt and returns relevant financial information. | curl -X POST "https://query.fineasapp.io:443/chat?prompt=What%20is%20some%20relevant%20news%20around%20amazon%3F" -H "Authorization: Bearer [Access Token]"
 | Retrieve the entire current cache of information for a ticker | curl -X GET "https://data.fineasapp.io:8443/ret?ticker=AAPL" -H "Authorization: Bearer [Access Token]" 
 | Collect recent technical analysis data for a ticker. | curl -X GET "http://0.0.0.0:8089/ta?ticker=AAPL" -H "Authorization: Bearer [Access Token]"
 | Collect recent description data for a ticker | curl -X GET "http://0.0.0.0:8084/desc?ticker=AAPL" -H "Authorization: Bearer [Access Token]" |
