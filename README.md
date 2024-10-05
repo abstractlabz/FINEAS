@@ -48,7 +48,7 @@ Next Cd into FINEAS/scripts/startup
 cd FINEAS/scripts/startup
 ```
 
-Open up the file startup_config_template.json it should look like this
+Open up the file startup_config_template.json it should look like the code below. Create a new file in the directory named startup_config.json. Copy the contents of the template file there and ask the repo admin for the development keys. Then use those keys as values for the startup_config.json and save.
 
 ```json
 {
@@ -64,15 +64,17 @@ Open up the file startup_config_template.json it should look like this
     "REDIRECT_DOMAIN": "https://app.fineas.ai"
 }
 
+``` 
+
+Before we build this code you need to add a few secret key files to your utils directory
+
 ```
-
-Create a new file in the directory named startup_config.json. Copy the contents of the template file there and ask the repo admin for the development keys. Then use those keys as values for the startup_config.json and save. 
-
+Contact the repo administratior to send you the correct files. 
+```
 
 Cd into the root directory and build from root...
 
 ```sh
-cd ../..
 docker build -t fineas-image:latest .
 ```
 
