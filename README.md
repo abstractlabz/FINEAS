@@ -34,12 +34,44 @@ Fineas uses a number of open source projects to work properly:
 
 Fineas requires [Python](https://www.python.org/) 3.9+, [Golang](https://go.dev/) 1.21.6+, and Docker to locally run.
 
-Install the required languages in order to get started
+Fork the repository on GitHub then open up your terminal in your desktop!
 
-Now fork and clone the repo
+Now clone the repo
 
 ```sh
 git clone https://github.com/abstractlabz/FINEAS.git
+```
+
+Next Cd into FINEAS/scripts/startup
+
+```sh
+cd FINEAS/scripts/startup
+```
+
+Open up the file startup_config_template.json, contact the repository administrator for the development keys and replace those values in this file
+then save
+
+```json
+{
+    "API_KEY": "Ask the github organization owner for env key secrets",
+    "PASS_KEY": "",
+    "MONGO_DB_LOGGER_PASSWORD": "",
+    "OPEN_AI_API_KEY": "",
+    "KB_WRITE_KEY": "",
+    "MR_WRITE_KEY": "",
+    "PINECONE_API_KEY": "",
+    "STRIPE_ENDPOINT_SECRET": "",
+    "STRIPE_SECRET_KEY": "",
+    "REDIRECT_DOMAIN": "https://www.fineas.ai"
+}
+
+```
+
+In your text editor go to FINEAS root directory and locate .gitignore. Delete line 20.
+
+```sh
+cd FINEAS
+docker build -t fineas-image:latest .
 ```
 
 Cd into the root directory and build from root...
