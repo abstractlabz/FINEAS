@@ -157,26 +157,18 @@ func HandleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 	stk_info := getFinancialInfo(ticker, "/stk", STK_SERVICE_URL, passHash, writekey, eventSequenceArray)
 	queriedInfoAggregate.YtdInfo = stk_info
 	eventSequenceArray = append(eventSequenceArray, "queried stk info \n")
-	stk_annotation := postSearchQuery(ticker+" financial price information", "/search", passHash)
-	queriedInfoAggregate.StkAnnotation = stk_annotation
 
 	fin_info := getFinancialInfo(ticker, "/fin", FIN_SERVICE_URL, passHash, writekey, eventSequenceArray)
 	queriedInfoAggregate.FinInfo = fin_info
 	eventSequenceArray = append(eventSequenceArray, "queried fin info \n")
-	fin_annotation := postSearchQuery(ticker+" financial information", "/search", passHash)
-	queriedInfoAggregate.FinAnnotation = fin_annotation
 
 	news_info := getFinancialInfo(ticker, "/news", NEWS_SERVICE_URL, passHash, writekey, eventSequenceArray)
 	queriedInfoAggregate.NewsInfo = news_info
 	eventSequenceArray = append(eventSequenceArray, "queried news info \n")
-	news_annotation := postSearchQuery(ticker+" news", "/search", passHash)
-	queriedInfoAggregate.NewsAnnotation = news_annotation
 
 	desc_info := getFinancialInfo(ticker, "/desc", DESC_SERVICE_URL, passHash, writekey, eventSequenceArray)
 	queriedInfoAggregate.DescInfo = desc_info
 	eventSequenceArray = append(eventSequenceArray, "queried desc info \n")
-	desc_annotation := postSearchQuery("what is "+ticker, "/search", passHash)
-	queriedInfoAggregate.DescAnnotation = desc_annotation
 
 	ta_info := getFinancialInfo(ticker, "/ta", TA_SERVICE_URL, passHash, writekey, eventSequenceArray)
 	queriedInfoAggregate.TaInfo = ta_info
@@ -498,45 +490,6 @@ func postFinancialData(dataValue string, eventSequenceArray []string, passHash s
 
 	fmt.Println("Response:", string(respBody))
 	return string(respBody)
-}
-
-func postSearchQuery(searchquery string, handlerURL string, passHash string) string {
-
-	// Create payload as bytes
-	payload := []byte(fmt.Sprintf("query=%s", searchquery))
-
-	// Create HTTP client
-	client := &http.Client{}
-
-	// Create POST request
-	req, err := http.NewRequest("POST", handlerURL, bytes.NewBuffer(payload))
-	if err != nil {
-		fmt.Println("Error creating request:", err)
-		return ""
-	}
-
-	// Set Authorization header
-	req.Header.Set("Authorization", "Bearer "+passHash)
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-
-	// Send the request
-	resp, err := client.Do(req)
-	if err != nil {
-		fmt.Println("Error sending request:", err)
-		return ""
-	}
-	defer resp.Body.Close()
-
-	// Read response
-	respBody, err := io.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Println("Error reading response:", err)
-		return ""
-	}
-
-	fmt.Println("Response:", string(respBody))
-	return string(respBody)
-
 }
 
 // converts prompt to a URL compatible format

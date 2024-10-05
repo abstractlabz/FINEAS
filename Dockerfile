@@ -7,6 +7,7 @@ RUN apt-get update && apt-get install -y \
     git \
     python3 \
     python3-pip \
+    dos2unix \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Go
@@ -25,11 +26,15 @@ WORKDIR /app
 # Copy the application files to the app directory
 COPY . .
 
+# Convert line endings for startup.sh
+RUN dos2unix scripts/startup/startup.sh  # Convert line endings to LF
+
 # Install Go dependencies
 RUN go mod download
 
 # Install Python dependencies
 RUN pip3 install --no-cache-dir --break-system-packages -r utils/requirements.txt
+
 # Set environment variables for keys
 ENV API_KEY=API_KEY
 ENV PASS_KEY=PASS_KEY
@@ -38,9 +43,9 @@ ENV OPEN_AI_API_KEY=OPEN_AI_API_KEY
 ENV KB_WRITE_KEY=KB_WRITE_KEY
 ENV MR_WRITE_KEY=MR_WRITE_KEY
 ENV PINECONE_API_KEY=PINECONE_API_KEY 
-ENV STRIPE_ENDPOINT_SECRET = STRIPE_ENDPOINT_SECRET
-ENV STRIPE_SECRET_KEY = STRIPE_SECRET_KEY
-ENV REDIRECT_DOMAIN = REDIRECT_DOMAIN
+ENV STRIPE_ENDPOINT_SECRET=STRIPE_ENDPOINT_SECRET
+ENV STRIPE_SECRET_KEY=STRIPE_SECRET_KEY
+ENV REDIRECT_DOMAIN=REDIRECT_DOMAIN
 
 # Set environment variables for templates
 ENV STK_SERVICE_URL=http://0.0.0.0:8081
@@ -63,11 +68,8 @@ EXPOSE 7000
 EXPOSE 7001
 EXPOSE 7002
 
-
 # Run the application
-CMD cd scripts/startup && \
-    chmod +x startup.sh && \
-    ./startup.sh startup_config.json && echo "Starting up the services..." && \
+CMD cd scripts/startup && bash ./startup.sh startup_config.json && \
+    echo "Starting up the services..." && \
     echo "All applications started successfully!" && \
     tail -f /dev/null
-

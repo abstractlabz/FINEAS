@@ -105,11 +105,11 @@ cd "$APP_DIR" || { echo "Failed to navigate to the application directory"; exit 
 # Start the Go application
 echo "Starting the Go application..."
 go clean -cache -modcache -i -r
-nohup go run main.go > ../../scripts/logs/go_app.log 2>&1 &
+nohup go run main.go > "go_app.log" 2>&1 &
 
 # Start the Python application
 echo "Starting the Python application..."
-nohup python3 main.py > ../../scripts/logs/python_app.log 2>&1 &
+nohup python3 main.py > "python_app.log" 2>&1 &
 
 # Start automation and cron jobs
 echo "Starting cron jobs..."
