@@ -74,28 +74,30 @@ Contact the repo administratior to send you the correct files.
 
 Cd into the root directory and build from root...
 
+**Windows:
 ```sh
 docker build -t fineas-image:latest .
 ```
 
-**If you receive an error mid build, run 
+**MacOS:
 
 ```sh
 docker build --platform linux/arm64 -t fineas-image:latest .
 ```
 
-Now go to your local hosts file and add these entries
-**For Windows go to this directory and open the file:
+Now we need to add DNS entires for our development environment
 
-For Windows:
+**For Windows open notepad with administrator and go to this directory and open the file:
 ```sh
 C:/Windows/System32/Drivers/etc/hosts
 ```
 
-For MacOS:
+For MacOS open terminal and enter:
 ```sh
-/etc/hosts
+sudo nano /etc/hosts
 ```
+
+**Hosts file can only be opened by the administrator
 
 Open the hosts file as administrator in your text editor then add these DNS entries to the bottom:
 
@@ -104,6 +106,12 @@ Open the hosts file as administrator in your text editor then add these DNS entr
 127.0.0.1 query.fineasapp.io
 127.0.0.1 upgrade.fineasapp.io
 127.0.0.1 webhook.fineasapp.io
+```
+
+**For MacOS: after the entries are added and you've exited your terminal text editor run:
+
+```sh
+sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder
 ```
 
 **Note: These entries must only be used in a development environment. Comment out these entries using '#' to access Fineas' production level domains  
@@ -120,6 +128,12 @@ Ex.
 With the entries uncommented out, run the docker image on your local machine 
 **contact repo admin for development environment variables
 
+**For Windows
+```sh
+docker run -d -p 8443:8035 -p 443:6002 -p 2087:6001 -p 2083:7000 -p 2096:7002 -e API_KEY=[API_KEY] -e PASS_KEY=[PASS_KEY] -e MONGO_DB_LOGGER_PASSWORD=[MONGO_DB_LOGGER_PASSWORD] -e OPEN_AI_API_KEY=[OPEN_AI_API_KEY] -e KB_WRITE_KEY=[KB_WRITE_KEY] -e MR_WRITE_KEY=[MR_WRITE_KEY] -e PINECONE_API_KEY=[PINECONE_API_KEY] -e STRIPE_ENDPOINT_SECRET=[STRIPE_ENDPOINT_SECRET] -e STRIPE_SECRET_KEY=[STRIPE_SECRET_KEY] -e REDIRECT_DOMAIN=https://app.fineas.ai fineas-image:latest
+```
+
+**For MacOS
 ```sh
 docker run --platform linux/arm64 -d -p 8443:8035 -p 443:6002 -p 2087:6001 -p 2083:7000 -p 2096:7002 -e API_KEY=[API_KEY] -e PASS_KEY=[PASS_KEY] -e MONGO_DB_LOGGER_PASSWORD=[MONGO_DB_LOGGER_PASSWORD] -e OPEN_AI_API_KEY=[OPEN_AI_API_KEY] -e KB_WRITE_KEY=[KB_WRITE_KEY] -e MR_WRITE_KEY=[MR_WRITE_KEY] -e PINECONE_API_KEY=[PINECONE_API_KEY] -e STRIPE_ENDPOINT_SECRET=[STRIPE_ENDPOINT_SECRET] -e STRIPE_SECRET_KEY=[STRIPE_SECRET_KEY] -e REDIRECT_DOMAIN=https://app.fineas.ai fineas-image:latest
 ```
