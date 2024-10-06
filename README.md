@@ -109,7 +109,7 @@ Add these entries:
 127.0.0.1 webhook.fineasapp.io
 ```
 
-Flush your DNS cache after editing the hosts file:
+For MacOS: flush your DNS cache after editing the hosts file:
 
 ```bash
 sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder
@@ -123,7 +123,7 @@ Use Docker to run the Fineas image locally.
 
 **Windows:**
 
-``bash
+```bash
 docker run -d -p 8443:8035 -p 443:6002 -p 2087:6001 -p 2083:7000 -p 2096:7002 -e API_KEY=[API_KEY] -e PASS_KEY=[PASS_KEY] -e MONGO_DB_LOGGER_PASSWORD=[MONGO_DB_LOGGER_PASSWORD] -e OPEN_AI_API_KEY=[OPEN_AI_API_KEY] -e KB_WRITE_KEY=[KB_WRITE_KEY] -e MR_WRITE_KEY=[MR_WRITE_KEY] -e PINECONE_API_KEY=[PINECONE_API_KEY] -e STRIPE_ENDPOINT_SECRET=[STRIPE_ENDPOINT_SECRET] -e STRIPE_SECRET_KEY=[STRIPE_SECRET_KEY] -e REDIRECT_DOMAIN=https://app.fineas.ai fineas-image:latest
 ```
 
@@ -135,12 +135,12 @@ docker run --platform linux/arm64 -d -p 8443:8035 -p 443:6002 -p 2087:6001 -p 20
 
 ## API Spec 📬
 
-Interact with Fineas via HTTP requests or a hosted frontend 🎨.
+Interact with Fineas via HTTP requests or a hosted frontend on localhost:3000 or https://app.fineas.ai! 🎨.
 
 | Description | Request Example |
 | ------ | ------ |
-| 🛠️ Collect new aggregated data for a ticker. | `curl "http://0.0.0.0:8080/?ticker=AMZN -H "Authorization: Bearer [Access Token]"` |
-| 🤖 Process a prompt for financial info. | `curl -X POST "https://query.fineasapp.io:443/chat?prompt=What%20is%20some%20relevant%20news%20around%20amazon%3F" -H "Authorization: Bearer [Access Token]"` |
+| 🛠️ Collect new aggregated data for a ticker. | `curl -X GET "https://data.fineasapp.io:8443/ret?ticker=AMZN"` |
+| 🤖 Process a prompt for financial info. | `curl -X POST "https://query.fineasapp.io/chat" -H "Authorization: Bearer [HASH_PASS_KEY]" -H "Content-Type: application/json" -d "{\"prompt\": \"What is some relevant news around Amazon?\"}"` |
 
 ## License ⚖️
 
