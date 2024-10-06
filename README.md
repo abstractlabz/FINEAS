@@ -39,19 +39,19 @@ Fineas requires [Python](https://www.python.org/) 3.9+, [Golang](https://go.dev/
 
 2. Clone the repo:
 
-\`\`\`bash
+```bash
 git clone https://github.com/abstractlabz/FINEAS.git
-\`\`\`
+```
 
 3. Navigate to the \`FINEAS/scripts/startup\` directory:
 
-\`\`\`bash
+```bash
 cd FINEAS/scripts/startup
-\`\`\`
+```
 
 4. Open the \`startup_config_template.json\` file and create a new file named \`startup_config.json\`. Copy the contents from the template, and get the required keys from the repo admin 🔑.
 
-\`\`\`json
+```json
 {
     "API_KEY": "Ask the GitHub organization owner for env key secrets",
     "PASS_KEY": "",
@@ -64,23 +64,25 @@ cd FINEAS/scripts/startup
     "STRIPE_SECRET_KEY": "",
     "REDIRECT_DOMAIN": "https://app.fineas.ai"
 }
-\`\`\`
+```
 
 5. Add the secret key files to your \`utils\` directory (contact the repo admin for files 📁).
 
-6. Cd into the root directory and build from root...
+6. Add the secret env file to your \`bot\` directory (contact the repo admin for files 📁).
+
+7. Cd into the root directory and build from root...
 
 ### Windows 🖥️:
 
-\`\`\`bash
+```bash
 docker build -t fineas-image:latest .
-\`\`\`
+```
 
 ### MacOS 🍎:
 
-\`\`\`bash
+```bash
 docker build --platform linux/arm64 -t fineas-image:latest .
-\`\`\`
+```
 
 ## DNS Entries 🌐
 
@@ -88,30 +90,30 @@ Add these DNS entries to your hosts file for local development 🌍:
 
 **For Windows:**
 
-\`\`\`bash
+```bash
 C:/Windows/System32/Drivers/etc/hosts
-\`\`\`
+```
 
 **For MacOS:**
 
-\`\`\`bash
+```bash
 sudo nano /etc/hosts
-\`\`\`
+```
 
 Add these entries:
 
-\`\`\`bash
+```bash
 127.0.0.1 data.fineasapp.io
 127.0.0.1 query.fineasapp.io
 127.0.0.1 upgrade.fineasapp.io
 127.0.0.1 webhook.fineasapp.io
-\`\`\`
+```
 
 Flush your DNS cache after editing the hosts file:
 
-\`\`\`bash
+```bash
 sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder
-\`\`\`
+```
 
 **Note:** These entries are for development only. Comment them out for production.
 
@@ -121,15 +123,15 @@ Use Docker to run the Fineas image locally.
 
 **Windows:**
 
-\`\`\`bash
+``bash
 docker run -d -p 8443:8035 -p 443:6002 -p 2087:6001 -p 2083:7000 -p 2096:7002 -e API_KEY=[API_KEY] -e PASS_KEY=[PASS_KEY] -e MONGO_DB_LOGGER_PASSWORD=[MONGO_DB_LOGGER_PASSWORD] -e OPEN_AI_API_KEY=[OPEN_AI_API_KEY] -e KB_WRITE_KEY=[KB_WRITE_KEY] -e MR_WRITE_KEY=[MR_WRITE_KEY] -e PINECONE_API_KEY=[PINECONE_API_KEY] -e STRIPE_ENDPOINT_SECRET=[STRIPE_ENDPOINT_SECRET] -e STRIPE_SECRET_KEY=[STRIPE_SECRET_KEY] -e REDIRECT_DOMAIN=https://app.fineas.ai fineas-image:latest
-\`\`\`
+```
 
 **MacOS:**
 
-\`\`\`bash
+```bash
 docker run --platform linux/arm64 -d -p 8443:8035 -p 443:6002 -p 2087:6001 -p 2083:7000 -p 2096:7002 -e API_KEY=[API_KEY] -e PASS_KEY=[PASS_KEY] -e MONGO_DB_LOGGER_PASSWORD=[MONGO_DB_LOGGER_PASSWORD] -e OPEN_AI_API_KEY=[OPEN_AI_API_KEY] -e KB_WRITE_KEY=[KB_WRITE_KEY] -e MR_WRITE_KEY=[MR_WRITE_KEY] -e PINECONE_API_KEY=[PINECONE_API_KEY] -e STRIPE_ENDPOINT_SECRET=[STRIPE_ENDPOINT_SECRET] -e STRIPE_SECRET_KEY=[STRIPE_SECRET_KEY] -e REDIRECT_DOMAIN=https://app.fineas.ai fineas-image:latest
-\`\`\`
+```
 
 ## API Spec 📬
 
