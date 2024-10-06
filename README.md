@@ -1,58 +1,59 @@
-# Fineas.AI
-## Your AI Powered Investment Researcher
 
-Fineas' backend repo is an ETL system which feeds into a RAG knowledge base. Connected to financial data apis this infrastructure is able to perform financial analysis on over 600 financial asset tickers including cryptocurrency support. 
+# Fineas.AI 🧠💼
+## Your AI Powered Investment Researcher 📊🤖
 
-LLM powered investment researcher web-app (mobile client soon!)
+Fineas' backend repo is an ETL system that feeds into a RAG knowledge base. Connected to financial data APIs, this infrastructure can perform financial analysis on over 600 financial asset tickers, including cryptocurrency support 💹💻.
 
-- GPT4o powered inferences
-- Polygon.io financial data
-- Google news data
-- ✨Proprietary webscrapers✨
+LLM-powered investment researcher web-app (mobile client soon! 📱)
 
-## Features
+- 🤖 GPT-4o powered inferences
+- 📊 Polygon.io financial data
+- 📰 Google news data
+- ✨ Proprietary web scrapers ✨
 
-- Up to date analysis summaries across major categories
-- Up to date financial chatbot
-- Discord bot integration (coming soon!)
-- Portfolio optimization (coming soon!)
+## Features 🚀
 
-## Tech Stack
+- 📅 Up-to-date analysis summaries across major categories
+- 💬 Up-to-date financial chatbot
+- 🤖 Discord bot integration (coming soon!)
+- 📈 Portfolio optimization (coming soon!)
 
-Fineas uses a number of open source projects to work properly:
+## Tech Stack 🛠️
 
-- [Golang] - For handling the ETL service
-- [Flask] - For setting up the LLM and RAG services
-- [Langchain] - Popular library to connect to OpenAI services
-- [Pinecone] - Vector database to store vectors for LLM knowledge base
-- [MongoDB] - Flexible No-SQL database for fast and simple I/O
-- [GPT-4o] - Highest quality LLM that exists to date
-- [Polygon.io] - Reliable financial data API that supports streaming data via WSS
-- [Akash] - Blockchain based docker hosting platform
+Fineas uses a number of open-source projects to work properly:
 
-## Setting Up Your Developer Environment
+- [⚙️ Golang] - For handling the ETL service
+- [🔥 Flask] - For setting up the LLM and RAG services
+- [🧠 Langchain] - Popular library to connect to OpenAI services
+- [📚 Pinecone] - Vector database to store vectors for LLM knowledge base
+- [💾 MongoDB] - Flexible No-SQL database for fast and simple I/O
+- [🤖 GPT-4o] - Highest quality LLM that exists to date
+- [📊 Polygon.io] - Reliable financial data API that supports streaming data via WSS
+- [⚡ Akash] - Blockchain-based Docker hosting platform
 
-Fineas requires [Python](https://www.python.org/) 3.9+, [Golang](https://go.dev/) 1.21.6+, and Docker to locally run.
+## Setting Up Your Developer Environment 🖥️💻
 
-Fork the repository on GitHub then open up your text editor or terminal in your desktop!
+Fineas requires [Python](https://www.python.org/) 3.9+, [Golang](https://go.dev/) 1.21.6+, and Docker to run locally.
 
-Now clone the repo
+1. Fork the repository on GitHub 🔧, then open up your text editor or terminal 💻.
 
-```sh
+2. Clone the repo:
+
+\`\`\`bash
 git clone https://github.com/abstractlabz/FINEAS.git
-```
+\`\`\`
 
-Next Cd into FINEAS/scripts/startup
+3. Navigate to the \`FINEAS/scripts/startup\` directory:
 
-```sh
+\`\`\`bash
 cd FINEAS/scripts/startup
-```
+\`\`\`
 
-Open up the file startup_config_template.json it should look like the code below. Create a new file in the directory named startup_config.json. Copy the contents of the template file there and ask the repo admin for the development keys. Then use those keys as values for the startup_config.json and save.
+4. Open the \`startup_config_template.json\` file and create a new file named \`startup_config.json\`. Copy the contents from the template, and get the required keys from the repo admin 🔑.
 
-```json
+\`\`\`json
 {
-    "API_KEY": "Ask the github organization owner for env key secrets",
+    "API_KEY": "Ask the GitHub organization owner for env key secrets",
     "PASS_KEY": "",
     "MONGO_DB_LOGGER_PASSWORD": "",
     "OPEN_AI_API_KEY": "",
@@ -63,112 +64,84 @@ Open up the file startup_config_template.json it should look like the code below
     "STRIPE_SECRET_KEY": "",
     "REDIRECT_DOMAIN": "https://app.fineas.ai"
 }
+\`\`\`
 
-``` 
+5. Add the secret key files to your \`utils\` directory (contact the repo admin for files 📁).
 
-Before we build this code you need to add a few secret key files to your utils directory
+6. Cd into the root directory and build from root...
 
-```
-Contact the repo administratior to send you the correct files. 
-```
+### Windows 🖥️:
 
-Cd into the root directory and build from root...
-
-**Windows:
-```sh
+\`\`\`bash
 docker build -t fineas-image:latest .
-```
+\`\`\`
 
-**MacOS:
+### MacOS 🍎:
 
-```sh
+\`\`\`bash
 docker build --platform linux/arm64 -t fineas-image:latest .
-```
+\`\`\`
 
-Now we need to add DNS entires for our development environment
+## DNS Entries 🌐
 
-**For Windows open notepad with administrator and go to this directory and open the file:
-```sh
+Add these DNS entries to your hosts file for local development 🌍:
+
+**For Windows:**
+
+\`\`\`bash
 C:/Windows/System32/Drivers/etc/hosts
-```
+\`\`\`
 
-For MacOS open terminal and enter:
-```sh
+**For MacOS:**
+
+\`\`\`bash
 sudo nano /etc/hosts
-```
+\`\`\`
 
-**Hosts file can only be opened by the administrator
+Add these entries:
 
-Open the hosts file as administrator in your text editor then add these DNS entries to the bottom:
-
-```sh
+\`\`\`bash
 127.0.0.1 data.fineasapp.io
 127.0.0.1 query.fineasapp.io
 127.0.0.1 upgrade.fineasapp.io
 127.0.0.1 webhook.fineasapp.io
-```
+\`\`\`
 
-**For MacOS: after the entries are added and you've exited your terminal text editor run:
+Flush your DNS cache after editing the hosts file:
 
-```sh
+\`\`\`bash
 sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder
-```
+\`\`\`
 
-**Note: These entries must only be used in a development environment. Comment out these entries using '#' to access Fineas' production level domains  
+**Note:** These entries are for development only. Comment them out for production.
 
-Ex.
+## Running Locally 🏃‍♂️
 
-```sh
-#127.0.0.1 data.fineasapp.io
-#127.0.0.1 query.fineasapp.io
-#127.0.0.1 upgrade.fineasapp.io
-#127.0.0.1 webhook.fineasapp.io
-```
+Use Docker to run the Fineas image locally.
 
-With the entries uncommented out, run the docker image on your local machine 
-**contact repo admin for development environment variables
+**Windows:**
 
-**For Windows
-```sh
+\`\`\`bash
 docker run -d -p 8443:8035 -p 443:6002 -p 2087:6001 -p 2083:7000 -p 2096:7002 -e API_KEY=[API_KEY] -e PASS_KEY=[PASS_KEY] -e MONGO_DB_LOGGER_PASSWORD=[MONGO_DB_LOGGER_PASSWORD] -e OPEN_AI_API_KEY=[OPEN_AI_API_KEY] -e KB_WRITE_KEY=[KB_WRITE_KEY] -e MR_WRITE_KEY=[MR_WRITE_KEY] -e PINECONE_API_KEY=[PINECONE_API_KEY] -e STRIPE_ENDPOINT_SECRET=[STRIPE_ENDPOINT_SECRET] -e STRIPE_SECRET_KEY=[STRIPE_SECRET_KEY] -e REDIRECT_DOMAIN=https://app.fineas.ai fineas-image:latest
-```
+\`\`\`
 
-**For MacOS
-```sh
+**MacOS:**
+
+\`\`\`bash
 docker run --platform linux/arm64 -d -p 8443:8035 -p 443:6002 -p 2087:6001 -p 2083:7000 -p 2096:7002 -e API_KEY=[API_KEY] -e PASS_KEY=[PASS_KEY] -e MONGO_DB_LOGGER_PASSWORD=[MONGO_DB_LOGGER_PASSWORD] -e OPEN_AI_API_KEY=[OPEN_AI_API_KEY] -e KB_WRITE_KEY=[KB_WRITE_KEY] -e MR_WRITE_KEY=[MR_WRITE_KEY] -e PINECONE_API_KEY=[PINECONE_API_KEY] -e STRIPE_ENDPOINT_SECRET=[STRIPE_ENDPOINT_SECRET] -e STRIPE_SECRET_KEY=[STRIPE_SECRET_KEY] -e REDIRECT_DOMAIN=https://app.fineas.ai fineas-image:latest
-```
+\`\`\`
 
-**If you are getting port binding issues with this command, change the port number that is throwing the issue in the run command with one of these ports [9443, 10443, 5443, 6443, 60443]. Whatever ports you choose, consider them for the curl requests you make to the service running on it.
+## API Spec 📬
 
-## API Spec
-
-Now you can locally interact with Fineas using http requests or any hosted front-end
+Interact with Fineas via HTTP requests or a hosted frontend 🎨.
 
 | Description | Request Example |
 | ------ | ------ |
-| collects new aggregated data for a given ticker symbol.| curl "http://0.0.0.0:8080/?ticker=AMZN -H "Authorization: Bearer [Access Token]"
-| Processes a prompt and returns relevant financial information. | curl -X POST "https://query.fineasapp.io:443/chat?prompt=What%20is%20some%20relevant%20news%20around%20amazon%3F" -H "Authorization: Bearer [Access Token]"
-| Retrieve the entire current cache of information for a ticker | curl -X GET "https://data.fineasapp.io:8443/ret?ticker=AAPL" -H "Authorization: Bearer [Access Token]" 
-| Collect recent technical analysis data for a ticker. | curl -X GET "http://0.0.0.0:8089/ta?ticker=AAPL" -H "Authorization: Bearer [Access Token]"
-| Collect recent description data for a ticker | curl -X GET "http://0.0.0.0:8084/desc?ticker=AAPL" -H "Authorization: Bearer [Access Token]" |
-| Collect recent news data for a ticker | curl -X GET "http://0.0.0.0:8083/news?ticker=AAPL" -H "Authorization: Bearer [Access Token]" |
-| Collect recent financial data for a ticker | curl -X GET "http://0.0.0.0:8082/fin?ticker=AAPL" -H "Authorization: Bearer [Access Token]" |
-| Collect recent stock data for a ticker | curl -X GET "http://0.0.0.0:8081/stk?ticker=AAPL" -H "Authorization: Bearer [Access Token]" 
+| 🛠️ Collect new aggregated data for a ticker. | `curl "http://0.0.0.0:8080/?ticker=AMZN -H "Authorization: Bearer [Access Token]"` |
+| 🤖 Process a prompt for financial info. | `curl -X POST "https://query.fineasapp.io:443/chat?prompt=What%20is%20some%20relevant%20news%20around%20amazon%3F" -H "Authorization: Bearer [Access Token]"` |
 
+## License ⚖️
 
-## License
+GPL 2.0 🆓
 
-GPL 2.0
-
-**Free Software, Hell Yeah!**
-
-[//]: # (These are reference links used in the body of this note and get stripped out when the markdown processor does its job. There is no need to format nicely because it shouldn't be seen. Thanks SO - http://stackoverflow.com/questions/4823468/store-comments-in-markdown-syntax)
-
-   [Golang]: <https://go.dev/>
-   [Flask]: <https://flask.palletsprojects.com/en/3.0.x/>
-   [Langchain]: <https://www.langchain.com/>
-   [Pinecone]: <https://www.pinecone.io/>
-   [MongoDB]: <https://www.mongodb.com/products/platform/atlas-database>
-   [GPT-4o]: <https://openai.com/index/hello-gpt-4o/>
-   [Polygon.io]: <https://polygon.io/>
-   [Akash]: <https://akash.network/>
+**Free Software, Hell Yeah!** 🎉
