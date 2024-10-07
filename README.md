@@ -38,18 +38,27 @@ Fineas requires [Python](https://www.python.org/) 3.9+, [Golang](https://go.dev/
 1. Fork the repository on GitHub 🔧, then open up your text editor or terminal 💻.
 
 2. Clone the repo:
-
 ```bash
 git clone https://github.com/abstractlabz/FINEAS.git
 ```
 
-3. Navigate to the \`FINEAS/scripts/startup\` directory:
+3. Move into the project's root directory
+```bash
+cd FINEAS
+```
+
+4. Create your own branch
+```bash
+git branch [branchname]
+```
+
+5. Navigate to the \`FINEAS/scripts/startup\` directory:
 
 ```bash
 cd FINEAS/scripts/startup
 ```
 
-4. Open the \`startup_config_template.json\` file and create a new file named \`startup_config.json\`. Copy the contents from the template, and get the required keys from the repo admin 🔑.
+6. Open the \`startup_config_template.json\` file and create a new file named \`startup_config.json\`. Copy the contents from the template, and get the required keys from the repo admin 🔑.
 
 ```json
 {
@@ -66,11 +75,13 @@ cd FINEAS/scripts/startup
 }
 ```
 
-5. Add the secret key files to your \`utils\` directory (contact the repo admin for files 📁).
+7. Add the secret key files to your \`utils\` directory (contact the repo admin for files 📁).
 
-6. Add the secret env file to your \`bot\` directory (contact the repo admin for files 📁).
+8. Add the secret env file to your \`api\bot\` directory (contact the repo admin for files 📁).
 
-7. Cd into the root directory and build from root...
+9. Add the secret env file to your root directory (contact the repo admin for files 📁).
+
+10. Cd into the root directory and build from root...
 
 ### Windows 🖥️:
 
