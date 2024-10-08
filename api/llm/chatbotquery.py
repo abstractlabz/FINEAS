@@ -19,7 +19,7 @@ PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 LLM_SERVICE_URL = os.getenv("LLM_SERVICE_URL")
 
 # Initialize Pinecone client
-host = "https://pre-alpha-vectorstore-prd-uajrq2f.svc.apw5-4e34-81fa.pinecone.io"
+host = "https://pre-alpha-vectorstore-prd-uajrq2f.svc.aped-4627-b74a.pinecone.io"
 pinecone_config = Config(api_key=PINECONE_API_KEY, host=host)
 pinecone_client = Pinecone(config=pinecone_config)
 
