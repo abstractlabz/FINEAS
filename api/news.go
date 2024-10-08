@@ -223,14 +223,20 @@ func scrapeTextFromDiv(url string, collectionSize int) (string, error) {
 		return "", err
 	}
 
-	text := ""
+	var results []string
 	doc.Find("a.JtKRv").Each(func(i int, s *goquery.Selection) {
-		if i <= collectionSize {
-			text += s.Text() + "\n"
+		if i < collectionSize {
+			headline := s.Text()
+			link, exists := s.Attr("href")
+			if exists {
+				// Format the URL correctly
+				fullURL := "https://news.google.com" + strings.TrimPrefix(link, ".")
+				results = append(results, fmt.Sprintf("Headline: %s, URL: %s", headline, fullURL))
+			}
 		}
 	})
 
-	return text, nil
+	return strings.Join(results, "\n"), nil
 }
 
 func removePrefixSuffix(ticker string) (string, string) {
