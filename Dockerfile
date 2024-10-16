@@ -54,6 +54,7 @@ ENV NEWS_SERVICE_URL=http://0.0.0.0:8083
 ENV DESC_SERVICE_URL=http://0.0.0.0:8084
 ENV LLM_SERVICE_URL=http://0.0.0.0:5432
 ENV TA_SERVICE_URL=http://0.0.0.0:8089
+
 ENV YTD_TEMPLATE="# Conduct an analysis of [ASSET_NAME]'s recent and historical price movements. \ 
 ## Stock Movement Information: \ 
 - YTD, MOM change, 1-year change, and 5-year change where applicable. \ 
@@ -70,40 +71,36 @@ ENV YTD_TEMPLATE="# Conduct an analysis of [ASSET_NAME]'s recent and historical 
 - Describe the recent volatility trends and provide context on how the asset's price has fluctuated in both the short and long term. \ 
 ## Outlook: \ 
 - Based on the historical price movements and recent trends, provide an outlook on the asset’s potential price direction in the near term. \ 
-*If any information is not available, please ignore it.*"
+*If any information is not available, please ignore it. Represent all numbers to the second decimal point .00 [Units] after*."
 
 ENV NEWS_TEMPLATE="# Provide a comprehensive analysis of recent news articles related to [ASSET_NAME]. \ 
 ## Overall Sentiment Analysis: \ 
 - Determine the overall sentiment (bullish, bearish, neutral) of the news affecting [ASSET_NAME]. \ 
 ## Key News Highlights: \ 
 - Summarize the most impactful news items. \ 
-## News Items: \ 
+## News Items (5 news items): \ 
 - [NEWS_HEADLINE_1]: Provide a brief description and an analysis of its impact on the asset. \ 
-- [NEWS_HEADLINE_2]: Provide a brief description and an analysis of its impact on the asset. \ 
-- [NEWS_HEADLINE_3]: Provide a brief description and an analysis of its impact on the asset. \ 
-- [NEWS_HEADLINE_4]: Provide a brief description and an analysis of its impact on the asset. \ 
-- [NEWS_HEADLINE_5]: Provide a brief description and an analysis of its impact on the asset. \ 
 ## Market Reaction: \ 
 - Evaluate how the market has reacted to these news items. \ 
-*If any information is not available, please ignore it.*"
+*If any information is not available, please ignore it. Represent all numbers to the second decimal point .00 [Units] after.*"
 
 ENV DESC_TEMPLATE="# Business Description: \ 
 ## Analysis: \ 
 - In 100 words, explain the business and its key business lines. \ 
 ## Company Information: \ 
-- Year Founded: [YEAR_FOUNDED] \ 
-- Sector/Industry: [SECTOR_INDUSTRY] \ 
-- CEO: [CEO] \ 
-- Employees: [EMPLOYEES] \ 
-- Market Cap: $[MARKET_CAP] \ 
-- HQ: [HEADQUARTERS] \ 
+-  CEO:  \ 
+- Year Founded: \ 
+- Sector/Industry: \ 
+- Employees Count:  \ 
+- Market Cap: $ \ 
+- HQ:  \ 
 ## Market Positioning: \ 
 - Describe the company's target markets and geographical presence. \ 
 ## Market Share: \ 
 - Provide details about the company’s market share in key sectors. \ 
 ## Competitive Advantages: \
 - Identify and discuss the company's unique selling propositions. \ 
-*If any information is not available, please ignore it.*"
+*If any information is not available, please ignore it. Represent all numbers to the second decimal point .00 [Units] after.*"
 
 ENV TA_TEMPLATE="# Perform an in-depth technical analysis of [ASSET_NAME]'s stock. \ 
 ## Chart Patterns: \ 
@@ -112,7 +109,7 @@ ENV TA_TEMPLATE="# Perform an in-depth technical analysis of [ASSET_NAME]'s stoc
 - Examine trading volumes to assess the strength of price movements. \ 
 ## Technical Indicators: \ 
 - Evaluate key technical indicators and oscillators. \ 
-*If any information is not available, please ignore it.*"
+*If any information is not available, please ignore it. Represent all numbers to the second decimal point .00 [Units] after.*"
 
 ENV FIN_TEMPLATE="# Provide a detailed analysis of [ASSET_NAME]. \ 
 ## Overview of Business Segments: \ 
@@ -126,7 +123,7 @@ ENV FIN_TEMPLATE="# Provide a detailed analysis of [ASSET_NAME]. \
 - High-Level Profitability Metrics: [PROFITABILITY_METRICS] \ 
 ## Cash Flow Synopsis: \ 
 - Provide a brief synopsis of the cash flow statements, highlighting key inflows and outflows. \ 
-*If any information is not available, please ignore it.*" 
+*If any information is not available, please ignore it. For Crypto currency, give tokenomics and background as well as information located through reputable crypto news sources. Represent all numbers to the second decimal point .00 [Units] after.*" 
 
 # Exposing ports
 EXPOSE 8035
