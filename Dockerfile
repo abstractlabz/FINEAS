@@ -54,11 +54,75 @@ ENV NEWS_SERVICE_URL=http://0.0.0.0:8083
 ENV DESC_SERVICE_URL=http://0.0.0.0:8084
 ENV LLM_SERVICE_URL=http://0.0.0.0:5432
 ENV TA_SERVICE_URL=http://0.0.0.0:8089
-ENV YTD_TEMPLATE="Based on the provided YTD stock data, give a brief and clear explanation of [Company Name]'s stock performance. Specify the percentage change in the stock price, notable trends, and external factors influencing performance. Conclude by categorizing the performance into one of these five categories based on predefined criteria (specify percentage ranges for each category): Bullish, Bearish, or Neutral. Ensure the summary is concise, reflects a solid financial understanding, and considers broader market influences. Provide the annotation information in your response using only the avaliable links and search headers to provide more context to the stock performance."
-ENV NEWS_TEMPLATE="Provide a quick impact assessment (bullish, bearish, neutral) of the news headlines for [Company Name], then analyze their significance in detail (100-200 words). Prioritize based on impact to the company's situation and future. Summarize critical news, consider market trends, financial health, and industry developments. Highlight discrepancies in reports, concluding with potential long-term implications and the news' overall impact. Provide the annotation information in your response using only the avaliable links and search headers to provide more context to the news information. "
-ENV DESC_TEMPLATE="Provide a detailed yet concise pitch of [Company Name] suitable for potential investment analysis, covering key aspects in bullet points (150-300 words). Include Company Name, Year Founded, CEO, Number of Employees, Funding Rounds, Total Amount Raised, Market Capitalization, Recent Acquisitions, Significant Financial Metrics, Performance Trends, Valuation Insights, and Investment Thesis (Bullish, Bearish, or Neutral). Add sections for 'Key Challenges' and 'Recent News Impact' to offer a balanced view and link financial health with current events. Provide the annotation information in your response using only the avaliable links and search headers to provide more context to the description information."
-ENV TA_TEMPLATE="Give an in-depth analysis (concluding with bullish, bearish or neutral) of the company stock ticker future price action based on recent stock information and following technical indicators: SMA & EMA, Volume trends, RSI, MACD, and other idiosyncratic important indicators for the given name. Source information from Coindesk, CNBC, Bloomberg, Marketwatch, Investopedia, Yahoo Finance and other relevant sources"
-ENV FIN_TEMPLATE="Begin with a brief overview of [Company Name]'s financial health based on the provided balance sheet data. In 200 to 250 words, identify strengths or weaknesses, utilize quick ratio, debt to equity, and current ratio in the response. Compare these ratios to industry averages or specific peers over time for context, but do not give the formula or calculation for these ratios. Just present the data in decimal notation to the second decimal, and highlight key insights and trends. Provide the annotation information in your response using only the avaliable links and search headers to provide more context to the stock performance."
+ENV YTD_TEMPLATE="# Conduct an analysis of [ASSET_NAME]'s recent and historical price movements. \ 
+## Stock Movement Information: \ 
+- YTD, MOM change, 1-year change, and 5-year change where applicable. \ 
+- Provide a brief summary of notable price milestones or shifts over the years. \ 
+## Historical Price Trend Analysis: \ 
+- Describe the historical trends of [ASSET_NAME] over different periods (e.g., monthly, yearly). \ 
+- Highlight key price movements, including peaks and troughs, and discuss potential factors that influenced these movements. \ 
+## Price Levels: \ 
+- Recent High: $[RECENT_HIGH] \ 
+- Recent Low: $[RECENT_LOW] \ 
+- All-Time High: $[ALL_TIME_HIGH] \ 
+- All-Time Low: $[ALL_TIME_LOW] \  
+## Volatility Overview: \  
+- Describe the recent volatility trends and provide context on how the asset's price has fluctuated in both the short and long term. \ 
+## Outlook: \ 
+- Based on the historical price movements and recent trends, provide an outlook on the asset’s potential price direction in the near term. \ 
+*If any information is not available, please ignore it. Represent all numbers to the second decimal point .00 [Units] after*."
+
+ENV NEWS_TEMPLATE="# Provide a comprehensive analysis of recent news articles related to [ASSET_NAME]. \ 
+## Overall Sentiment Analysis: \ 
+- Determine the overall sentiment (bullish, bearish, neutral) of the news affecting [ASSET_NAME]. \ 
+## Key News Highlights: \ 
+- Summarize the most impactful news items. \ 
+## News Items (5 news items): \ 
+- [NEWS_HEADLINE_1]: Provide a brief description and an analysis of its impact on the asset. \ 
+## Market Reaction: \ 
+- Evaluate how the market has reacted to these news items. \ 
+*If any information is not available, please ignore it. Represent all numbers to the second decimal point .00 [Units] after.*"
+
+ENV DESC_TEMPLATE="# Business Description: \ 
+## Analysis: \ 
+- In 100 words, explain the business and its key business lines. \ 
+## Company Information: \ 
+-  CEO:  \ 
+- Year Founded: \ 
+- Sector/Industry: \ 
+- Employees Count:  \ 
+- Market Cap: $ \ 
+- HQ:  \ 
+## Market Positioning: \ 
+- Describe the company's target markets and geographical presence. \ 
+## Market Share: \ 
+- Provide details about the company’s market share in key sectors. \ 
+## Competitive Advantages: \
+- Identify and discuss the company's unique selling propositions. \ 
+*If any information is not available, please ignore it. Represent all numbers to the second decimal point .00 [Units] after.*"
+
+ENV TA_TEMPLATE="# Perform an in-depth technical analysis of [ASSET_NAME]'s stock. \ 
+## Chart Patterns: \ 
+- Identify any significant chart patterns. \ 
+## Volume Analysis: \ 
+- Examine trading volumes to assess the strength of price movements. \ 
+## Technical Indicators: \ 
+- Evaluate key technical indicators and oscillators. \ 
+*If any information is not available, please ignore it. Represent all numbers to the second decimal point .00 [Units] after.*"
+
+ENV FIN_TEMPLATE="# Provide a detailed analysis of [ASSET_NAME]. \ 
+## Overview of Business Segments: \ 
+- Discuss all business segments, including core segments like [LARGEST_SEGMENT]. \ 
+## Growth Analysis: \  
+- Discuss the fastest-growing segment and how it's influenced by market trends. \ 
+## Profitability Metrics: \ 
+- Evaluate the company's profitability compared to industry averages. \ 
+## Key Financial Metrics: \ 
+- Liquidity Ratios: [LIQUIDITY_RATIOS] \ 
+- High-Level Profitability Metrics: [PROFITABILITY_METRICS] \ 
+## Cash Flow Synopsis: \ 
+- Provide a brief synopsis of the cash flow statements, highlighting key inflows and outflows. \ 
+*If any information is not available, please ignore it. For Crypto currency, give tokenomics and background as well as information located through reputable crypto news sources. Represent all numbers to the second decimal point .00 [Units] after.*"
 
 # Exposing ports
 EXPOSE 8035
