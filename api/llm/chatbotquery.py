@@ -19,7 +19,7 @@ PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 LLM_SERVICE_URL = os.getenv("LLM_SERVICE_URL")
 
 # Initialize Pinecone client
-host = "https://pre-alpha-vectorstore-prd-uajrq2f.svc.apw5-4e34-81fa.pinecone.io"
+host = "https://pre-alpha-vectorstore-prd-uajrq2f.svc.aped-4627-b74a.pinecone.io"
 pinecone_config = Config(api_key=PINECONE_API_KEY, host=host)
 pinecone_client = Pinecone(config=pinecone_config)
 
@@ -66,15 +66,21 @@ def chatbot():
         context = index.query(vector=query_vector, top_k=7, include_metadata=True)
         context = [match['metadata']['text'] for match in context['matches']]
 
+        #Get search information from google search
+        search_information = get_search_query(raw_data, HASH_KEY)
+        print(search_information)
+
         # Construct the prompt payload
         prompt_payload = {
             "prompt": f"""You are an AI assistant named Fineas tasked with giving stock market alpha to retail investors
               by summarizing and analyzing financial information in the form of market research. When displaying numbers, show two decimal places.
-              Your response will answer the following prompt in a structured bullet point format using informative headers, short paragraph segments, annotations, and bullet points based off of the given financial data. If relevant to the prompt, include general company information such as background history, founder history, current leadership, product history, business segments and their revenue contributions, and anything else pertinent like M&A transactions.
-              You will also attach annotations within response segments to relevant sources from the web throughout the text.
+              Your response will answer the following prompt using structured informative headers, short paragraph segments, annotations, and bullet points for the given financial data. 
+              If relevant to the prompt, include general company information such as background history, founder history, current leadership, product history, business segments and their revenue contributions, and anything else pertinent like M&A transactions.
+              You will also attach annotation information only defined within the annotations section of this prompt throughout response segments in the text.
               \n\nPROMPT:\n{raw_data}\n\n
-              The following is the only data context from which you will answer this prompt. Please answer the prompt in bullet points
+              The following is the only data context and annotations data from which you will answer this prompt. Only use the annotations which are relevant to the prompt. Ignore the irrelevant annotations and don't include them in your response nor make any reference to them.
               only based off of the most relevant information with 250 words maximum.:
+              \n\nANNOTATIONS:\n{search_information}
               \n\nCONTEXT:\n{str(context)}"""
         }
 
@@ -92,6 +98,18 @@ def chatbot():
     except Exception as e:
         logging.error(f"Internal error: {str(e)}")
         return jsonify({'error': 'Internal Server Error'}), 500
+
+def get_search_query(raw_data, passhash):
+    # Prepare the data and headers for the POST request
+    data = {"query": raw_data}
+    headers = {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "Authorization": f"Bearer {passhash}"
+    }
+
+    # Make a POST request to the search service
+    response = requests.post("http://localhost:8070/search", headers=headers, data=data)
+    return response.text
 
 if __name__ == '__main__':
     app.run()

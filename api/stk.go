@@ -121,28 +121,27 @@ func STKService(w http.ResponseWriter, r *http.Request) {
 	currentMonth := time.Now().Month()
 	recentDay := time.Now().Day()
 
-	//gets the year before recent date stock price
+	// gets the year before recent date stock price
 	res1, err := sendClosingPriceAtDate(c, ticker, currentYear-1, currentMonth, recentDay)
-	//sends request until the stock price is available
+	// sends request until the stock price is available
 	count2 := 0
-	for err != nil && res1.Open == 0 {
+	for err != nil || res1.Close == 0 {
 		if count2 == 7 {
 			break
 		}
-		if recentDay <= 0 {
-			recentDay = 31
-			currentMonth = currentMonth - 1
-			if currentMonth <= 0 {
-				currentYear = currentYear - 1
-				currentMonth = 12
+		recentDay += 1
+		if recentDay > daysInMonth(currentYear-1, currentMonth) {
+			currentMonth = currentMonth + 1
+			if currentMonth > 12 {
+				currentYear = currentYear + 1
+				currentMonth = 1
 			}
-
+			recentDay = 1
 		}
-		res1, err = sendClosingPriceAtDate(c, ticker, currentYear, currentMonth, recentDay)
-		recentDay -= 1
+		res1, err = sendClosingPriceAtDate(c, ticker, currentYear-1, currentMonth, recentDay)
 		count2 += 1
 	}
-	stk.YearBeforeRecentStockPrice = res1.Open
+	stk.YearBeforeRecentStockPrice = res1.Close
 	eventSequenceArray = append(eventSequenceArray, "year before recent date stock price found \n")
 
 	//calculate the stk recent stock percent change
@@ -272,4 +271,8 @@ func sendPreviousCloseInfo(c *polygon.Client, ticker string) (*models.GetPreviou
 func roundDecimal(number float64, decimalPlaces int) float64 {
 	shift := math.Pow(10, float64(decimalPlaces))
 	return math.Round(number*shift) / shift
+}
+
+func daysInMonth(year int, month time.Month) int {
+	return time.Date(year, month+1, 0, 0, 0, 0, 0, time.UTC).Day()
 }
