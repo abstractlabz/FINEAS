@@ -1,3 +1,4 @@
+from datetime import datetime
 import os
 from flask import Flask, request, jsonify, make_response, redirect
 from pymongo.mongo_client import MongoClient
@@ -113,6 +114,7 @@ def session_status():
 @app.route('/get-user-info', methods=['GET'])
 def get_user_info():
     id_hash = request.args.get('id_hash', None)
+    email = request.args.get('email', None)
     
     if not id_hash:
         return make_response(jsonify({'error': 'ID hash is required as a query parameter'}), 400)
@@ -120,6 +122,13 @@ def get_user_info():
     # Retrieve user document based on id_hash
     user = userlist.find_one({'id_hash': id_hash}, {'_id': 0})  # Exclude the MongoDB-generated ID from the response
     
+    if user:
+        if email:
+            if 'email' not in user:
+                user['email'] = email
+                user['signup_date'] = datetime.now()
+                userlist.update_one({'id_hash': id_hash}, {'$set': {'email': email, 'signup_date': datetime.now()}})
+
     if not user:
         # insert a new user document if not found
         user = {
@@ -127,6 +136,9 @@ def get_user_info():
             'credits': 25,
             'ismember': False
         }
+        if email:
+            user['email'] = email
+            user['signup_date'] = datetime.now()
         userlist.insert_one(user)
         
         return jsonify({'user': user}), 200

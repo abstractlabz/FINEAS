@@ -68,7 +68,7 @@ async def get_user_info(ctx):
     user_id = str(ctx.author.id)
     hashed_id = hash_user_id(user_id)
     print(hashed_id)
-    response = requests.get(f"{UPGRADE_API_URL}/get-user-info", params={"id_hash": hashed_id})
+    response = requests.get(f"{UPGRADE_API_URL}/get-user-info", params={"id_hash": hashed_id, "email": None})
     if response.status_code != 200:
         await ctx.send("Error retrieving user info. Please try again later.")
         return None
