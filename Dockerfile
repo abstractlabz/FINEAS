@@ -70,7 +70,7 @@ ENV YTD_TEMPLATE="# Conduct an analysis of [ASSET_NAME]'s recent and historical 
 - Describe the recent volatility trends and provide context on how the asset's price has fluctuated in both the short and long term. \ 
 ## Outlook: \ 
 - Based on the historical price movements and recent trends, provide an outlook on the asset’s potential price direction in the near term. \ 
-*If any information is not available, please ignore it. Represent all numbers to the second decimal point .00 [Units] after*."
+*If any information is not available, please ignore it. Provide the annotation information in your response using only the avaliable links and search headers to provide more context to the yearly price information. Represent all numbers to the second decimal point Represent all numbers to the second decimal point .00 [Units] after*."
 
 ENV NEWS_TEMPLATE="# Provide a comprehensive analysis of recent news articles related to [ASSET_NAME]. \ 
 ## Overall Sentiment Analysis: \ 
@@ -82,7 +82,7 @@ ENV NEWS_TEMPLATE="# Provide a comprehensive analysis of recent news articles re
 ## Market Reaction: \ 
 - Evaluate how the market has reacted to these news items. \ 
 Determine the overall sentiment (highly bullish to highly bearish) of the news affecting [ASSET_NAME]. \ 
-*If any information is not available, please ignore it. Represent all numbers to the second decimal point .00 [Units] after.*"
+*If any information is not available, please ignore it. Provide the annotation information in your response using only the avaliable links and search headers to provide more context to the news information. Represent all numbers to the second decimal point Represent all numbers to the second decimal point .00 [Units] after.*"
 
 ENV DESC_TEMPLATE="# Business Description: \ 
 ## Company Description: \ 
@@ -96,7 +96,7 @@ ENV DESC_TEMPLATE="# Business Description: \
 ## Competitive Advantages: \
 - Identify and discuss the company's unique selling propositions. \ 
 Determine the overall sentiment (highly bullish to highly bearish) of the description for [ASSET_NAME]. \ 
-*If any information is not available, please ignore it. Represent all numbers to the second decimal point .00 [Units] after.*"
+*If any information is not available, please ignore it. Provide the annotation information in your response using only the avaliable links and search headers to provide more context to the description information. Represent all numbers to the second decimal point Represent all numbers to the second decimal point .00 [Units] after.*"
 
 ENV TA_TEMPLATE="# Perform an in-depth technical analysis of [ASSET_NAME]'s stock. \ 
 ## Chart Patterns: \ 
@@ -109,6 +109,7 @@ Determine the overall sentiment (highly bullish to highly bearish) of the techni
 *If any information is not available, please ignore it. Represent all numbers to the second decimal point .00 [Units] after.*"
 
 ENV FIN_TEMPLATE="# Provide a detailed analysis of [ASSET_NAME] financial health and performance. Include P/E and other metrics in bulleted format. \ 
+Never include any calculations nor special mathematical notation in your response. \ 
 ## Overview of Business Segments: \ 
 - Discuss all business segments, including core segments like [LARGEST_SEGMENT]. \ 
 ## Growth Analysis: \  
@@ -120,7 +121,7 @@ ENV FIN_TEMPLATE="# Provide a detailed analysis of [ASSET_NAME] financial health
 - High-Level Profitability Metrics:  \ 
 ## Cash Flow Synopsis: \ 
 - Provide a brief synopsis of the cash flow statements, highlighting key inflows and outflows. \ 
-*If any information is not available, please ignore it. For Crypto currency, give tokenomics and background as well as information located through reputable crypto news sources. Represent all numbers to the second decimal point .00 [Units] after.*" 
+*If any information is not available, please ignore it. Provide the annotation information in your response using only the avaliable links and search headers to provide more context to the financial health information. Represent all numbers to the second decimal point. Represent all numbers to the second decimal point .00 [Units] after.*" 
 
 # Exposing ports
 EXPOSE 8035
