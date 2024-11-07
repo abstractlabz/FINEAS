@@ -151,15 +151,18 @@ func HandleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Print("passHash: " + passHash + "\n")
 
+	currentYear := time.Now().Format("2006")
 	queriedInfoAggregate.Ticker = ticker
 	eventSequenceArray = append(eventSequenceArray, "queried ticker \n")
 
 	stk_info := getFinancialInfo(ticker, "/stk", STK_SERVICE_URL, passHash, writekey, eventSequenceArray)
 	queriedInfoAggregate.YtdInfo = stk_info
+	stk_annotation := postSearchQuery(ticker+" financial price information for "+currentYear, "/search", passHash)
 	eventSequenceArray = append(eventSequenceArray, "queried stk info \n")
 
 	fin_info := getFinancialInfo(ticker, "/fin", FIN_SERVICE_URL, passHash, writekey, eventSequenceArray)
 	queriedInfoAggregate.FinInfo = fin_info
+	fin_annotation := postSearchQuery(ticker+" financials and 10k filings for "+currentYear, "/search", passHash)
 	eventSequenceArray = append(eventSequenceArray, "queried fin info \n")
 
 	news_info := getFinancialInfo(ticker, "/news", NEWS_SERVICE_URL, passHash, writekey, eventSequenceArray)
@@ -168,6 +171,7 @@ func HandleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 
 	desc_info := getFinancialInfo(ticker, "/desc", DESC_SERVICE_URL, passHash, writekey, eventSequenceArray)
 	queriedInfoAggregate.DescInfo = desc_info
+	desc_annotation := postSearchQuery(ticker+" company description", "/search", passHash)
 	eventSequenceArray = append(eventSequenceArray, "queried desc info \n")
 
 	ta_info := getFinancialInfo(ticker, "/ta", TA_SERVICE_URL, passHash, writekey, eventSequenceArray)
@@ -184,7 +188,7 @@ func HandleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 	// stock perfomance
 	if stk_info != "400 Bad Request" && stk_info != "500 Internal Server Error" {
 		stkTemplate := STK_TEMPLATE
-		stkInference := getPromptInference(string(queriedInfoAggregate.YtdInfo), stkTemplate, "/llm", "http://0.0.0.0:5432", eventSequenceArray, passHash)
+		stkInference := getPromptInference(string(queriedInfoAggregate.YtdInfo)+"\n"+string(stk_annotation), stkTemplate, "/llm", "http://0.0.0.0:5432", eventSequenceArray, passHash)
 		stkInference = strings.Trim(stkInference, "{}")
 		promptInference.StockPerformance = stkInference
 		eventSequenceArray = append(eventSequenceArray, "collected stk prompt inference \n")
@@ -196,7 +200,7 @@ func HandleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 	// financial health
 	if fin_info != "400 Bad Request" && fin_info != "500 Internal Server Error" {
 		finTemplate := FIN_TEMPLATE
-		finInference := getPromptInference(string(queriedInfoAggregate.FinInfo), finTemplate, "/llm", "http://0.0.0.0:5432", eventSequenceArray, passHash)
+		finInference := getPromptInference(string(queriedInfoAggregate.FinInfo)+"\n"+string(fin_annotation), finTemplate, "/llm", "http://0.0.0.0:5432", eventSequenceArray, passHash)
 		finInference = strings.Trim(finInference, "{}")
 		promptInference.FinancialHealth = finInference
 		eventSequenceArray = append(eventSequenceArray, "collected fin prompt inference \n")
@@ -220,7 +224,7 @@ func HandleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 	// company description
 	if desc_info != "400 Bad Request" && desc_info != "500 Internal Server Error" {
 		descTemplate := DESC_TEMPLATE
-		descInference := getPromptInference(string(queriedInfoAggregate.DescInfo), descTemplate, "/llm", "http://0.0.0.0:5432", eventSequenceArray, passHash)
+		descInference := getPromptInference(string(queriedInfoAggregate.DescInfo)+"\n"+string(desc_annotation), descTemplate, "/llm", "http://0.0.0.0:5432", eventSequenceArray, passHash)
 		descInference = strings.Trim(descInference, "{}")
 		promptInference.CompanyDesc = descInference
 		eventSequenceArray = append(eventSequenceArray, "collected desc prompt inference \n")
@@ -488,6 +492,39 @@ func postFinancialData(dataValue string, eventSequenceArray []string, passHash s
 	}
 	defer resp.Body.Close()
 
+	fmt.Println("Response:", string(respBody))
+	return string(respBody)
+}
+
+func postSearchQuery(searchquery string, handlerURL string, passHash string) string {
+	// Create payload as bytes
+	payload := []byte(fmt.Sprintf("query=%s", searchquery))
+	// Create HTTP client
+	client := &http.Client{}
+	//
+	fullURL := "http://0.0.0.0:8070" + handlerURL
+	// Create POST request
+	req, err := http.NewRequest("POST", fullURL, bytes.NewBuffer(payload))
+	if err != nil {
+		fmt.Println("Error creating request:", err)
+		return ""
+	}
+	// Set Authorization header
+	req.Header.Set("Authorization", "Bearer "+passHash)
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	// Send the request
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println("Error sending request:", err)
+		return ""
+	}
+	defer resp.Body.Close()
+	// Read response
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("Error reading response:", err)
+		return ""
+	}
 	fmt.Println("Response:", string(respBody))
 	return string(respBody)
 }

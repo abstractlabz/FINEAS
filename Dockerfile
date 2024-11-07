@@ -54,7 +54,6 @@ ENV NEWS_SERVICE_URL=http://0.0.0.0:8083
 ENV DESC_SERVICE_URL=http://0.0.0.0:8084
 ENV LLM_SERVICE_URL=http://0.0.0.0:5432
 ENV TA_SERVICE_URL=http://0.0.0.0:8089
-
 ENV YTD_TEMPLATE="# Conduct an analysis of [ASSET_NAME]'s recent and historical price movements. \ 
 ## Stock Movement Information: \ 
 - YTD, Week over Week Change, MOM change, and 1-year change \ 
@@ -121,7 +120,6 @@ ENV FIN_TEMPLATE="# Provide a detailed analysis of [ASSET_NAME] financial health
 - High-Level Profitability Metrics:  \ 
 ## Cash Flow Synopsis: \ 
 - Provide a brief synopsis of the cash flow statements, highlighting key inflows and outflows. \ 
-Determine the overall sentiment (highly bullish to highly bearish) of the financials for [ASSET_NAME]. \ 
 *If any information is not available, please ignore it. For Crypto currency, give tokenomics and background as well as information located through reputable crypto news sources. Represent all numbers to the second decimal point .00 [Units] after.*" 
 
 # Exposing ports
