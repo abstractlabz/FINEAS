@@ -55,6 +55,8 @@ ENV DESC_SERVICE_URL=http://0.0.0.0:8084
 ENV LLM_SERVICE_URL=http://0.0.0.0:5432
 ENV TA_SERVICE_URL=http://0.0.0.0:8089
 ENV YTD_TEMPLATE="# Conduct an analysis of [ASSET_NAME]'s recent and historical price movements. \ 
+Provide the annotation information throught your response including only the avaliable links, search headers, and other information to provide more context to the yearly price information report. Only base your response on the information avaliable to you. \ 
+*If any information is not available, please ignore it. Don't even include it in your response. Represent all numbers to the second decimal point Represent all numbers to the second decimal point .00 [Units] after*. \
 ## Stock Movement Information: \ 
 - YTD, Week over Week Change, MOM change, and 1-year change \ 
 - Provide a brief summary of notable price milestones or shifts over the years. \ 
@@ -69,10 +71,10 @@ ENV YTD_TEMPLATE="# Conduct an analysis of [ASSET_NAME]'s recent and historical 
 ## Volatility Overview: \  
 - Describe the recent volatility trends and provide context on how the asset's price has fluctuated in both the short and long term. \ 
 ## Outlook: \ 
-- Based on the historical price movements and recent trends, provide an outlook on the asset’s potential price direction in the near term. \ 
-*If any information is not available, please ignore it. Provide the annotation information in your response using only the avaliable links and search headers to provide more context to the yearly price information. Represent all numbers to the second decimal point Represent all numbers to the second decimal point .00 [Units] after*."
-
+- Based on the historical price movements and recent trends, provide an outlook on the asset’s potential price direction in the near term."
 ENV NEWS_TEMPLATE="# Provide a comprehensive analysis of recent news articles related to [ASSET_NAME]. \ 
+Provide the annotation information throught your response including only the avaliable links, search headers, and other information to provide more context to the news sentiment report. Only base your response on the information avaliable to you. \ 
+*If any information is not available, please ignore it. Don't even include it in your response. Represent all numbers to the second decimal point Represent all numbers to the second decimal point .00 [Units] after*. \ 
 ## Overall Sentiment Analysis: \ 
 - Determine the overall sentiment (bullish, bearish, neutral) of the news affecting [ASSET_NAME]. \ 
 ## Key News Highlights: \ 
@@ -81,10 +83,10 @@ ENV NEWS_TEMPLATE="# Provide a comprehensive analysis of recent news articles re
 - [NEWS_HEADLINE_1]: Provide a brief description and an analysis of its impact on the asset. \ 
 ## Market Reaction: \ 
 - Evaluate how the market has reacted to these news items. \ 
-Determine the overall sentiment (highly bullish to highly bearish) of the news affecting [ASSET_NAME]. \ 
-*If any information is not available, please ignore it. Provide the annotation information in your response using only the avaliable links and search headers to provide more context to the news information. Represent all numbers to the second decimal point Represent all numbers to the second decimal point .00 [Units] after.*"
-
+Determine the overall sentiment (highly bullish to highly bearish) of the news affecting [ASSET_NAME]."
 ENV DESC_TEMPLATE="# Business Description: \ 
+Provide the annotation information throught your response including only the avaliable links, search headers, and other information to provide more context to the description information report. Only base your response on the information avaliable to you. \ 
+*If any information is not available, please ignore it. Don't even include it in your response. Represent all numbers to the second decimal point Represent all numbers to the second decimal point .00 [Units] after*. \ 
 ## Company Description: \ 
 - In 50-100 words, explain the business and its key business focus as well as business lines. \ 
 ## Company Information: \ 
@@ -95,9 +97,7 @@ ENV DESC_TEMPLATE="# Business Description: \
 - Provide details about the company’s market share in key sectors. \ 
 ## Competitive Advantages: \
 - Identify and discuss the company's unique selling propositions. \ 
-Determine the overall sentiment (highly bullish to highly bearish) of the description for [ASSET_NAME]. \ 
-*If any information is not available, please ignore it. Provide the annotation information in your response using only the avaliable links and search headers to provide more context to the description information. Represent all numbers to the second decimal point Represent all numbers to the second decimal point .00 [Units] after.*"
-
+Determine the overall sentiment (highly bullish to highly bearish) of the description for [ASSET_NAME]."
 ENV TA_TEMPLATE="# Perform an in-depth technical analysis of [ASSET_NAME]'s stock. \ 
 ## Chart Patterns: \ 
 - Identify any significant chart patterns. \ 
@@ -107,8 +107,9 @@ ENV TA_TEMPLATE="# Perform an in-depth technical analysis of [ASSET_NAME]'s stoc
 - Evaluate key technical indicators and oscillators. \ 
 Determine the overall sentiment (highly bullish to highly bearish) of the technicals for [ASSET_NAME]. \ 
 *If any information is not available, please ignore it. Represent all numbers to the second decimal point .00 [Units] after.*"
-
 ENV FIN_TEMPLATE="# Provide a detailed analysis of [ASSET_NAME] financial health and performance. Include P/E and other metrics in bulleted format. \ 
+Provide the annotation information throught your response including only the avaliable links, search headers, and other information to provide more context to the financial health information report. Only base your response on the information avaliable to you. \ 
+*If any information is not available, please ignore it. Don't even include it in your response. Represent all numbers to the second decimal point .00 [Units] after*. \ 
 Never include any calculations nor special mathematical notation in your response. \ 
 ## Overview of Business Segments: \ 
 - Discuss all business segments, including core segments like [LARGEST_SEGMENT]. \ 
@@ -120,8 +121,7 @@ Never include any calculations nor special mathematical notation in your respons
 - Liquidity Ratios:  \ 
 - High-Level Profitability Metrics:  \ 
 ## Cash Flow Synopsis: \ 
-- Provide a brief synopsis of the cash flow statements, highlighting key inflows and outflows. \ 
-*If any information is not available, please ignore it. Provide the annotation information in your response using only the avaliable links and search headers to provide more context to the financial health information. Represent all numbers to the second decimal point. Represent all numbers to the second decimal point .00 [Units] after.*" 
+- Provide a brief synopsis of the cash flow statements, highlighting key inflows and outflows."
 
 # Exposing ports
 EXPOSE 8035
