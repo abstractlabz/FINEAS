@@ -56,7 +56,7 @@ ENV LLM_SERVICE_URL=http://0.0.0.0:5432
 ENV TA_SERVICE_URL=http://0.0.0.0:8089
 ENV YTD_TEMPLATE="# Conduct an analysis of [ASSET_NAME]'s recent and historical price movements. \ 
 ## Stock Movement Information: \ 
-- YTD, MOM change, 1-year change, and 5-year change where applicable. \ 
+- YTD, Week over Week Change, MOM change, and 1-year change \ 
 - Provide a brief summary of notable price milestones or shifts over the years. \ 
 ## Historical Price Trend Analysis: \ 
 - Describe the historical trends of [ASSET_NAME] over different periods (e.g., monthly, yearly). \ 
@@ -70,7 +70,7 @@ ENV YTD_TEMPLATE="# Conduct an analysis of [ASSET_NAME]'s recent and historical 
 - Describe the recent volatility trends and provide context on how the asset's price has fluctuated in both the short and long term. \ 
 ## Outlook: \ 
 - Based on the historical price movements and recent trends, provide an outlook on the asset’s potential price direction in the near term. \ 
-*If any information is not available, please ignore it. Provide the annotation information in your response using only the avaliable links and search headers to provide more context to the stock performance. Represent all numbers to the second decimal point .00 [Units] after*."
+*If any information is not available, please ignore it. Represent all numbers to the second decimal point .00 [Units] after*."
 
 ENV NEWS_TEMPLATE="# Provide a comprehensive analysis of recent news articles related to [ASSET_NAME]. \ 
 ## Overall Sentiment Analysis: \ 
@@ -81,25 +81,22 @@ ENV NEWS_TEMPLATE="# Provide a comprehensive analysis of recent news articles re
 - [NEWS_HEADLINE_1]: Provide a brief description and an analysis of its impact on the asset. \ 
 ## Market Reaction: \ 
 - Evaluate how the market has reacted to these news items. \ 
-*If any information is not available, please ignore it. Provide the annotation information in your response using only the avaliable links and search headers to provide more context to the news information. Represent all numbers to the second decimal point .00 [Units] after.*"
+Determine the overall sentiment (highly bullish to highly bearish) of the news affecting [ASSET_NAME]. \ 
+*If any information is not available, please ignore it. Represent all numbers to the second decimal point .00 [Units] after.*"
 
 ENV DESC_TEMPLATE="# Business Description: \ 
-## Analysis: \ 
-- In 100 words, explain the business and its key business lines. \ 
+## Company Description: \ 
+- In 50-100 words, explain the business and its key business focus as well as business lines. \ 
 ## Company Information: \ 
--  CEO:  \ 
-- Year Founded: \ 
-- Sector/Industry: \ 
-- Employees Count:  \ 
-- Market Cap: $ \ 
-- HQ:  \ 
+- Include more nuanced information about the company \ 
 ## Market Positioning: \ 
 - Describe the company's target markets and geographical presence. \ 
 ## Market Share: \ 
 - Provide details about the company’s market share in key sectors. \ 
 ## Competitive Advantages: \
 - Identify and discuss the company's unique selling propositions. \ 
-*If any information is not available, please ignore it. Provide the annotation information in your response using only the avaliable links and search headers to provide more context to the description information. Represent all numbers to the second decimal point .00 [Units] after.*"
+Determine the overall sentiment (highly bullish to highly bearish) of the description for [ASSET_NAME]. \ 
+*If any information is not available, please ignore it. Represent all numbers to the second decimal point .00 [Units] after.*"
 
 ENV TA_TEMPLATE="# Perform an in-depth technical analysis of [ASSET_NAME]'s stock. \ 
 ## Chart Patterns: \ 
@@ -108,9 +105,10 @@ ENV TA_TEMPLATE="# Perform an in-depth technical analysis of [ASSET_NAME]'s stoc
 - Examine trading volumes to assess the strength of price movements. \ 
 ## Technical Indicators: \ 
 - Evaluate key technical indicators and oscillators. \ 
+Determine the overall sentiment (highly bullish to highly bearish) of the technicals for [ASSET_NAME]. \ 
 *If any information is not available, please ignore it. Represent all numbers to the second decimal point .00 [Units] after.*"
 
-ENV FIN_TEMPLATE="# Provide a detailed analysis of [ASSET_NAME]. \ 
+ENV FIN_TEMPLATE="# Provide a detailed analysis of [ASSET_NAME] financial health and performance. Include P/E and other metrics in bulleted format. \ 
 ## Overview of Business Segments: \ 
 - Discuss all business segments, including core segments like [LARGEST_SEGMENT]. \ 
 ## Growth Analysis: \  
@@ -118,11 +116,11 @@ ENV FIN_TEMPLATE="# Provide a detailed analysis of [ASSET_NAME]. \
 ## Profitability Metrics: \ 
 - Evaluate the company's profitability compared to industry averages. \ 
 ## Key Financial Metrics: \ 
-- Liquidity Ratios: [LIQUIDITY_RATIOS] \ 
-- High-Level Profitability Metrics: [PROFITABILITY_METRICS] \ 
+- Liquidity Ratios:  \ 
+- High-Level Profitability Metrics:  \ 
 ## Cash Flow Synopsis: \ 
 - Provide a brief synopsis of the cash flow statements, highlighting key inflows and outflows. \ 
-*If any information is not available, please ignore it. Provide the annotation information in your response using only the avaliable links and search headers to provide more context to the financial health analysis. Represent all numbers to the second decimal point .00 [Units] after.*"
+*If any information is not available, please ignore it. For Crypto currency, give tokenomics and background as well as information located through reputable crypto news sources. Represent all numbers to the second decimal point .00 [Units] after.*" 
 
 # Exposing ports
 EXPOSE 8035
