@@ -19,11 +19,11 @@ if __name__ == '__main__':
     # LLM services commands (without SSL)
     llm_command = [
         "gunicorn", "-w", "4", "-b", "0.0.0.0:5432", 
-        "--max-requests", "200", "--limit-request-line", "8190", "--timeout", "120", "llm:app"
+        "--max-requests", "200", "--limit-request-line", "8190", "llm:app"
     ]
     dataingestor_command = [
         "gunicorn", "-w", "4", "-b", "0.0.0.0:6001", 
-        "--max-requests", "200", "--limit-request-line", "8190", "--timeout", "120", "chatbotdataingestor:app"
+        "--max-requests", "200", "--limit-request-line", "8190", "chatbotdataingestor:app"
     ]
 
     # Start LLM services without SSL
@@ -35,7 +35,7 @@ if __name__ == '__main__':
     chatbot_command = [
         "gunicorn", "--certfile", certfile_query, "--keyfile", keyfile_query,
         "-w", "4", "-b", "0.0.0.0:6002", 
-        "--max-requests", "200", "--limit-request-line", "8190", "--timeout", "120", "chatbotquery:app"
+        "--max-requests", "200", "--limit-request-line", "8190", "chatbotquery:app"
     ]
     subprocess.Popen(chatbot_command, cwd=llm_working_directory)
 
@@ -52,7 +52,7 @@ if __name__ == '__main__':
     upgrade_webhook_command = [
         "gunicorn", "--certfile", certfile_webhook, "--keyfile", keyfile_webhook,
         "-w", "4", "-b", "0.0.0.0:7000", 
-        "--max-requests", "200", "--limit-request-line", "8190", "--timeout", "120", "upgrade-webhook:app"
+        "--max-requests", "200", "--limit-request-line", "8190", "upgrade-webhook:app"
     ]
     subprocess.Popen(upgrade_webhook_command, cwd=user_working_directory)
 
@@ -61,7 +61,7 @@ if __name__ == '__main__':
     upgrade_command = [
         "gunicorn", "--certfile", certfile_upgrade, "--keyfile", keyfile_upgrade,
         "-w", "4", "-b", "0.0.0.0:7002", 
-        "--max-requests", "200", "--limit-request-line", "8190", "--timeout", "120", "upgrade:app"
+        "--max-requests", "200", "--limit-request-line", "8190", "upgrade:app"
     ]
     subprocess.Popen(upgrade_command, cwd=user_working_directory)
 
