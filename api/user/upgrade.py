@@ -22,7 +22,6 @@ stripe.api_key = os.getenv("STRIPE_SECRET_KEY")  # Set your Stripe API key
 def upgrade_membership():
     data = request.json
     id_hash = data.get('id_hash')
-    email = data.get('email', None)
 
     if id_hash is None:
         return make_response(jsonify({'error': 'You must be logged in'}), 400)
