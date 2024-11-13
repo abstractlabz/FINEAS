@@ -155,6 +155,6 @@ Interact with Fineas via HTTP requests or a hosted frontend on localhost:3000 or
 
 ## License ⚖️
 
-GPL 2.0 🆓
+Fineas Peer Production License
 
 **Free Software, Hell Yeah!** 🎉
