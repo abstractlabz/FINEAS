@@ -47,6 +47,14 @@ func main() {
 		http.Handle("/search", api.CorsMiddleware(http.HandlerFunc(api.SearchHandler)))
 		log.Println(http.ListenAndServe(":8070", nil))
 	}()
+	go func() {
+		http.Handle("/llm", api.CorsMiddleware(http.HandlerFunc(api.LLMHandler)))
+		log.Println(http.ListenAndServe(":8090", nil))
+	}()
+	go func() {
+		http.Handle("/chat", api.CorsMiddleware(api.ChatbotQuery()))
+		log.Println(http.ListenAndServe(":6002", nil))
+	}()
 
 	// Keep the main goroutine running to prevent the program from exiting
 	select {}

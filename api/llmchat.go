@@ -1,4 +1,4 @@
-package main
+package api
 
 import (
 	"crypto/sha256"
@@ -8,13 +8,12 @@ import (
 	"net/http"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sashabaranov/go-openai"
 )
 
-func main() {
+func LLMHandler(w http.ResponseWriter, r *http.Request) {
 	// Load environment variables
 	OPEN_AI_API_KEY := os.Getenv("OPEN_AI_API_KEY")
 	PASS_KEY := os.Getenv("PASS_KEY")
@@ -22,23 +21,8 @@ func main() {
 	if OPEN_AI_API_KEY == "" || PASS_KEY == "" {
 		log.Fatal("OPEN_AI_API_KEY and PASS_KEY environment variables are required")
 	}
-
-	// Configure custom HTTP client for OpenAI with connection pooling
-	transport := &http.Transport{
-		MaxIdleConns:        1000,
-		MaxIdleConnsPerHost: 1000,
-		IdleConnTimeout:     90 * time.Second,
-	}
-	httpClient := &http.Client{
-		Transport: transport,
-		Timeout:   60 * time.Second, // Set a reasonable timeout
-	}
-
 	// Initialize OpenAI client with custom HTTP client
-	client := openai.NewClientWithConfig(openai.ClientConfig{
-
-		HTTPClient: httpClient,
-	})
+	client := openai.NewClient(OPEN_AI_API_KEY)
 
 	// Set up Gin router
 	router := gin.Default()
@@ -128,7 +112,7 @@ in accordance with the prompt template and categorize your analysis as either bu
 }
 
 // CORS middleware function
-func corsMiddleware() gin.HandlerFunc {
+func LLMCorsMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
