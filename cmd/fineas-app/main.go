@@ -4,12 +4,19 @@ import (
 	"fineas/api"
 	"log"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 // entry point
 func main() {
-	certFile := "../../utils/keys/data/fullchain.pem"
-	keyFile := "../../utils/keys/data/privkey.pem"
+	dataCertFile := "../../utils/keys/data/fullchain.pem"
+	dataKeyFile := "../../utils/keys/data/privkey.pem"
+
+	queryCertFile := "../../utils/keys/query/fullchain.pem"
+	queryKeyFile := "../../utils/keys/query/privkey.pem"
+	router := gin.Default()
+
 	go func() {
 		http.Handle("/", api.CorsMiddleware(http.HandlerFunc(api.HandleQuoteRequest)))
 		log.Println(http.ListenAndServe(":8080", nil))
@@ -41,11 +48,19 @@ func main() {
 	}()
 	go func() {
 		http.Handle("/ret", api.CorsMiddleware(http.HandlerFunc(api.RetrieveData)))
-		log.Println(http.ListenAndServeTLS(":8035", certFile, keyFile, nil))
+		log.Println(http.ListenAndServeTLS(":8035", dataCertFile, dataKeyFile, nil))
 	}()
 	go func() {
 		http.Handle("/search", api.CorsMiddleware(http.HandlerFunc(api.SearchHandler)))
 		log.Println(http.ListenAndServe(":8070", nil))
+	}()
+	go func() {
+		api.LLMHandler(router)
+		log.Fatal(router.Run(":8090"))
+	}()
+	go func() {
+		http.Handle("/chat", api.CorsMiddleware(http.HandlerFunc(api.ChatbotQuery().ServeHTTP)))
+		log.Println(http.ListenAndServeTLS(":6002", queryCertFile, queryKeyFile, nil))
 	}()
 
 	// Keep the main goroutine running to prevent the program from exiting
