@@ -85,30 +85,27 @@ func ChatbotQuery() http.Handler {
 
 		log.Println("Query vector:", queryVector)
 
-		// List vectors based on a prefix (example: "text" prefix)
-		limit := uint32(4)
 		ctx := context.Background()
-		res, err := index.ListVectors(ctx, &pinecone.ListVectorsRequest{
-			Limit: &limit,
+		// Perform a similarity search in Pinecone
+		searchLimit := uint32(5) // Number of similar documents to retrieve
+		searchRes, err := index.QueryByVectorValues(ctx, &pinecone.QueryByVectorValuesRequest{
+			Vector: queryVector,
+			TopK:   searchLimit,
 		})
 		if err != nil {
-			log.Println("Failed to list vectors:", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to list vectors"})
+			log.Println("Failed to perform similarity search:", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to perform similarity search"})
 			return
 		}
 
-		if len(res.VectorIds) == 0 {
-			log.Println("No vectors found with the given prefix")
-		} else {
-			log.Println("Listed vector IDs:", prettifyStruct(res))
-		}
+		log.Println("Search results:", prettifyStruct(searchRes))
 
 		// Once we have vector IDs, we can fetch their metadata to get the text
 		var contextData []interface{}
-		if len(res.VectorIds) > 0 {
-			vectorIds := make([]string, len(res.VectorIds))
-			for i, id := range res.VectorIds {
-				vectorIds[i] = *id
+		if len(searchRes.Matches) > 0 {
+			vectorIds := make([]string, len(searchRes.Matches))
+			for i, match := range searchRes.Matches {
+				vectorIds[i] = match.Vector.Id
 			}
 			fetchRes, err := index.FetchVectors(ctx, vectorIds)
 			if err != nil {
@@ -117,10 +114,16 @@ func ChatbotQuery() http.Handler {
 				return
 			}
 
+			// Log the fetched vectors to debug
+			log.Println("Fetched vectors:", prettifyStruct(fetchRes))
+
 			// Extract the metadata (which should contain your text)
 			for _, vector := range fetchRes.Vectors {
 				if vector.Metadata != nil {
+					log.Println("Vector metadata:", vector.Metadata)
 					contextData = append(contextData, vector.Metadata)
+				} else {
+					log.Println("No metadata found for vector ID:", vector.Id)
 				}
 			}
 		}
