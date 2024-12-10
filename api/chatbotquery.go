@@ -20,7 +20,13 @@ type PromptPayload struct {
 	Prompt string `json:"prompt"`
 }
 
-func ChatbotQuery() gin.HandlerFunc {
+func prettifyStruct(obj interface{}) string {
+	bytes, _ := json.MarshalIndent(obj, "", "  ")
+	return string(bytes)
+}
+
+func ChatbotQuery() http.Handler {
+
 	router := gin.Default()
 	router.Use(corsMiddleware())
 
@@ -31,14 +37,14 @@ func ChatbotQuery() gin.HandlerFunc {
 	// Initialize Pinecone client
 	ClientParams := pinecone.NewClientParams{
 		ApiKey: PINECONE_API_KEY,
-		Host:   "https://pre-alpha-vectorstore-prd-uajrq2f.svc.aped-4627-b74a.pinecone.io", // optional
+		Host:   "https://pre-alpha-vectorstore-prd-uajrq2f.svc.aped-4627-b74a.pinecone.io",
 	}
 
-	//Initialize Pinecone index
+	// Initialize Pinecone index
 	indexParams := pinecone.NewIndexConnParams{
 		Host: "https://pre-alpha-vectorstore-prd-uajrq2f.svc.aped-4627-b74a.pinecone.io",
 	}
-	// Initialize Pinecone client
+
 	pineconeClient, err := pinecone.NewClient(ClientParams)
 	if err != nil {
 		log.Fatal("Failed to initialize Pinecone client:", err)
@@ -49,62 +55,109 @@ func ChatbotQuery() gin.HandlerFunc {
 	}
 
 	router.POST("/chat", func(c *gin.Context) {
+
 		var jsonData PromptPayload
 		if err := c.BindJSON(&jsonData); err != nil {
+			log.Println("Error binding JSON:", err)
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON payload"})
 			return
 		}
+
+		log.Println("Received prompt:", jsonData.Prompt)
 
 		passhash := c.GetHeader("Authorization")[7:]
 		sha256Hash := sha256.Sum256([]byte(PASS_KEY))
 		HASH_KEY := hex.EncodeToString(sha256Hash[:])
 
 		if passhash != HASH_KEY {
+			log.Println("Unauthorized access attempt with passhash:", passhash)
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized access"})
 			return
 		}
 
-		// Embedding and context retrieval
+		// Embedding the user's prompt
 		queryVector, err := embedQuery(jsonData.Prompt, OPEN_AI_API_KEY)
 		if err != nil {
+			log.Println("Failed to embed query:", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to embed query"})
 			return
 		}
 
-		context, err := index.QueryByVectorValues(context.Background(), &pinecone.QueryByVectorValuesRequest{
-			Vector: queryVector,
-			TopK:   7,
+		log.Println("Query vector:", queryVector)
+
+		// List vectors based on a prefix (example: "text" prefix)
+		limit := uint32(4)
+		ctx := context.Background()
+		res, err := index.ListVectors(ctx, &pinecone.ListVectorsRequest{
+			Limit: &limit,
 		})
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to query Pinecone index"})
+			log.Println("Failed to list vectors:", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to list vectors"})
 			return
 		}
 
-		// Convert context to a string representation
-		contextString, err := json.Marshal(context)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to convert context to string"})
-			return
+		if len(res.VectorIds) == 0 {
+			log.Println("No vectors found with the given prefix")
+		} else {
+			log.Println("Listed vector IDs:", prettifyStruct(res))
 		}
+
+		// Once we have vector IDs, we can fetch their metadata to get the text
+		var contextData []interface{}
+		if len(res.VectorIds) > 0 {
+			vectorIds := make([]string, len(res.VectorIds))
+			for i, id := range res.VectorIds {
+				vectorIds[i] = *id
+			}
+			fetchRes, err := index.FetchVectors(ctx, vectorIds)
+			if err != nil {
+				log.Println("Failed to fetch vectors:", err)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch vector metadata"})
+				return
+			}
+
+			// Extract the metadata (which should contain your text)
+			for _, vector := range fetchRes.Vectors {
+				if vector.Metadata != nil {
+					contextData = append(contextData, vector.Metadata)
+				}
+			}
+		}
+
+		contextString := prettifyStruct(contextData)
+		log.Println("Context string:", contextString)
 
 		searchInformation, err := getSearchQuery(jsonData.Prompt, HASH_KEY)
 		if err != nil {
+			log.Println("Failed to fetch search information:", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch search information"})
 			return
 		}
 
+		log.Println("Search information:", searchInformation)
+
 		promptPayload := PromptPayload{
 			Prompt: fmt.Sprintf(`You are an AI assistant named Fineas tasked with giving stock market alpha to retail investors
-			by summarizing and analyzing financial information in the form of market research. When displaying numbers, show two decimal places.
-			Your response will answer the following prompt using structured informative headers, short paragraph segments, annotations, and bullet points for the given financial data. 
-			If relevant to the prompt, include general company information such as background history, founder history, current leadership, product history, business segments and their revenue contributions, and anything else pertinent like M&A transactions.
-			You will also attach annotation information only defined within the annotations section of this prompt throughout response segments in the text.
-			\n\nPROMPT:\n%s\n\n
-			The following is the only data context and annotations data from which you will answer this prompt. Only use the annotations which are relevant to the prompt. Ignore the irrelevant annotations and don't include them in your response nor make any reference to them.
-			only based off of the most relevant information with 250 words maximum.:
-			\n\nANNOTATIONS:\n%s
-			\n\nCONTEXT:\n%s`, jsonData.Prompt, searchInformation, contextString),
+by summarizing and analyzing financial information in the form of market research. When displaying numbers, show two decimal places.
+Your response will answer the following prompt using structured informative headers, short paragraph segments, annotations, and bullet points for the given financial data. 
+If relevant to the prompt, include general company information such as background history, founder history, current leadership, product history, business segments and their revenue contributions, and anything else pertinent like M&A transactions.
+You will also attach annotation information only defined within the annotations section of this prompt throughout response segments in the text.
+			
+PROMPT:
+%s
+
+The following is the only data context and annotations data from which you will answer this prompt. Only use the annotations which are relevant to the prompt. Ignore the irrelevant annotations and don't include them in your response nor make any reference to them.
+only based off of the most relevant information with 250 words maximum.
+
+ANNOTATIONS:
+%s
+
+CONTEXT:
+%s`, jsonData.Prompt, searchInformation, contextString),
 		}
+
+		log.Println("Prompt payload:", promptPayload)
 
 		LLM_SERVICE_URL := "http://0.0.0.0:8090"
 		url := LLM_SERVICE_URL + "/llm"
@@ -115,15 +168,16 @@ func ChatbotQuery() gin.HandlerFunc {
 
 		chatResponse, err := fetchChatResponse(url, headers, promptPayload)
 		if err != nil {
+			log.Println("Failed to fetch response from LLM service:", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch response from LLM service"})
 			return
 		}
 
-		c.String(http.StatusOK, chatResponse)
+		log.Println("Chat response:", chatResponse)
 		c.String(http.StatusOK, chatResponse)
 	})
 
-	return nil
+	return router
 }
 
 func corsMiddleware() gin.HandlerFunc {
@@ -148,7 +202,7 @@ func embedQuery(prompt, apiKey string) ([]float32, error) {
 	// Create the request payload
 	payload := map[string]interface{}{
 		"input": prompt,
-		"model": "text-embedding-ada-002", // Example model, replace with the appropriate one
+		"model": "text-embedding-ada-002",
 	}
 	jsonData, err := json.Marshal(payload)
 	if err != nil {
@@ -191,30 +245,44 @@ func embedQuery(prompt, apiKey string) ([]float32, error) {
 	if len(response.Data) == 0 {
 		return nil, fmt.Errorf("no embedding data found")
 	}
-
+	log.Println(response.Data[0].Embedding)
 	return response.Data[0].Embedding, nil
 }
 
 func getSearchQuery(rawData, passhash string) (string, error) {
-	data := map[string]string{"query": rawData}
-	jsonData, _ := json.Marshal(data)
+	query := rawData
+
+	type SearchQuery struct {
+		Query string `json:"query"`
+	}
+
+	searchQuery := SearchQuery{Query: query}
+	jsonData, err := json.Marshal(searchQuery)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal data: %v", err)
+	}
 
 	req, err := http.NewRequest("POST", "http://localhost:8070/search", bytes.NewBuffer(jsonData))
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to create request: %v", err)
 	}
 
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+passhash)
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to send request: %v", err)
 	}
 	defer resp.Body.Close()
 
-	body, _ := ioutil.ReadAll(resp.Body)
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("failed to read response body: %v", err)
+	}
+
+	log.Println("Search service response:", string(body))
 	return string(body), nil
 }
 
@@ -237,6 +305,11 @@ func fetchChatResponse(url string, headers map[string]string, payload PromptPayl
 	}
 	defer resp.Body.Close()
 
-	body, _ := ioutil.ReadAll(resp.Body)
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "Error fetching response from LLM service", err
+	}
+
+	log.Println(string(body))
 	return string(body), nil
 }

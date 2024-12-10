@@ -3,7 +3,6 @@ package api
 import (
 	"crypto/sha256"
 	"encoding/hex"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -13,7 +12,7 @@ import (
 	"github.com/sashabaranov/go-openai"
 )
 
-func LLMHandler(w http.ResponseWriter, r *http.Request) {
+func LLMHandler(router *gin.Engine) {
 	// Load environment variables
 	OPEN_AI_API_KEY := os.Getenv("OPEN_AI_API_KEY")
 	PASS_KEY := os.Getenv("PASS_KEY")
@@ -21,11 +20,9 @@ func LLMHandler(w http.ResponseWriter, r *http.Request) {
 	if OPEN_AI_API_KEY == "" || PASS_KEY == "" {
 		log.Fatal("OPEN_AI_API_KEY and PASS_KEY environment variables are required")
 	}
+
 	// Initialize OpenAI client with custom HTTP client
 	client := openai.NewClient(OPEN_AI_API_KEY)
-
-	// Set up Gin router
-	router := gin.Default()
 
 	// Enable CORS middleware
 	router.Use(corsMiddleware())
@@ -37,13 +34,17 @@ func LLMHandler(w http.ResponseWriter, r *http.Request) {
 			Prompt string `json:"prompt"`
 		}
 		if err := c.BindJSON(&jsonData); err != nil {
+			log.Println("Error binding JSON:", err)
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON payload"})
 			return
 		}
 
+		log.Println("Received prompt:", jsonData.Prompt)
+
 		// Extract Authorization header
 		authHeader := c.GetHeader("Authorization")
 		if len(authHeader) < 8 || !strings.HasPrefix(authHeader, "Bearer ") {
+			log.Println("Unauthorized access attempt with authHeader:", authHeader)
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized access"})
 			return
 		}
@@ -55,17 +56,19 @@ func LLMHandler(w http.ResponseWriter, r *http.Request) {
 
 		// Verify the hashed passkey
 		if passhash != HASH_KEY {
+			log.Println("Unauthorized access attempt with passhash:", passhash)
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized access"})
 			return
 		}
 
 		if jsonData.Prompt == "" {
+			log.Println("Missing prompt parameter")
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Missing prompt parameter"})
 			return
 		}
 
 		// Log the prompt (optional)
-		fmt.Println("Prompt:", jsonData.Prompt)
+		log.Println("Prompt:", jsonData.Prompt)
 
 		// Prepare the messages for the chat completion
 		messages := []openai.ChatCompletionMessage{
@@ -85,6 +88,8 @@ in accordance with the prompt template and categorize your analysis as either bu
 			},
 		}
 
+		log.Println("Prepared messages for OpenAI API:", messages)
+
 		// Call the OpenAI API for chat completion
 		resp, err := client.CreateChatCompletion(c.Request.Context(), openai.ChatCompletionRequest{
 			Model:    "gpt-4o", // Adjust model as needed
@@ -101,14 +106,11 @@ in accordance with the prompt template and categorize your analysis as either bu
 		generatedText := resp.Choices[0].Message.Content
 
 		// Log the generated response (optional)
-		fmt.Println("Generated Text:", generatedText)
+		log.Println("Generated Text:", generatedText)
 
 		// Return the response as plain text
 		c.String(http.StatusOK, generatedText)
 	})
-
-	// Run the server
-	router.Run()
 }
 
 // CORS middleware function
