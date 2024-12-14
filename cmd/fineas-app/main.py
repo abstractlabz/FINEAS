@@ -31,14 +31,14 @@ if __name__ == '__main__':
     subprocess.Popen(dataingestor_command, cwd=llm_working_directory)
 
     # Chatbotquery (query process) with SSL
-    certfile_query, keyfile_query = get_ssl_paths('query')
-    chatbot_command = [
-        "gunicorn", "--certfile", certfile_query, "--keyfile", keyfile_query,
-        "-w", "4", "-b", "0.0.0.0:6002", 
-        "--max-requests", "200", "--limit-request-line", "8190", "--timeout", "120", "chatbotquery:app"
-    ]
-    subprocess.Popen(chatbot_command, cwd=llm_working_directory)
-
+    #certfile_query, keyfile_query = get_ssl_paths('query')
+    #chatbot_command = [
+    #    "gunicorn", "--certfile", certfile_query, "--keyfile", keyfile_query,
+    #``    "-w", "4", "-b", "0.0.0.0:6002", 
+    #    "--max-requests", "200", "--limit-request-line", "8190", "--timeout", "120", "chatbotquery:app"
+    #]
+    #subprocess.Popen(chatbot_command, cwd=llm_working_directory)
+    
     # Discord bot (run using python3)
     bot_working_directory = os.path.join(desired_directory, "api", "bot")
     discordbot_command = ["python3", "bot-cli.py"]

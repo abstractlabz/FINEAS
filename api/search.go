@@ -55,17 +55,18 @@ func SearchHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Parse the form data to get the query
-	err = r.ParseForm()
-	if err != nil {
-		http.Error(w, "Error parsing form data", http.StatusBadRequest)
-		return
+	// Parse the JSON body to get the query
+	var requestData struct {
+		Query string `json:"query"`
 	}
-	query := r.FormValue("query")
-	if query == "" {
+	err = json.NewDecoder(r.Body).Decode(&requestData)
+	if err != nil || requestData.Query == "" {
 		http.Error(w, "Missing search query", http.StatusBadRequest)
 		return
 	}
+
+	query := requestData.Query
+	log.Printf("Received search query: %s", query)
 
 	// Construct the Google search URL
 	searchURL := fmt.Sprintf("https://www.google.com/search?q=%s", url.QueryEscape(query))
