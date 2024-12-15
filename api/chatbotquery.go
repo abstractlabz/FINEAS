@@ -87,7 +87,7 @@ func ChatbotQuery() http.Handler {
 
 		ctx := context.Background()
 		// Perform a similarity search in Pinecone
-		searchLimit := uint32(5) // Number of similar documents to retrieve
+		searchLimit := uint32(2) // Number of similar documents to retrieve
 		searchRes, err := index.QueryByVectorValues(ctx, &pinecone.QueryByVectorValuesRequest{
 			Vector: queryVector,
 			TopK:   searchLimit,
