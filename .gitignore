@@ -39,3 +39,8 @@ node_modules/
 app/todo.txt
 data
 keys
+
+#automation
+domains.json
+keys.json
+sslrefresh.sh
