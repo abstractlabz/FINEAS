@@ -109,16 +109,24 @@ func DescriptionService(w http.ResponseWriter, r *http.Request) {
 	eventSequenceArray = append(eventSequenceArray, "ticker collected \n")
 
 	// set params
+	date := models.Date(time.Now())
+	fmt.Println("CURRENT DATE: ", date)
 	params := models.GetTickerDetailsParams{
 		Ticker: ticker,
-	}.WithDate(models.Date(time.Date(time.Now().Year(), 1, 1, 0, 0, 0, 0, time.UTC)))
+		Date:   &date,
+	}.WithDate(date)
 
 	// make request
 	res, err := c.GetTickerDetails(context.Background(), params)
 	if err != nil {
 		log.Println(err)
 	}
-	output.Result = extractDescription(fmt.Sprint(res))
+	//market cap is in notation 2.99437134256e+12
+	//convert to integer with no decimal places or scientific notation
+	marketCap := int(res.Results.MarketCap)
+
+	desc_info := fmt.Sprint("DESCRIPTION: ", res.Results.Description, " TOTAL EMPLOYEES: ", res.Results.TotalEmployees, " MARKET CAP: ", marketCap)
+	output.Result = desc_info
 	fmt.Println(output.Result)
 
 	if (writeKey == WRITE_KEY) && (len(writeKey) != 0) {

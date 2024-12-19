@@ -61,7 +61,7 @@ func SearchHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	err = json.NewDecoder(r.Body).Decode(&requestData)
 	if err != nil || requestData.Query == "" {
-		http.Error(w, "Missing search query", http.StatusBadRequest)
+		http.Error(w, "", http.StatusBadRequest)
 		return
 	}
 

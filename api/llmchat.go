@@ -8,27 +8,31 @@ import (
 	"os"
 	"strings"
 
+	"bytes"
+	"encoding/json"
+	"io/ioutil"
+
 	"github.com/gin-gonic/gin"
-	"github.com/sashabaranov/go-openai"
 )
 
 func LLMHandler(router *gin.Engine) {
-	// Load environment variables
-	OPEN_AI_API_KEY := os.Getenv("OPEN_AI_API_KEY")
-	PASS_KEY := os.Getenv("PASS_KEY")
-
-	if OPEN_AI_API_KEY == "" || PASS_KEY == "" {
-		log.Fatal("OPEN_AI_API_KEY and PASS_KEY environment variables are required")
-	}
-
-	// Initialize OpenAI client with custom HTTP client
-	client := openai.NewClient(OPEN_AI_API_KEY)
-
-	// Enable CORS middleware
 	router.Use(corsMiddleware())
 
 	// Define the /llm endpoint
 	router.POST("/llm", func(c *gin.Context) {
+		// Load environment variables
+		CLAUDE_API_URL := "https://api.anthropic.com/v1/messages"
+		CLAUDE_API_KEY := os.Getenv("CLAUDE_API_KEY")
+		PASS_KEY := os.Getenv("PASS_KEY")
+
+		if CLAUDE_API_URL == "" || CLAUDE_API_KEY == "" || PASS_KEY == "" {
+			log.Fatal("CLAUDE_API_URL, CLAUDE_API_KEY, and PASS_KEY environment variables are required")
+		}
+
+		log.Println("Using CLAUDE_API_KEY:", CLAUDE_API_KEY) // Print the API key for debugging purposes
+
+		// Enable CORS middleware
+		router.Use(corsMiddleware())
 		// Extract prompt from JSON payload
 		var jsonData struct {
 			Prompt string `json:"prompt"`
@@ -70,46 +74,86 @@ func LLMHandler(router *gin.Engine) {
 		// Log the prompt (optional)
 		log.Println("Prompt:", jsonData.Prompt)
 
-		// Prepare the messages for the chat completion
-		messages := []openai.ChatCompletionMessage{
-			{
-				Role: openai.ChatMessageRoleSystem,
-				Content: `You are an AI agent tasked with summarizing and analyzing financial information for market research.
-Your response will follow the task template given to you based on the financial data given to you. Give your summarized response. You will
-respond to the following prompt in a structured bullet point based format. You will also include annotations to relevant sources from the web throughout the text, attached to the important bullet points.
-If the data containing the information is not relevant nor sufficient,
-you may ask for more information in the response.
-However, if the data containing the information is relevant to the prompt template, generate a market analysis report over the information
-in accordance with the prompt template and categorize your analysis as either bullish, neutral, or bearish. Nothing more nothing less.`,
-			},
-			{
-				Role:    openai.ChatMessageRoleUser,
-				Content: jsonData.Prompt,
+		// Prepare the request payload for Claude API
+		requestPayload := map[string]interface{}{
+			"model":      "claude-3-5-sonnet-20241022",
+			"max_tokens": 4096,
+			"messages": []map[string]string{
+				{"role": "user", "content": jsonData.Prompt},
 			},
 		}
 
-		log.Println("Prepared messages for OpenAI API:", messages)
-
-		// Call the OpenAI API for chat completion
-		resp, err := client.CreateChatCompletion(c.Request.Context(), openai.ChatCompletionRequest{
-			Model:    "gpt-4o", // Adjust model as needed
-			Messages: messages,
-		})
-
+		payloadBytes, err := json.Marshal(requestPayload)
 		if err != nil {
-			log.Println("OpenAI error:", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			log.Println("Error marshalling request payload:", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 			return
 		}
 
-		// Extract generated content from response
-		generatedText := resp.Choices[0].Message.Content
+		// Make the HTTP request to Claude API
+		req, err := http.NewRequest("POST", CLAUDE_API_URL, bytes.NewBuffer(payloadBytes))
+		if err != nil {
+			log.Println("Error creating request to Claude API:", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+			return
+		}
 
-		// Log the generated response (optional)
-		log.Println("Generated Text:", generatedText)
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("x-api-key", CLAUDE_API_KEY)
+		req.Header.Set("anthropic-version", "2023-06-01")
 
-		// Return the response as plain text
-		c.String(http.StatusOK, generatedText)
+		client := &http.Client{}
+		resp, err := client.Do(req)
+		if err != nil {
+			log.Println("Error sending request to Claude API:", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+			return
+		}
+		defer resp.Body.Close()
+
+		// Read the response from Claude API
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			log.Println("Error reading response from Claude API:", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+			return
+		}
+
+		if resp.StatusCode == http.StatusUnauthorized {
+			log.Println("Invalid API Key. Please check your CLAUDE_API_KEY environment variable.")
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid API Key"})
+			return
+		}
+
+		if resp.StatusCode != http.StatusOK {
+			log.Println("Claude API returned non-200 status:", resp.StatusCode, string(body))
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Claude API error", "details": string(body)})
+			return
+		}
+
+		// Parse the response to extract the content field
+		var responseJson struct {
+			Content []struct {
+				Type string `json:"type"`
+				Text string `json:"text"`
+			} `json:"content"`
+		}
+		if err := json.Unmarshal(body, &responseJson); err != nil {
+			log.Println("Error unmarshalling response body:", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+			return
+		}
+
+		// Extract text content
+		responseText := ""
+		for _, content := range responseJson.Content {
+			if content.Type == "text" {
+				responseText += content.Text
+			}
+		}
+
+		// Return the Claude API response text
+		c.String(http.StatusOK, responseText)
 	})
 }
 

@@ -24,10 +24,10 @@ Fineas uses a number of open-source projects to work properly:
 
 - [⚙️ Golang] - For handling the ETL service
 - [🔥 Flask] - For setting up the LLM and RAG services
-- [🧠 Langchain] - Popular library to connect to OpenAI services
+- [🧠 Langchain] - Popular library to connect to OpenAI services (depreceated)
 - [📚 Pinecone] - Vector database to store vectors for LLM knowledge base
 - [💾 MongoDB] - Flexible No-SQL database for fast and simple I/O
-- [🤖 GPT-4o] - Highest quality LLM that exists to date
+- [🤖 Claude 3.5] - Highest quality LLM that exists to date
 - [📊 Polygon.io] - Reliable financial data API that supports streaming data via WSS
 - [⚡ Akash] - Blockchain-based Docker hosting platform
 
@@ -65,7 +65,7 @@ cd FINEAS/scripts/startup
     "API_KEY": "Ask the GitHub organization owner for env key secrets",
     "PASS_KEY": "",
     "MONGO_DB_LOGGER_PASSWORD": "",
-    "OPEN_AI_API_KEY": "",
+    "CLAUDE_API_KEY": "",
     "KB_WRITE_KEY": "",
     "MR_WRITE_KEY": "",
     "PINECONE_API_KEY": "",
@@ -135,13 +135,13 @@ Use Docker to run the Fineas image locally.
 **Windows:**
 
 ```bash
-docker run -d -p 8443:8035 -p 443:6002 -p 2087:6001 -p 2083:7000 -p 2096:7002 -e API_KEY=[API_KEY] -e PASS_KEY=[PASS_KEY] -e MONGO_DB_LOGGER_PASSWORD=[MONGO_DB_LOGGER_PASSWORD] -e OPEN_AI_API_KEY=[OPEN_AI_API_KEY] -e KB_WRITE_KEY=[KB_WRITE_KEY] -e MR_WRITE_KEY=[MR_WRITE_KEY] -e PINECONE_API_KEY=[PINECONE_API_KEY] -e STRIPE_ENDPOINT_SECRET=[STRIPE_ENDPOINT_SECRET] -e STRIPE_SECRET_KEY=[STRIPE_SECRET_KEY] -e REDIRECT_DOMAIN=https://app.fineas.ai fineas-image:latest
+docker run -d -p 8443:8035 -p 443:6002 -p 2087:6001 -p 2083:7000 -p 2096:7002 -e API_KEY=[API_KEY] -e PASS_KEY=[PASS_KEY] -e MONGO_DB_LOGGER_PASSWORD=[MONGO_DB_LOGGER_PASSWORD] -e CLAUDE_API_KEY=[CLAUDE_API_KEY] -e KB_WRITE_KEY=[KB_WRITE_KEY] -e MR_WRITE_KEY=[MR_WRITE_KEY] -e PINECONE_API_KEY=[PINECONE_API_KEY] -e STRIPE_ENDPOINT_SECRET=[STRIPE_ENDPOINT_SECRET] -e STRIPE_SECRET_KEY=[STRIPE_SECRET_KEY] -e REDIRECT_DOMAIN=https://app.fineas.ai fineas-image:latest
 ```
 
 **MacOS:**
 
 ```bash
-docker run --platform linux/arm64 -d -p 8443:8035 -p 443:6002 -p 2087:6001 -p 2083:7000 -p 2096:7002 -e API_KEY=[API_KEY] -e PASS_KEY=[PASS_KEY] -e MONGO_DB_LOGGER_PASSWORD=[MONGO_DB_LOGGER_PASSWORD] -e OPEN_AI_API_KEY=[OPEN_AI_API_KEY] -e KB_WRITE_KEY=[KB_WRITE_KEY] -e MR_WRITE_KEY=[MR_WRITE_KEY] -e PINECONE_API_KEY=[PINECONE_API_KEY] -e STRIPE_ENDPOINT_SECRET=[STRIPE_ENDPOINT_SECRET] -e STRIPE_SECRET_KEY=[STRIPE_SECRET_KEY] -e REDIRECT_DOMAIN=https://app.fineas.ai fineas-image:latest
+docker run --platform linux/arm64 -d -p 8443:8035 -p 443:6002 -p 2087:6001 -p 2083:7000 -p 2096:7002 -e API_KEY=[API_KEY] -e PASS_KEY=[PASS_KEY] -e MONGO_DB_LOGGER_PASSWORD=[MONGO_DB_LOGGER_PASSWORD] -e CLAUDE_API_KEY=[CLAUDE_API_KEY] -e KB_WRITE_KEY=[KB_WRITE_KEY] -e MR_WRITE_KEY=[MR_WRITE_KEY] -e PINECONE_API_KEY=[PINECONE_API_KEY] -e STRIPE_ENDPOINT_SECRET=[STRIPE_ENDPOINT_SECRET] -e STRIPE_SECRET_KEY=[STRIPE_SECRET_KEY] -e REDIRECT_DOMAIN=https://app.fineas.ai fineas-image:latest
 ```
 
 ## API Spec 📬

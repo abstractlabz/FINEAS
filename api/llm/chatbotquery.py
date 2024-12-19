@@ -13,13 +13,13 @@ CORS(app)
 
 # Environment Variables
 PASS_KEY = os.getenv("PASS_KEY")
-OPEN_AI_API_KEY = os.getenv("OPEN_AI_API_KEY")
-MODEL = 'text-embedding-ada-002'
+CLAUDE_API_KEY = os.getenv("CLAUDE_API_KEY")
+MODEL = 'multilingual-e5-large'
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 LLM_SERVICE_URL = os.getenv("LLM_SERVICE_URL")
 
 # Initialize Pinecone client
-host = "https://pre-alpha-vectorstore-prd-uajrq2f.svc.aped-4627-b74a.pinecone.io"
+host = "https://main-uajrq2f.svc.aped-4627-b74a.pinecone.io"
 pinecone_config = Config(api_key=PINECONE_API_KEY, host=host)
 pinecone_client = Pinecone(config=pinecone_config)
 
@@ -27,7 +27,7 @@ pinecone_client = Pinecone(config=pinecone_config)
 index = pinecone_client.Index(host=host, name='pre-alpha-vectorstore-prd')
 
 # Initialize OpenAI Embeddings
-embed = OpenAIEmbeddings(api_key=OPEN_AI_API_KEY)
+embed = OpenAIEmbeddings(api_key=CLAUDE_API_KEY)
 
 # Configure Logging
 logging.basicConfig(level=logging.INFO)

@@ -188,7 +188,7 @@ func HandleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 	// stock perfomance
 	if stk_info != "400 Bad Request" && stk_info != "500 Internal Server Error" {
 		stkTemplate := STK_TEMPLATE
-		stkInference := getPromptInference(string(queriedInfoAggregate.YtdInfo)+"\n"+string(stk_annotation), stkTemplate, "/llm", "http://0.0.0.0:5432", eventSequenceArray, passHash)
+		stkInference := getPromptInference("For ASSET_NAME: "+ticker+"\n"+string(queriedInfoAggregate.YtdInfo)+"\n"+string(stk_annotation), stkTemplate, "/llm", "http://0.0.0.0:5432", eventSequenceArray, passHash)
 		stkInference = strings.Trim(stkInference, "{}")
 		promptInference.StockPerformance = stkInference
 		eventSequenceArray = append(eventSequenceArray, "collected stk prompt inference \n")
@@ -200,7 +200,7 @@ func HandleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 	// financial health
 	if fin_info != "400 Bad Request" && fin_info != "500 Internal Server Error" {
 		finTemplate := FIN_TEMPLATE
-		finInference := getPromptInference(string(queriedInfoAggregate.FinInfo)+"\n"+string(fin_annotation), finTemplate, "/llm", "http://0.0.0.0:5432", eventSequenceArray, passHash)
+		finInference := getPromptInference("For ASSET_NAME: "+ticker+"\n"+string(queriedInfoAggregate.FinInfo)+"\n"+string(fin_annotation), finTemplate, "/llm", "http://0.0.0.0:5432", eventSequenceArray, passHash)
 		finInference = strings.Trim(finInference, "{}")
 		promptInference.FinancialHealth = finInference
 		eventSequenceArray = append(eventSequenceArray, "collected fin prompt inference \n")
@@ -212,7 +212,7 @@ func HandleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 	// news summary
 	if news_info != "400 Bad Request" && news_info != "500 Internal Server Error" {
 		newsTemplate := NEWS_TEMPLATE
-		newsInference := getPromptInference(string(queriedInfoAggregate.NewsInfo), newsTemplate, "/llm", "http://0.0.0.0:5432", eventSequenceArray, passHash)
+		newsInference := getPromptInference("For ASSET_NAME: "+ticker+"\n"+string(queriedInfoAggregate.NewsInfo), newsTemplate, "/llm", "http://0.0.0.0:5432", eventSequenceArray, passHash)
 		newsInference = strings.Trim(newsInference, "{}")
 		promptInference.NewsSummary = newsInference
 		eventSequenceArray = append(eventSequenceArray, "collected news prompt inference \n")
@@ -224,7 +224,7 @@ func HandleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 	// company description
 	if desc_info != "400 Bad Request" && desc_info != "500 Internal Server Error" {
 		descTemplate := DESC_TEMPLATE
-		descInference := getPromptInference(string(queriedInfoAggregate.DescInfo)+"\n"+string(desc_annotation), descTemplate, "/llm", "http://0.0.0.0:5432", eventSequenceArray, passHash)
+		descInference := getPromptInference("For ASSET_NAME: "+ticker+"\n"+string(queriedInfoAggregate.DescInfo)+"\n"+string(desc_annotation), descTemplate, "/llm", "http://0.0.0.0:5432", eventSequenceArray, passHash)
 		descInference = strings.Trim(descInference, "{}")
 		promptInference.CompanyDesc = descInference
 		eventSequenceArray = append(eventSequenceArray, "collected desc prompt inference \n")
@@ -236,7 +236,7 @@ func HandleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 	// company description
 	if ta_info != "400 Bad Request" && ta_info != "500 Internal Server Error" {
 		taTemplate := TA_TEMPLATE
-		taInference := getPromptInference(string(queriedInfoAggregate.TaInfo), taTemplate, "/llm", "http://0.0.0.0:5432", eventSequenceArray, passHash)
+		taInference := getPromptInference("For ASSET_NAME: "+ticker+"\n"+string(queriedInfoAggregate.TaInfo), taTemplate, "/llm", "http://0.0.0.0:5432", eventSequenceArray, passHash)
 		taInference = strings.Trim(taInference, "{}")
 		promptInference.TechnicalAnalysis = taInference
 		eventSequenceArray = append(eventSequenceArray, "collected ta prompt inference \n")

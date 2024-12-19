@@ -3,16 +3,15 @@ from openai import OpenAI
 import os
 import hashlib
 from flask_cors import CORS
+import requests
 
 app = Flask(__name__)
 CORS(app)
 
 # Loading environment variables
-OPEN_AI_API_KEY = os.getenv("OPEN_AI_API_KEY")
+CLAUDE_API_URL = "https://api.anthropic.com/v1/messages"
+CLAUDE_API_KEY = os.getenv("CLAUDE_API_KEY")
 PASS_KEY = os.getenv("PASS_KEY")
-
-# Initialize OpenAI client
-client = OpenAI(api_key=OPEN_AI_API_KEY)
 
 @app.route('/llm', methods=['POST'])
 def generate_response():
@@ -39,29 +38,29 @@ def generate_response():
         print(prompt)  # Optional: log the prompt for debugging purposes
 
         # Call the OpenAI API for chat completion
-        response = client.chat.completions.create(
-            messages=[
-                {"role": "system", "content": """You are an AI agent tasked with summarizing and analyzing financial information for market research.
-                Your response will follow the task template given to you based on the financial data given to you. Give your summarized response. You will
-                respond to the following prompt in a structured bullet point based format. You will also include annotations to relevant sources from the web throughout the text, attached to the important bullet points. 
-                If the data containing the information is not relevant nor sufficient,
-                you may ask for more information in the response.
-                However, if the data containing the information is relevant to the prompt template, generate a market analysis report over the information
-                in accordance with the prompt template and categorize your analysis as either bullish, neutral, or bearish. Nothing more nothing less."""},
-                {"role": "user", "content": prompt}
-            ],
-            model="gpt-4o"  # Adjust model as needed
-        )
 
-        # Extract generated content from response
-        generated_text = response.choices[0].message.content
-        print(generated_text)  # Optional: log the generated response
+        headers = {
+            "x-api-key": CLAUDE_API_KEY,
+            "Content-Type": "application/json",
+            "anthropic-version": "2023-06-01",
+        }
 
-        # Return the response as plain text
-        return generated_text, 200
+        payload = {
+            "model": "claude-3-5-sonnet-20241022",  # Replace with the correct Claude model
+            "messages": [{"role": "user", "content": prompt}],
+            "max_tokens": 1024,
+        }
+
+        try:
+            response = requests.post(CLAUDE_API_URL, headers=headers, json=payload)
+            response.raise_for_status()
+            print(response.json()["content"][0]["text"]) 
+            return response.json()["content"][0]["text"], 200
+        except Exception as e:
+            raise Exception(f"Claude API Error: {str(e)}")
 
     except Exception as e:
-        print(f"OpenAI error: {e}")
+        print(f"Claude error: {e}")
         return jsonify({'error': str(e)}), 500
 
 

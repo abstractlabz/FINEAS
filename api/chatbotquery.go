@@ -11,9 +11,13 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
+	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/pinecone-io/go-pinecone/pinecone"
+	"google.golang.org/protobuf/types/known/structpb"
 )
 
 type PromptPayload struct {
@@ -25,24 +29,37 @@ func prettifyStruct(obj interface{}) string {
 	return string(bytes)
 }
 
+func min(a, b string) string {
+	if a < b {
+		return a
+	}
+	return b
+}
+
+func max(a, b string) string {
+	if a > b {
+		return a
+	}
+	return b
+}
+
 func ChatbotQuery() http.Handler {
 
 	router := gin.Default()
 	router.Use(corsMiddleware())
 
 	PASS_KEY := os.Getenv("PASS_KEY")
-	OPEN_AI_API_KEY := os.Getenv("OPEN_AI_API_KEY")
 	PINECONE_API_KEY := os.Getenv("PINECONE_API_KEY")
 
 	// Initialize Pinecone client
 	ClientParams := pinecone.NewClientParams{
 		ApiKey: PINECONE_API_KEY,
-		Host:   "https://pre-alpha-vectorstore-prd-uajrq2f.svc.aped-4627-b74a.pinecone.io",
+		Host:   "https://main-uajrq2f.svc.aped-4627-b74a.pinecone.io",
 	}
 
 	// Initialize Pinecone index
 	indexParams := pinecone.NewIndexConnParams{
-		Host: "https://pre-alpha-vectorstore-prd-uajrq2f.svc.aped-4627-b74a.pinecone.io",
+		Host: "https://main-uajrq2f.svc.aped-4627-b74a.pinecone.io",
 	}
 
 	pineconeClient, err := pinecone.NewClient(ClientParams)
@@ -76,7 +93,7 @@ func ChatbotQuery() http.Handler {
 		}
 
 		// Embedding the user's prompt
-		queryVector, err := embedQuery(jsonData.Prompt, OPEN_AI_API_KEY)
+		queryVector, err := embedQuery(jsonData.Prompt, PINECONE_API_KEY)
 		if err != nil {
 			log.Println("Failed to embed query:", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to embed query"})
@@ -85,12 +102,84 @@ func ChatbotQuery() http.Handler {
 
 		log.Println("Query vector:", queryVector)
 
+		LLM_SERVICE_URL := "http://0.0.0.0:8090"
+		url := LLM_SERVICE_URL + "/llm"
+		headers := map[string]string{
+			"Authorization": "Bearer " + HASH_KEY,
+			"Content-Type":  "application/json",
+		}
+
+		promptPayload := PromptPayload{
+			Prompt: jsonData.Prompt,
+		}
+
+		promptPayload.Prompt = fmt.Sprintf(`
+			For the following prompt, please only give two comma separated dates in YYYY-MM-DD format using no
+			spaces which refer to the context of the following prompt. If a date cannot
+			 be extrapolated then just use the current date. Do not respond with anything else other than the two dates in the format YYYY-MM-DD,YYYY-MM-DD.
+			Prompt: %s
+		 `, promptPayload.Prompt)
+
+		chatResponse, err := fetchChatResponse(url, headers, promptPayload)
+		if err != nil {
+			log.Println("Failed to fetch response from LLM service:", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch response from LLM service"})
+			return
+		}
+
+		//this will be a comma separated string of two dates in YYYY-MM-DD format
+		dates := strings.Split(chatResponse, ",")
+		if len(dates) != 2 {
+			log.Fatalf("Failed to extract dates from LLM response: %v", chatResponse)
+		}
+
+		date1 := dates[0]
+		date2 := dates[1]
+
+		// Calculate minimum and maximum dates
+		minDate := min(date1, date2)
+		maxDate := max(date1, date2)
+
+		minDate = strings.ReplaceAll(minDate, "-", "")
+		maxDate = strings.ReplaceAll(maxDate, "-", "")
+
+		minDateInt, err := strconv.Atoi(minDate)
+		if err != nil {
+			log.Fatalf("Failed to convert minDate to integer: %v", err)
+		}
+		log.Println("Min date integer:", minDateInt)
+		log.Println("Max date integer plus 1:", minDateInt+1)
+
+		maxDateInt, err := strconv.Atoi(maxDate)
+		if err != nil {
+			log.Fatalf("Failed to convert maxDate to integer: %v", err)
+		}
+		log.Println("Max date integer:", maxDateInt)
+		log.Println("Max date integer plus 1:", maxDateInt+1)
+
+		// Define the metadata filter for Pinecone
+		metadataMap := map[string]interface{}{
+			"current_date": map[string]interface{}{
+				"$gte": minDateInt,
+				"$lte": maxDateInt,
+			},
+		}
+
+		log.Println("Metadata map:", metadataMap)
+
+		// Convert the metadataMap to a struct for Pinecone
+		metadataFilter, err := structpb.NewStruct(metadataMap)
+		if err != nil {
+			log.Fatalf("Failed to create metadata filter: %v", err)
+		}
+
 		ctx := context.Background()
 		// Perform a similarity search in Pinecone
 		searchLimit := uint32(2) // Number of similar documents to retrieve
 		searchRes, err := index.QueryByVectorValues(ctx, &pinecone.QueryByVectorValuesRequest{
-			Vector: queryVector,
-			TopK:   searchLimit,
+			Vector:         queryVector,
+			TopK:           searchLimit,
+			MetadataFilter: metadataFilter,
 		})
 		if err != nil {
 			log.Println("Failed to perform similarity search:", err)
@@ -140,36 +229,40 @@ func ChatbotQuery() http.Handler {
 
 		log.Println("Search information:", searchInformation)
 
-		promptPayload := PromptPayload{
-			Prompt: fmt.Sprintf(`You are an AI assistant named Fineas tasked with giving stock market alpha to retail investors
-by summarizing and analyzing financial information in the form of market research. When displaying numbers, show two decimal places.
-Your response will answer the following prompt using structured informative headers, short paragraph segments, annotations, and bullet points for the given financial data. 
-If relevant to the prompt, include general company information such as background history, founder history, current leadership, product history, business segments and their revenue contributions, and anything else pertinent like M&A transactions.
-You will also attach annotation information only defined within the annotations section of this prompt throughout response segments in the text.
+		currentDate := time.Now().Format("01-02-2006")
+		log.Println("Current date:", currentDate)
+
+		promptfield := fmt.Sprintf(`
+
+		You are an AI assistant named Fineas AI tasked with giving stock market
+		alpha to retail investors by summarizing and analyzing financial information in the form of market research.
+		When displaying numbers, show two decimal places. Your response will answer the following prompt using structured
+		informative headers, short paragraph segments, annotations, and bullet points for the given financial data. If relevant
+		to the prompt, include general company information such as background history, founder history, current leadership, product history,
+		business segments and their revenue contributions, and anything else pertinent like M&A transactions. You will also attach annotation
+		url and title information only defined within the annotations section of this prompt throughout response segments in the text. Please include as
+		many relevant url link annotations as possible. Please make sure to include the annotation url and title in the response if it is available.
+		If it is not available, please omit it from the response and do not reference it at all.
+
+			CURRENT DATE:
+			%s
 			
-PROMPT:
-%s
+			PROMPT:
+			%s
 
-The following is the only data context and annotations data from which you will answer this prompt. Only use the annotations which are relevant to the prompt. Ignore the irrelevant annotations and don't include them in your response nor make any reference to them.
-only based off of the most relevant information with 250 words maximum.
+			ANNOTATIONS:
+			%s
 
-ANNOTATIONS:
-%s
+			CONTEXT:
+			%s`, currentDate, jsonData.Prompt, searchInformation, contextString)
 
-CONTEXT:
-%s`, jsonData.Prompt, searchInformation, contextString),
+		promptPayload = PromptPayload{
+			Prompt: promptfield,
 		}
 
 		log.Println("Prompt payload:", promptPayload)
 
-		LLM_SERVICE_URL := "http://0.0.0.0:8090"
-		url := LLM_SERVICE_URL + "/llm"
-		headers := map[string]string{
-			"Authorization": "Bearer " + HASH_KEY,
-			"Content-Type":  "application/json",
-		}
-
-		chatResponse, err := fetchChatResponse(url, headers, promptPayload)
+		chatResponse, err = fetchChatResponse(url, headers, promptPayload)
 		if err != nil {
 			log.Println("Failed to fetch response from LLM service:", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch response from LLM service"})
@@ -200,56 +293,43 @@ func corsMiddleware() gin.HandlerFunc {
 }
 
 func embedQuery(prompt, apiKey string) ([]float32, error) {
-	url := "https://api.openai.com/v1/embeddings"
+	ctx := context.Background()
 
-	// Create the request payload
-	payload := map[string]interface{}{
-		"input": prompt,
-		"model": "text-embedding-ada-002",
-	}
-	jsonData, err := json.Marshal(payload)
+	// Create a new Pinecone client
+	pc, err := pinecone.NewClient(pinecone.NewClientParams{
+		ApiKey: apiKey,
+	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal payload: %v", err)
+		log.Fatalf("Failed to create Pinecone client: %v", err)
+		return nil, fmt.Errorf("failed to create Pinecone client: %v", err)
 	}
 
-	// Create the HTTP request
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+	embeddingModel := "multilingual-e5-large"
+	queryParameters := pinecone.EmbedParameters{
+		InputType: "query",
+		Truncate:  "END",
+	}
+
+	// Embed the query using Pinecone's inference API
+	queryEmbeddingsResponse, err := pc.Inference.Embed(ctx, &pinecone.EmbedRequest{
+		Model:      embeddingModel,
+		TextInputs: []string{prompt},
+		Parameters: queryParameters,
+	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %v", err)
+		log.Fatalf("Failed to embed query: %v", err)
+		return nil, fmt.Errorf("failed to embed query: %v", err)
 	}
 
-	// Set headers
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+apiKey)
-
-	// Send the request
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("failed to send request: %v", err)
-	}
-	defer resp.Body.Close()
-
-	// Read and parse the response
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read response body: %v", err)
-	}
-
-	var response struct {
-		Data []struct {
-			Embedding []float32 `json:"embedding"`
-		} `json:"data"`
-	}
-	if err := json.Unmarshal(body, &response); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal response: %v", err)
-	}
-
-	if len(response.Data) == 0 {
+	// Assuming the response contains embeddings in a similar structure
+	if len(*queryEmbeddingsResponse.Data) == 0 {
+		log.Println("No embedding data found in response")
 		return nil, fmt.Errorf("no embedding data found")
 	}
-	log.Println(response.Data[0].Embedding)
-	return response.Data[0].Embedding, nil
+
+	// Log and return the embedding data
+	log.Println("Embedding data:", (*queryEmbeddingsResponse.Data)[0].Values)
+	return *(*queryEmbeddingsResponse.Data)[0].Values, nil
 }
 
 func getSearchQuery(rawData, passhash string) (string, error) {

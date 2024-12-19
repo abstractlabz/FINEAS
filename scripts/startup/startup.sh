@@ -56,7 +56,7 @@ get_config_value() {
 export API_KEY=$(get_config_value "API_KEY")
 export PASS_KEY=$(get_config_value "PASS_KEY")
 export MONGO_DB_LOGGER_PASSWORD=$(get_config_value "MONGO_DB_LOGGER_PASSWORD")
-export OPEN_AI_API_KEY=$(get_config_value "OPEN_AI_API_KEY")
+export CLAUDE_API_KEY=$(get_config_value "CLAUDE_API_KEY")
 export KB_WRITE_KEY=$(get_config_value "KB_WRITE_KEY")
 export MR_WRITE_KEY=$(get_config_value "MR_WRITE_KEY")
 export PINECONE_API_KEY=$(get_config_value "PINECONE_API_KEY")

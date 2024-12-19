@@ -1,8 +1,9 @@
+pinecone[grpc]
 tiktoken
 pinecone-client
 tqdm
 flask-cors
-langchain_openai
+langchain-openai
 langchain
 flask
 openai

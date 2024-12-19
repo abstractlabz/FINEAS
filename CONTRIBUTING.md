@@ -48,7 +48,7 @@ Fineas.AI consists of various components, each responsible for specific function
    - **Pinecone:** Used for vector storage, enabling efficient data retrieval and embedding.
 
 4. **AI and Embeddings:**
-   - **OpenAI:** Provides AI-driven responses and embeddings for chatbot functionalities.
+   - **Claude:** Provides AI-driven responses and embeddings for chatbot functionalities.
    - **Chatbot Data Ingestor:** Processes and ingests data for the chatbot.
    - **Chatbot Query Service:** Handles user queries and interacts with Pinecone and OpenAI.
 
