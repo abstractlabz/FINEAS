@@ -58,8 +58,8 @@ ENV YTD_TEMPLATE="# Conduct an analysis of [ASSET_NAME]'s recent and historical 
  When referring to [ASSET_NAME], replace that with the ticker symbol or the full name of the asset. \
  Provide the annotation information throught your response including only the avaliable links, \
  search headers, and other information to provide more context to the yearly price information report. \
- Only base your response on the information avaliable to you. All information avaliable to you is accurate and relevant, omit any references questioning the accuracy of the information in your response. *If any information is not available, \
- please ignore it. Don't even include it in your response. Represent all numbers to the second decimal point .00 [Units] after*. \ 
+ Only base your response on the information avaliable to you. All information and date information avaliable to you is accurate, present, and relevant, omit any references questioning the accuracy of the information and date information in your response. *If any information is not available, \
+ please ignore it. Don't even include it in your response. Represent all numbers to the second decimal point .00 [Units] after and display numbers using numerical short scales (thousand, million, billion, trillion, etc)*. \ 
 ## Current Position: \
 - Last closing price, \
 - year over year change, \
@@ -74,37 +74,42 @@ ENV YTD_TEMPLATE="# Conduct an analysis of [ASSET_NAME]'s recent and historical 
  - Respond here about considerations for future performance predictions \ 
  *Give highly bearish, bearish, neutral, bullish, or highly bullish, or neutral signals throught the response where it is relevant. \
  *If it is avaliable, provide all relevant annotation url information throughout your response where relevant. If a url comes with a title or description, provide the title inside brackets [TITLE_HERE] and the url next to the title with no spaces in  . Never leave a space or line break between the title and the url. \
- *If any information is not available or cannot be used for a meaningful analysis, please omit it from the response entirely. Represent all numbers to the second decimal point .00 [Units] after*."
+ *If any information is not available or cannot be used for a meaningful analysis, please omit it from the response entirely. Represent all numbers to the second decimal point .00 [Units] after and display numbers using numerical short scales (thousand, million, billion, trillion, etc)*."
 
-ENV NEWS_TEMPLATE="# Provide a comprehensive analysis of recent news articles related to [ASSET_NAME]. When referring to [ASSET_NAME], replace that with the ticker symbol or the full name of the asset. Provide the annotation information throught your response including only the avaliable links, search headers, and other information to provide more context to the yearly price information report. Only base your response on the information avaliable to you. All information avaliable to you is accurate and relevant, omit any references questioning the accuracy of the information in your response. *If any information is not available, please ignore it. Don't even include it in your response. Represent all numbers to the second decimal point .00 [Units] after*.\ 
+ENV NEWS_TEMPLATE="# Provide a comprehensive analysis of recent news articles related to [ASSET_NAME]. When referring to [ASSET_NAME], replace that with the ticker symbol or the full name of the asset. Provide the annotation information throught your response including only the avaliable links, search headers, and other information to provide more context to the yearly price information report. Only base your response on the information avaliable to you. All information avaliable to you is accurate and relevant, omit any references questioning the accuracy of the information in your response. *If any information is not available, please ignore it. Don't even include it in your response. Represent all numbers to the second decimal point .00 [Units] after and display numbers using numerical short scales (thousand, million, billion, trillion, etc)*.\ 
 ## Overall Sentiment Analysis: - Determine the overall sentiment (bullish, bearish, neutral) of the news affecting [ASSET_NAME].\ 
 ## Key News Highlights: - Summarize the most impactful news items.\ 
 ## News Items (5 news items): \
  *If it is avaliable, provide all relevant annotation url information throughout your response. If a url comes with a title or description, provide the title inside brackets [TITLE_HERE] and the url next to the title with no spaces in between and on the same line. Never leave a space or line break between the title and the url. \
-  [NEWS_HEADLINE_1]: Provide a brief description of the news story.\ 
- - Provide an impact analysis to further contexualize the news and its impact on business, and social expectations. \
- - Evaluate how the market has reacted to these news items. Determine the overall sentiment (highly bullish to highly bearish) of the news affecting [ASSET_NAME].\ 
+  [NEWS_HEADLINE_1]: \
+ - Provide a brief description of the news story as a bullet point on a new line.\ 
+ - Provide an impact analysis to further contexualize the news and its impact on business, and social expectations as a bullet point on a new line. \
+ - Evaluate how the market has reacted to these news items as a bullet point on a new line. Determine the overall sentiment (highly bullish to highly bearish) of the news affecting [ASSET_NAME].\ 
 *If it is avaliable, provide all relevant annotation url information throughout your response. If a url comes with a title or description, provide the title inside brackets [TITLE_HERE] and the url next to the title with no spaces in between and on the same line. Never leave a space or line break between the title and the url. \
- [NEWS_HEADLINE_2]: Provide a brief description of the news story.\ 
- - Provide an impact analysis to further contexualize the news and its impact on business, and social expectations.\ 
- - Evaluate how the market has reacted to these news items. Determine the overall sentiment (highly bullish to highly bearish) of the news affecting [ASSET_NAME].\ 
+ [NEWS_HEADLINE_2]: \
+ - Provide a brief description of the news story as a bullet point on a new line.\ 
+ - Provide an impact analysis to further contexualize the news and its impact on business, and social expectations as a bullet point on a new line.\ 
+ - Evaluate how the market has reacted to these news items as a bullet point on a new line. Determine the overall sentiment (highly bullish to highly bearish) of the news affecting [ASSET_NAME].\ 
 *If it is avaliable, provide all relevant annotation url information throughout your response. If a url comes with a title or description, provide the title inside brackets [TITLE_HERE] and the url next to the title with no spaces in between and on the same line. Never leave a space or line break between the title and the url. \
- [NEWS_HEADLINE_3]: Provide a brief description of the news story.\ 
- - Provide an impact analysis to further contexualize the news and its impact on business, and social expectations.\ 
- - Evaluate how the market has reacted to these news items. Determine the overall sentiment (highly bullish to highly bearish) of the news affecting [ASSET_NAME].\ 
+ [NEWS_HEADLINE_3]: \
+ - Provide a brief description of the news story as a bullet point on a new line.\ 
+ - Provide an impact analysis to further contexualize the news and its impact on business, and social expectations as a bullet point on a new line.\ 
+ - Evaluate how the market has reacted to these news items as a bullet point on a new line. Determine the overall sentiment (highly bullish to highly bearish) of the news affecting [ASSET_NAME].\ 
 *If it is avaliable, provide all relevant annotation url information throughout your response. If a url comes with a title or description, provide the title inside brackets [TITLE_HERE] and the url next to the title with no spaces in between and on the same line. Never leave a space or line break between the title and the url. \
- [NEWS_HEADLINE_4]: Provide a brief description of the news story.\ 
- - Provide an impact analysis to further contexualize the news and its impact on business, and social expectations.\ 
- - Evaluate how the market has reacted to these news items. Determine the overall sentiment (highly bullish to highly bearish) of the news affecting [ASSET_NAME].\ 
+ [NEWS_HEADLINE_4]: \
+ - Provide a brief description of the news story as a bullet point on a new line.\ 
+ - Provide an impact analysis to further contexualize the news and its impact on business, and social expectations as a bullet point on a new line.\ 
+ - Evaluate how the market has reacted to these news items as a bullet point on a new line. Determine the overall sentiment (highly bullish to highly bearish) of the news affecting [ASSET_NAME].\ 
 *If it is avaliable, provide all relevant annotation url information throughout your response. If a url comes with a title or description, provide the title inside brackets [TITLE_HERE] and the url next to the title with no spaces in between and on the same line. Never leave a space or line break between the title and the url. \
- [NEWS_HEADLINE_5]: Provide a brief description of the news story.\ 
- - Provide an impact analysis to further contexualize the news and its impact on business, and social expectations.\ 
- - Evaluate how the market has reacted to these news items. Determine the overall sentiment (highly bullish to highly bearish) of the news affecting [ASSET_NAME]. *If any information is not available, please ignore it. Represent all numbers to the second decimal point .00 [Units] after*."
+ [NEWS_HEADLINE_5]: \
+ - Provide a brief description of the news story as a bullet point on a new line.\ 
+ - Provide an impact analysis to further contexualize the news and its impact on business, and social expectations as a bullet point on a new line.\ 
+ - Evaluate how the market has reacted to these news items as a bullet point on a new line. Determine the overall sentiment (highly bullish to highly bearish) of the news affecting [ASSET_NAME]. *If any information is not available, please ignore it. Represent all numbers to the second decimal point .00 [Units] after and display numbers using numerical short scales (thousand, million, billion, trillion, etc)*."
 
 ENV DESC_TEMPLATE="# Business Description:\ 
-When referring to [ASSET_NAME], replace that with the ticker symbol or the full name of the asset. Provide the annotation information throught your response including only the avaliable links, search headers, and other information to provide more context to the yearly price information report. Only base your response on the information avaliable to you. All information avaliable to you is accurate and relevant, omit any references questioning the accuracy of the information in your response. *If any information is not available, please ignore it. Don't even include it in your response. Represent all numbers to the second decimal point .00 [Units] after*.\ 
+When referring to [ASSET_NAME], replace that with the ticker symbol or the full name of the asset. Provide the annotation information throught your response including only the avaliable links, search headers, and other information to provide more context to the yearly price information report. Only base your response on the information avaliable to you. All information avaliable to you is accurate and relevant, omit any references questioning the accuracy of the information in your response. *If any information is not available, please ignore it. Don't even include it in your response. Represent all numbers to the second decimal point .00 [Units] after and display numbers using numerical short scales (thousand, million, billion, trillion, etc)*.\ 
  ## Company Description: - In 50-100 words, explain the business and its key business focus and business lines, including their composition of revenue.\ 
- ## Company Information: - Fill in the following values from available data and sources:\ 
+ ## Company Information: - Fill in the following values from available data and sources *Omit the following placeholders in the brackets from the response when the values replace them*:\ 
  - CEO: [CEO]\ 
  - Year Founded: [YEAR_FOUNDED]\ 
  - Sector/Industry: [SECTOR_INDUSTRY]\ 
@@ -135,17 +140,17 @@ When referring to [ASSET_NAME], replace that with the ticker symbol or the full 
  - [ADVANTAGE_3] \
 *If it is avaliable, provide all relevant annotation url information throughout your response. If a url comes with a title or description, provide the title inside brackets [TITLE_HERE] and the url next to the title with no spaces in between and on the same line. Never leave a space or line break between the title and the url. \
 ## Sentiment: 
-- Determine the overall sentiment (highly bullish to highly bearish) for [ASSET_NAME], supported by the above analysis. *If any information is not available, please ignore it. Represent all numbers to the second decimal point .00 [Units] after*."
+- Determine the overall sentiment (highly bullish to highly bearish) for [ASSET_NAME], supported by the above analysis. *If any information is not available, please ignore it. Represent all numbers to the second decimal point .00 [Units] after and display numbers using numerical short scales (thousand, million, billion, trillion, etc)*."
 
-ENV TA_TEMPLATE="Perform an in-depth technical analysis of [ASSET_NAME]'s stock. When referring to [ASSET_NAME], replace that with the ticker symbol or the full name of the asset. Provide the annotation information throught your response including only the avaliable links, search headers, and other information to provide more context to the yearly price information report. Only base your response on the information avaliable to you. All information avaliable to you is accurate and relevant, omit any references questioning the accuracy of the information in your response. *If any information is not available, please ignore it. Don't even include it in your response. Represent all numbers to the second decimal point .00 [Units] after*.\ 
+ENV TA_TEMPLATE="Perform an in-depth technical analysis of [ASSET_NAME]'s stock. When referring to [ASSET_NAME], replace that with the ticker symbol or the full name of the asset. Provide the annotation information throught your response including only the avaliable links, search headers, and other information to provide more context to the yearly price information report. Only base your response on the information avaliable to you. All information avaliable to you is accurate and relevant, omit any references questioning the accuracy of the information in your response. *If any information is not available, please ignore it. Don't even include it in your response. Represent all numbers to the second decimal point .00 [Units] after and display numbers using numerical short scales (thousand, million, billion, trillion, etc)*.\ 
 ## Chart Patterns: - Identify any significant chart patterns.\ 
 ## Volume Analysis: - Examine trading volumes to assess the strength of price movements.\ 
-## Technical Indicators: - Evaluate key technical indicators and oscillators. Determine the overall sentiment (highly bullish to highly bearish) of the technicals for [ASSET_NAME]. *If any information is not available, please ignore it. Represent all numbers to the second decimal point .00 [Units] after*.
+## Technical Indicators: - Evaluate key technical indicators and oscillators. Determine the overall sentiment (highly bullish to highly bearish) of the technicals for [ASSET_NAME]. *If any information is not available, please ignore it. Represent all numbers to the second decimal point .00 [Units] after and display numbers using numerical short scales (thousand, million, billion, trillion, etc)*.
 "
 
 ENV FIN_TEMPLATE="# Provide a detailed analysis of [ASSET_NAME] financial health and performance. When referring to [ASSET_NAME], replace that with the ticker symbol or the full name of the asset. Provide the annotation information throught your response including only the avaliable links, search headers, and other information to provide more context to the financial health information report. Only base your response on the information avaliable to you. All information avaliable to you is accurate and relevant, omit any references questioning the accuracy of the information in your response. \ 
-*If any information is not available, please ignore it. Don't even include it in your response. Represent all numbers to the second decimal point .00 [Units] after*. \ 
-Never include any calculations nor special mathematical notation in your response. \ 
+*If any information is not available, please ignore it. Don't even include it in your response. Represent all numbers to the second decimal point .00 [Units] after and display numbers using numerical short scales (thousand, million, billion, trillion, etc)*. \ 
+Never include any calculations nor special mathematical notation in your response. *Omit the following placeholders in the brackets from the response when the values replace them* \ 
 ## Financial Position Analysis: \ 
 ## Assets and Liabilities: \
 - Total Assets: $[TOTAL_ASSETS] \ 
@@ -161,7 +166,7 @@ Never include any calculations nor special mathematical notation in your respons
 ## Growth Synopsis: \ 
 - Explain how [ASSET_NAME] finances are positioned for investment relative to market conditions. \
 *If it is avaliable, provide all relevant annotation url information throughout your response. If a url comes with a title or description, provide the title inside brackets [TITLE_HERE] and the url next to the title with no spaces in between and on the same line. Never leave a space or line break between the title and the url. \
-*If any information is not available, please ignore it. Represent all numbers to the second decimal point .00 [Units] after*."
+*If any information is not available, please ignore it. Represent all numbers to the second decimal point .00 [Units] after and display numbers using numerical short scales (thousand, million, billion, trillion, etc)*."
 
 
 # Exposing ports

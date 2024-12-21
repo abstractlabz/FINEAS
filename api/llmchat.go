@@ -39,7 +39,7 @@ func LLMHandler(router *gin.Engine) {
 		}
 		if err := c.BindJSON(&jsonData); err != nil {
 			log.Println("Error binding JSON:", err)
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON payload"})
+			c.String(http.StatusBadRequest, "Invalid JSON payload")
 			return
 		}
 
@@ -49,7 +49,7 @@ func LLMHandler(router *gin.Engine) {
 		authHeader := c.GetHeader("Authorization")
 		if len(authHeader) < 8 || !strings.HasPrefix(authHeader, "Bearer ") {
 			log.Println("Unauthorized access attempt with authHeader:", authHeader)
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized access"})
+			c.String(http.StatusUnauthorized, "Unauthorized access")
 			return
 		}
 		passhash := authHeader[7:]
@@ -61,13 +61,13 @@ func LLMHandler(router *gin.Engine) {
 		// Verify the hashed passkey
 		if passhash != HASH_KEY {
 			log.Println("Unauthorized access attempt with passhash:", passhash)
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized access"})
+			c.String(http.StatusUnauthorized, "Unauthorized access")
 			return
 		}
 
 		if jsonData.Prompt == "" {
 			log.Println("Missing prompt parameter")
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Missing prompt parameter"})
+			c.String(http.StatusBadRequest, "Missing prompt parameter")
 			return
 		}
 
@@ -86,7 +86,7 @@ func LLMHandler(router *gin.Engine) {
 		payloadBytes, err := json.Marshal(requestPayload)
 		if err != nil {
 			log.Println("Error marshalling request payload:", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+			c.String(http.StatusInternalServerError, "Internal Server Error")
 			return
 		}
 
@@ -94,7 +94,7 @@ func LLMHandler(router *gin.Engine) {
 		req, err := http.NewRequest("POST", CLAUDE_API_URL, bytes.NewBuffer(payloadBytes))
 		if err != nil {
 			log.Println("Error creating request to Claude API:", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+			c.String(http.StatusInternalServerError, "Internal Server Error")
 			return
 		}
 
@@ -106,7 +106,7 @@ func LLMHandler(router *gin.Engine) {
 		resp, err := client.Do(req)
 		if err != nil {
 			log.Println("Error sending request to Claude API:", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+			c.String(http.StatusInternalServerError, "Internal Server Error")
 			return
 		}
 		defer resp.Body.Close()
@@ -115,19 +115,19 @@ func LLMHandler(router *gin.Engine) {
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			log.Println("Error reading response from Claude API:", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+			c.String(http.StatusInternalServerError, "Internal Server Error")
 			return
 		}
 
 		if resp.StatusCode == http.StatusUnauthorized {
 			log.Println("Invalid API Key. Please check your CLAUDE_API_KEY environment variable.")
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid API Key"})
+			c.String(http.StatusUnauthorized, "Invalid API Key")
 			return
 		}
 
 		if resp.StatusCode != http.StatusOK {
 			log.Println("Claude API returned non-200 status:", resp.StatusCode, string(body))
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Claude API error", "details": string(body)})
+			c.String(http.StatusInternalServerError, "Claude API error: "+string(body))
 			return
 		}
 
@@ -140,7 +140,7 @@ func LLMHandler(router *gin.Engine) {
 		}
 		if err := json.Unmarshal(body, &responseJson); err != nil {
 			log.Println("Error unmarshalling response body:", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+			c.String(http.StatusInternalServerError, "Internal Server Error")
 			return
 		}
 

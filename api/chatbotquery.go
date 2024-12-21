@@ -64,11 +64,13 @@ func ChatbotQuery() http.Handler {
 
 	pineconeClient, err := pinecone.NewClient(ClientParams)
 	if err != nil {
-		log.Fatal("Failed to initialize Pinecone client:", err)
+		log.Println("Failed to initialize Pinecone client:", err)
+		http.Error(nil, "Failed to initialize Pinecone client", http.StatusInternalServerError)
 	}
 	index, err := pineconeClient.Index(indexParams)
 	if err != nil {
-		log.Fatal("Failed to initialize Pinecone index:", err)
+		log.Println("Failed to initialize Pinecone index:", err)
+		http.Error(nil, "Failed to initialize Pinecone index", http.StatusInternalServerError)
 	}
 
 	router.POST("/chat", func(c *gin.Context) {
@@ -76,7 +78,7 @@ func ChatbotQuery() http.Handler {
 		var jsonData PromptPayload
 		if err := c.BindJSON(&jsonData); err != nil {
 			log.Println("Error binding JSON:", err)
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON payload"})
+			c.String(http.StatusBadRequest, "Internal server error, Binding JSON")
 			return
 		}
 
@@ -88,7 +90,7 @@ func ChatbotQuery() http.Handler {
 
 		if passhash != HASH_KEY {
 			log.Println("Unauthorized access attempt with passhash:", passhash)
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized access"})
+			c.String(http.StatusUnauthorized, "Unauthorized access")
 			return
 		}
 
@@ -96,7 +98,7 @@ func ChatbotQuery() http.Handler {
 		queryVector, err := embedQuery(jsonData.Prompt, PINECONE_API_KEY)
 		if err != nil {
 			log.Println("Failed to embed query:", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to embed query"})
+			c.String(http.StatusInternalServerError, "Internal Server Error, Generating Embeddings")
 			return
 		}
 
@@ -123,14 +125,16 @@ func ChatbotQuery() http.Handler {
 		chatResponse, err := fetchChatResponse(url, headers, promptPayload)
 		if err != nil {
 			log.Println("Failed to fetch response from LLM service:", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch response from LLM service"})
+			c.String(http.StatusInternalServerError, "Internal Server Error Fetching Response")
 			return
 		}
 
 		//this will be a comma separated string of two dates in YYYY-MM-DD format
 		dates := strings.Split(chatResponse, ",")
 		if len(dates) != 2 {
-			log.Fatalf("Failed to extract dates from LLM response: %v", chatResponse)
+			log.Printf("Failed to extract dates from LLM response: %v", chatResponse)
+			c.String(http.StatusInternalServerError, "Internal Server Error Extracting Dates")
+			return
 		}
 
 		date1 := dates[0]
@@ -145,14 +149,14 @@ func ChatbotQuery() http.Handler {
 
 		minDateInt, err := strconv.Atoi(minDate)
 		if err != nil {
-			log.Fatalf("Failed to convert minDate to integer: %v", err)
+			log.Printf("Failed to convert minDate to integer: %v", err)
 		}
 		log.Println("Min date integer:", minDateInt)
 		log.Println("Max date integer plus 1:", minDateInt+1)
 
 		maxDateInt, err := strconv.Atoi(maxDate)
 		if err != nil {
-			log.Fatalf("Failed to convert maxDate to integer: %v", err)
+			log.Printf("Failed to convert maxDate to integer: %v", err)
 		}
 		log.Println("Max date integer:", maxDateInt)
 		log.Println("Max date integer plus 1:", maxDateInt+1)
@@ -170,7 +174,9 @@ func ChatbotQuery() http.Handler {
 		// Convert the metadataMap to a struct for Pinecone
 		metadataFilter, err := structpb.NewStruct(metadataMap)
 		if err != nil {
-			log.Fatalf("Failed to create metadata filter: %v", err)
+			log.Println("Failed to create metadata map:", err)
+			c.String(http.StatusBadRequest, "Internal server error, Metadata Map")
+			return
 		}
 
 		ctx := context.Background()
@@ -183,7 +189,7 @@ func ChatbotQuery() http.Handler {
 		})
 		if err != nil {
 			log.Println("Failed to perform similarity search:", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to perform similarity search"})
+			c.String(http.StatusInternalServerError, "Internal Server Error Similarity Search")
 			return
 		}
 
@@ -199,7 +205,7 @@ func ChatbotQuery() http.Handler {
 			fetchRes, err := index.FetchVectors(ctx, vectorIds)
 			if err != nil {
 				log.Println("Failed to fetch vectors:", err)
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch vector metadata"})
+				c.String(http.StatusInternalServerError, "Internal Server Error Fetching Vectors")
 				return
 			}
 
@@ -223,7 +229,7 @@ func ChatbotQuery() http.Handler {
 		searchInformation, err := getSearchQuery(jsonData.Prompt, HASH_KEY)
 		if err != nil {
 			log.Println("Failed to fetch search information:", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch search information"})
+			c.String(http.StatusInternalServerError, "Internal Server Error Search Info")
 			return
 		}
 
@@ -265,7 +271,7 @@ func ChatbotQuery() http.Handler {
 		chatResponse, err = fetchChatResponse(url, headers, promptPayload)
 		if err != nil {
 			log.Println("Failed to fetch response from LLM service:", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch response from LLM service"})
+			c.String(http.StatusInternalServerError, "Failed to fetch response from LLM service")
 			return
 		}
 
@@ -300,7 +306,7 @@ func embedQuery(prompt, apiKey string) ([]float32, error) {
 		ApiKey: apiKey,
 	})
 	if err != nil {
-		log.Fatalf("Failed to create Pinecone client: %v", err)
+		log.Printf("Failed to create Pinecone client: %v", err)
 		return nil, fmt.Errorf("failed to create Pinecone client: %v", err)
 	}
 
@@ -317,7 +323,7 @@ func embedQuery(prompt, apiKey string) ([]float32, error) {
 		Parameters: queryParameters,
 	})
 	if err != nil {
-		log.Fatalf("Failed to embed query: %v", err)
+		log.Printf("Failed to embed query: %v", err)
 		return nil, fmt.Errorf("failed to embed query: %v", err)
 	}
 
