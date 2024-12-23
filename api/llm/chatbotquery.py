@@ -17,9 +17,11 @@ CLAUDE_API_KEY = os.getenv("CLAUDE_API_KEY")
 MODEL = 'multilingual-e5-large'
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 LLM_SERVICE_URL = os.getenv("LLM_SERVICE_URL")
+PINECONE_HOST = os.getenv("PINECONE_HOST")
+
 
 # Initialize Pinecone client
-host = "https://main-uajrq2f.svc.aped-4627-b74a.pinecone.io"
+host = PINECONE_HOST
 pinecone_config = Config(api_key=PINECONE_API_KEY, host=host)
 pinecone_client = Pinecone(config=pinecone_config)
 
@@ -27,7 +29,7 @@ pinecone_client = Pinecone(config=pinecone_config)
 index = pinecone_client.Index(host=host, name='pre-alpha-vectorstore-prd')
 
 # Initialize OpenAI Embeddings
-embed = OpenAIEmbeddings(api_key=CLAUDE_API_KEY)
+embed = ""
 
 # Configure Logging
 logging.basicConfig(level=logging.INFO)

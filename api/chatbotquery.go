@@ -50,16 +50,17 @@ func ChatbotQuery() http.Handler {
 
 	PASS_KEY := os.Getenv("PASS_KEY")
 	PINECONE_API_KEY := os.Getenv("PINECONE_API_KEY")
+	PINECONE_HOST := os.Getenv("PINECONE_HOST")
 
 	// Initialize Pinecone client
 	ClientParams := pinecone.NewClientParams{
 		ApiKey: PINECONE_API_KEY,
-		Host:   "https://main-uajrq2f.svc.aped-4627-b74a.pinecone.io",
+		Host:   PINECONE_HOST,
 	}
 
 	// Initialize Pinecone index
 	indexParams := pinecone.NewIndexConnParams{
-		Host: "https://main-uajrq2f.svc.aped-4627-b74a.pinecone.io",
+		Host: PINECONE_HOST,
 	}
 
 	pineconeClient, err := pinecone.NewClient(ClientParams)

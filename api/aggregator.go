@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"mime/multipart"
 	"net"
 	"net/http"
 	"net/url"
@@ -257,39 +258,38 @@ func HandleQuoteRequest(w http.ResponseWriter, r *http.Request) {
 	technicalanalysis := strings.Replace(promptInference.TechnicalAnalysis, "{", "|", -1)
 	technicalanalysis = strings.Replace(technicalanalysis, "}", "|", -1)
 
-	// if writekey is valid, post the data to the data ingestor
-	if (writekey == KB_WRITE_KEY) && (len(writekey) != 0) {
-		fmt.Println("write key correct")
-		if strings.HasPrefix(ticker, "X:") || strings.HasPrefix(ticker, "I:") {
-			ticker = ticker[2:]
-		}
+	// If writekey is valid, post the data to the data ingestor
+	fmt.Println("writekey: ", writekey)
+	fmt.Println("KB_WRITE_KEY: ", KB_WRITE_KEY)
+	fmt.Println("len(writekey): ", len(writekey))
+	if len(writekey) != 0 {
+		// "Ticker" is often redundant in your embeddings, but up to you
+		// Maybe you do want ticker in the index. We'll set it to empty for example.
 		postDataInfo := PostDataInfo{
-			Ticker:            ticker,
-			StockPerformance:  stockperformace,
-			FinancialHealth:   financialhealth,
-			NewsSummary:       newssummary,
-			CompanyDesc:       companydesc,
-			TechnicalAnalysis: technicalanalysis,
+			StockPerformance:  promptInference.StockPerformance,
+			FinancialHealth:   promptInference.FinancialHealth,
+			NewsSummary:       promptInference.NewsSummary,
+			CompanyDesc:       promptInference.CompanyDesc,
+			TechnicalAnalysis: promptInference.TechnicalAnalysis,
 		}
-		postDataInfo.Ticker = ""
+		fmt.Println("postDataInfo: ", postDataInfo)
 
-		// Marshal the struct into JSON
+		// Marshal struct -> JSON
 		postJsonData, err := json.Marshal(postDataInfo)
 		if err != nil {
 			fmt.Println("Error marshaling JSON:", err)
 			return
 		}
 
-		// Posts the whole financial data blob to the data ingestor
-		resPostFinancialData := postFinancialData(string(postJsonData), eventSequenceArray, passHash)
-		if resPostFinancialData != "200 Status OK" {
-
+		// Post data to ingestor (Python)
+		resPostFinancialData := postFinancialData(string(postJsonData), passHash)
+		if !strings.Contains(resPostFinancialData, "200") {
+			// Ingestor didn't respond with success
 			eventSequenceArray = append(eventSequenceArray, "data ingestor post failed \n")
 			w.Write([]byte("Error: Data Ingestor Post Failed."))
+			return
 		}
-		if err != nil {
-			panic(err)
-		}
+		log.Println("Ingestion Completed Successfully")
 	}
 
 	// Return the PromptInference json object as the response
@@ -453,45 +453,65 @@ func getPromptInference(prompt string, template string, handlerID string, handle
 }
 
 // Posts financial data to data ingestor service
-func postFinancialData(dataValue string, eventSequenceArray []string, passHash string) string {
-
-	// sends request to the ingestor running on akash
+func postFinancialData(dataValue string, passHash string) string {
+	// Endpoint and bearer token
 	url := "http://0.0.0.0:6001/ingestor"
 	bearerToken := passHash
-	infoData := dataValue
 
-	// Create payload as bytes
-	payload := []byte(fmt.Sprintf("info=%s", infoData))
+	// Create a buffer to hold our multipart form data
+	var b bytes.Buffer
+	w := multipart.NewWriter(&b)
 
-	// Create HTTP client
-	client := &http.Client{}
-
-	// Create POST request
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
+	// Create a form field called "info" and write our JSON into it
+	formField, err := w.CreateFormField("info")
 	if err != nil {
-		fmt.Println("Error creating request:", err)
-
+		fmt.Println("Error creating form field:", err)
+		return ""
+	}
+	// dataValue is the JSON string, e.g. {"key1":"value1","key2":"value2"}
+	_, err = formField.Write([]byte(dataValue))
+	if err != nil {
+		fmt.Println("Error writing to form field:", err)
+		return ""
 	}
 
-	// Set Authorization header
-	req.Header.Set("Authorization", "Bearer "+bearerToken)
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	// Close the multipart writer to finalize the form data
+	err = w.Close()
+	if err != nil {
+		fmt.Println("Error closing multipart writer:", err)
+		return ""
+	}
 
-	// Send the request
+	// Create a new POST request with our multipart form
+	req, err := http.NewRequest("POST", url, &b)
+	if err != nil {
+		fmt.Println("Error creating request:", err)
+		return ""
+	}
+
+	// Set the correct Content-Type for multipart data
+	req.Header.Set("Content-Type", w.FormDataContentType())
+
+	// Set the Authorization header
+	req.Header.Set("Authorization", "Bearer "+bearerToken)
+
+	// Create an HTTP client and execute the request
+	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
 		fmt.Println("Error sending request:", err)
-
-	}
-
-	// Read response
-	respBody, err := io.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Println("Error reading response:", err)
-
+		return ""
 	}
 	defer resp.Body.Close()
 
+	// Read the response
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("Error reading response:", err)
+		return ""
+	}
+
+	// Log and return the body for debugging
 	fmt.Println("Response:", string(respBody))
 	return string(respBody)
 }
