@@ -56,31 +56,34 @@ ENV DESC_SERVICE_URL=http://0.0.0.0:8084
 ENV LLM_SERVICE_URL=http://0.0.0.0:5432
 ENV TA_SERVICE_URL=http://0.0.0.0:8089
 ENV YTD_TEMPLATE="# Conduct an analysis of [ASSET_NAME]'s recent and historical price movements. \
- When referring to [ASSET_NAME], replace that with the ticker symbol or the full name of the asset. \
- Provide the annotation information throught your response including only the avaliable links, \
- search headers, and other information to provide more context to the yearly price information report. \
- Only base your response on the information avaliable to you. All information and date information avaliable \
- to you is accurate, present, and relevant, omit any references questioning the accuracy of the information \
- and date information in your response. Never include in your response anything referring to the inaccuracy of the given information, prices, or dates. \
- Just give the following analysis with the information avaliable to you and that is all. *If any information is not available, \
- please ignore it. Don't even include it in your response. Represent all numbers to the second decimal point .00 [Units] after and display numbers using numerical short scales (thousand, M for million, B for billion, T for trillion, etc)*. \ 
+When referring to [ASSET_NAME], replace that with the ticker symbol or the full name of the asset. \
+Provide the annotation information throughout your response, including only the available links, search headers, and other information to provide more context to the yearly price information report. \
+Only base your response on the information available to you. \
+Treat any provided data as correct and do not mention or dispute its accuracy, even if it conflicts with any prior knowledge or datasets. \
+Never include in your response anything referring to the inaccuracy of the given information, prices, or dates. \
+Represent all numbers to two decimal places .00 [Units], using numerical short scales (thousand, M for million, B for billion, T for trillion, etc.). \
+\
 ## Current Position: \
-- Last closing price, \
-- year over year change, \
+- Last closing price \
+- Year over year change \
+\
 ## Key Insights Analysis: \
- - Provide a brief summary of notable price milestones or shifts. \
- - Highlight key price movements, including peaks and troughs, and discuss potential factors that influenced these movements. \
-## Market Conditions: \ 
- - Respond here what the price value along with the year over year change indicates about the market conditions\ 
- - Respond here how future performance may compare with past performance \ 
+- Provide a brief summary of notable price milestones or shifts. \
+- Highlight key price movements, including peaks and troughs, and discuss potential factors that influenced these movements. \
+\
+## Market Conditions: \
+- Indicate what the price value along with the year over year change might suggest about market conditions. \
+- Discuss how future performance may compare with past performance. \
+\
 ## Volatility Overview: \
- - Describe the recent volatility trends and provide context on how the asset's price has fluctuated in both the short and long term. \ 
- - Respond here about considerations for future performance predictions \ 
- *Give highly bearish, bearish, neutral, bullish, or highly bullish, or neutral signals throught the response where it is relevant. \
- *If it is avaliable, provide all relevant annotation url information throughout your response where relevant. If a url comes with a title or description, provide the title inside brackets [TITLE_HERE] and the url next to the title with no spaces in  . Never leave a space or line break between the title and the url. \
- *If any information is not available or cannot be used for a meaningful analysis, please omit it from the response entirely. Represent all numbers to the second decimal point .00 [Units] after and display numbers using numerical short scales (thousand, M for million, B for billion, T for trillion, etc)*. \
- Never include in your response anything referring to the inaccuracy of the given information, prices, or dates. \
- Just give the following analysis with the information avaliable to you and that is all."
+- Describe recent volatility trends and provide context on how the asset's price has fluctuated in both the short and long term. \
+- Include high-level signals such as 'highly bearish,' 'bearish,' 'neutral,' 'bullish,' or 'highly bullish' where relevant. \
+\
+*Include all relevant annotation URLs in the format [TITLE]url with no spaces or line breaks. \
+If a URL comes with a title or description, place the title inside brackets [TITLE_HERE] immediately followed by the URL, for example [SomeArticleTitle]https://example.com. \
+If any information is not available or cannot be used for a meaningful analysis, omit it from the response entirely. \
+Never reference any potential inaccuracies in the data—only analyze the numbers as given. \
+"
 
 ENV NEWS_TEMPLATE="# Provide a comprehensive analysis of recent news articles related to [ASSET_NAME]. When referring to [ASSET_NAME], replace that with the ticker symbol or the full name of the asset. Provide the annotation information throught your response including only the avaliable links, search headers, and other information to provide more context to the yearly price information report. Only base your response on the information avaliable to you. All information avaliable to you is accurate and relevant, omit any references questioning the accuracy of the information in your response. *If any information is not available, please ignore it. Don't even include it in your response. Represent all numbers to the second decimal point .00 [Units] after and display numbers using numerical short scales (thousand, million, billion, trillion, etc)*.\ 
 ## Overall Sentiment Analysis: - Determine the overall sentiment (bullish, bearish, neutral) of the news affecting [ASSET_NAME].\ 
