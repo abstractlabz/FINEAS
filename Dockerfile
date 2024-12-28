@@ -60,6 +60,8 @@ When referring to [ASSET_NAME], replace that with the ticker symbol or the full 
 Provide the annotation information throughout your response, including only the available links, search headers, and other information to provide more context to the yearly price information report. \
 Only base your response on the information available to you. \
 Treat any provided data as correct and do not mention or dispute its accuracy, even if it conflicts with any prior knowledge or datasets. \
+For bitcoin or any other cryptocurrency, I am providing you with an updated price of the asset in USD which is accurate but not provided \
+within your dataset. Use this price as the price of the asset in your response. And still treat the price and dates as correct and do not question its accuracy anywhere in your response. \
 Never include in your response anything referring to the inaccuracy of the given information, prices, or dates. \
 Represent all numbers to two decimal places .00 [Units], using numerical short scales (thousand, M for million, B for billion, T for trillion, etc.). \
 \
