@@ -1,16 +1,16 @@
 from flask import Flask, request, jsonify
-from openai import OpenAI
 import os
 import hashlib
 from flask_cors import CORS
-import requests
+from openai import OpenAI
 
 app = Flask(__name__)
 CORS(app)
 
 # Loading environment variables
-CLAUDE_API_URL = "https://api.anthropic.com/v1/messages"
-CLAUDE_API_KEY = os.getenv("CLAUDE_API_KEY")
+client = OpenAI(
+    api_key=os.getenv("OPENAI_API_KEY")
+)
 PASS_KEY = os.getenv("PASS_KEY")
 
 @app.route('/llm', methods=['POST'])
@@ -38,31 +38,28 @@ def generate_response():
         print(prompt)  # Optional: log the prompt for debugging purposes
 
         # Call the OpenAI API for chat completion
-
-        headers = {
-            "x-api-key": CLAUDE_API_KEY,
-            "Content-Type": "application/json",
-            "anthropic-version": "2023-06-01",
-        }
-
-        payload = {
-            "model": "claude-3-5-sonnet-20241022",  # Replace with the correct Claude model
-            "messages": [{"role": "user", "content": prompt}],
-            "max_tokens": 1024,
-        }
-
         try:
-            response = requests.post(CLAUDE_API_URL, headers=headers, json=payload)
-            response.raise_for_status()
-            print(response.json()["content"][0]["text"]) 
-            return response.json()["content"][0]["text"], 200
+            response = client.chat.completions.create(
+                messages=[
+                    {
+                        "role": "user",
+                        "content": prompt
+                    }
+                ],
+                model="gpt-4o",
+                max_tokens=2048
+            )
+
+            reply = response.choices[0].message.content
+            print(reply)  # Log the response for debugging purposes
+            return reply, 200
+
         except Exception as e:
-            raise Exception(f"Claude API Error: {str(e)}")
+            raise Exception(f"OpenAI API Error: {str(e)}")
 
     except Exception as e:
-        print(f"Claude error: {e}")
+        print(f"Error: {e}")
         return jsonify({'error': str(e)}), 500
-
 
 if __name__ == '__main__':
     app.run()

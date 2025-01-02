@@ -64,6 +64,7 @@ export STRIPE_ENDPOINT_SECRET=$(get_config_value "STRIPE_ENDPOINT_SECRET")
 export STRIPE_SECRET_KEY=$(get_config_value "STRIPE_SECRET_KEY")
 export REDIRECT_DOMAIN=$(get_config_value "REDIRECT_DOMAIN")
 export PINECONE_HOST=$(get_config_value "PINECONE_HOST")
+export OPENAI_API_KEY=$(get_config_value "OPENAI_API_KEY")
 
 echo "Environment variables set."
 

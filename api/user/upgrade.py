@@ -38,30 +38,25 @@ def upgrade_membership():
         user['_id'] = userlist.insert_one(user).inserted_id
         user['_id'] = str(user['_id'])
 
-    # Check if user already has a Stripe customer ID
-    if 'stripe_customer_id' not in user:
-        # Create a new Stripe customer
-        customer = stripe.Customer.create()
-        stripe_customer_id = customer.id
+    # Create a new Stripe customer
+    customer = stripe.Customer.create()
+    stripe_customer_id = customer.id
 
-        # Log the created Stripe customer ID
-        print(f"Created Stripe customer ID: {stripe_customer_id}")
+    # Log the created Stripe customer ID
+    print(f"Created Stripe customer ID: {stripe_customer_id}")
 
-        # Save the Stripe customer ID in the user's MongoDB document
-        update_result = userlist.update_one({'id_hash': id_hash}, {'$set': {'stripe_customer_id': stripe_customer_id}})
+    # Save the Stripe customer ID in the user's MongoDB document
+    update_result = userlist.update_one({'id_hash': id_hash}, {'$set': {'stripe_customer_id': stripe_customer_id}})
 
-        # Check if the update was successful
-        if update_result.modified_count == 1:
-            print(f"Successfully saved stripe_customer_id for user with id_hash {id_hash}")
-        else:
-            print(f"Failed to save stripe_customer_id for user with id_hash {id_hash}. Update result: {update_result.raw_result}")
-
-        # Verify the update by fetching the document again (optional, for debugging)
-        user = userlist.find_one({'id_hash': id_hash})
-        print(f"User document after update: {user}")
-
+    # Check if the update was successful
+    if update_result.modified_count == 1:
+        print(f"Successfully saved stripe_customer_id for user with id_hash {id_hash}")
     else:
-        stripe_customer_id = user['stripe_customer_id']
+        print(f"Failed to save stripe_customer_id for user with id_hash {id_hash}. Update result: {update_result.raw_result}")
+
+    # Verify the update by fetching the document again (optional, for debugging)
+    user = userlist.find_one({'id_hash': id_hash})
+    print(f"User document after update: {user}")
 
     # Before proceeding with creating a checkout session, check if stripe_customer_id is valid
     if not stripe_customer_id or stripe_customer_id.strip() == "":
@@ -103,7 +98,7 @@ def upgrade_membership():
 
     except Exception as e:
         print(e)
-        return "Server error", 500
+        return str(e), 500
 
 @app.route('/session-status', methods=['GET'])
 def session_status():
@@ -176,8 +171,7 @@ def cancel_subscription():
 
         return jsonify({'success': True, 'message': 'All subscriptions canceled and user updated in database'}), 200
     except Exception as e:
-        print(e)
-        return jsonify({'error': 'Failed to cancel subscription'}), 500
+        return jsonify({'error': str(e)}), 500
     
 
 @app.route('/enforce-credits', methods=['POST'])

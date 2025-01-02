@@ -47,6 +47,7 @@ ENV STRIPE_ENDPOINT_SECRET=STRIPE_ENDPOINT_SECRET
 ENV STRIPE_SECRET_KEY=STRIPE_SECRET_KEY
 ENV REDIRECT_DOMAIN=REDIRECT_DOMAIN
 ENV PINECONE_HOST=PINECONE_HOST
+ENV OPENAI_API_KEY=OPENAI_API_KEY
 
 # Set environment variables for templates
 ENV STK_SERVICE_URL=http://0.0.0.0:8081
@@ -55,64 +56,53 @@ ENV NEWS_SERVICE_URL=http://0.0.0.0:8083
 ENV DESC_SERVICE_URL=http://0.0.0.0:8084
 ENV LLM_SERVICE_URL=http://0.0.0.0:5432
 ENV TA_SERVICE_URL=http://0.0.0.0:8089
-ENV YTD_TEMPLATE="# Conduct an analysis of [ASSET_NAME]'s recent and historical price movements. \
+ENV YTD_TEMPLATE="# Conduct an analysis of [ASSET_NAME]'s recent price movements. \
 When referring to [ASSET_NAME], replace that with the ticker symbol or the full name of the asset. \
 Provide the annotation information throughout your response, including only the available links, search headers, and other information to provide more context to the yearly price information report. \
-Only base your response on the information available to you. \
-Treat any provided data as correct and do not mention or dispute its accuracy, even if it conflicts with any prior knowledge or datasets. \
-For bitcoin or any other cryptocurrency, I am providing you with an updated price of the asset in USD which is accurate but not provided \
-within your dataset. Use this price as the price of the asset in your response. And still treat the price and dates as correct and do not question its accuracy anywhere in your response. \
-Never include in your response anything referring to the inaccuracy of the given information, prices, or dates. \
+Only base your response on the information available to you and only present the response in a header and bullet point format: \
 Represent all numbers to two decimal places .00 [Units], using numerical short scales (thousand, M for million, B for billion, T for trillion, etc.). \
-\
+*Fill in the following values from available data and sources *Omit the following placeholders in the brackets from the response when the values replace them*:\
+*Omit any calculations or special mathematical notation in your response*:\
+*Include high-level signals such as 'highly bearish,' 'bearish,' 'neutral,' 'bullish,' or 'highly bullish' where relevant.* \
 ## Current Position: \
-- Last closing price \
-- Year over year change \
-\
+- $[LAST_CLOSING_PRICE] \
+- [YEAR_OVER_YEAR_CHANGE]% \
 ## Key Insights Analysis: \
-- Provide a brief summary of notable price milestones or shifts. \
-- Highlight key price movements, including peaks and troughs, and discuss potential factors that influenced these movements. \
-\
-## Market Conditions: \
+*Include high-level signals such as 'highly bearish,' 'bearish,' 'neutral,' 'bullish,' or 'highly bullish' where relevant.* \
 - Indicate what the price value along with the year over year change might suggest about market conditions. \
-- Discuss how future performance may compare with past performance. \
-\
-## Volatility Overview: \
-- Describe recent volatility trends and provide context on how the asset's price has fluctuated in both the short and long term. \
-- Include high-level signals such as 'highly bearish,' 'bearish,' 'neutral,' 'bullish,' or 'highly bullish' where relevant. \
-\
+*Omit any calculations or special mathematical notation in your response* \
 *Include all relevant annotation URLs in the format [TITLE]url with no spaces or line breaks. \
-If a URL comes with a title or description, place the title inside brackets [TITLE_HERE] immediately followed by the URL, for example [SomeArticleTitle]https://example.com. \
-If any information is not available or cannot be used for a meaningful analysis, omit it from the response entirely. \
-Never reference any potential inaccuracies in the data—only analyze the numbers as given. \
-"
+If a URL comes with a title or description, place the title inside brackets [TITLE_HERE] immediately followed by the URL, for example [SomeArticleTitle]https://example.com. \  "
 
-ENV NEWS_TEMPLATE="# Provide a comprehensive analysis of recent news articles related to [ASSET_NAME]. When referring to [ASSET_NAME], replace that with the ticker symbol or the full name of the asset. Provide the annotation information throught your response including only the avaliable links, search headers, and other information to provide more context to the yearly price information report. Only base your response on the information avaliable to you. All information avaliable to you is accurate and relevant, omit any references questioning the accuracy of the information in your response. *If any information is not available, please ignore it. Don't even include it in your response. Represent all numbers to the second decimal point .00 [Units] after and display numbers using numerical short scales (thousand, million, billion, trillion, etc)*.\ 
-## Overall Sentiment Analysis: - Determine the overall sentiment (bullish, bearish, neutral) of the news affecting [ASSET_NAME].\ 
-## Key News Highlights: - Summarize the most impactful news items.\ 
+ENV NEWS_TEMPLATE="# Provide a comprehensive analysis of recent news articles related to [ASSET_NAME]. When referring to [ASSET_NAME], replace that with the ticker symbol or the full name of the asset. Provide the annotation information throught your response including only the avaliable links, search headers, and other information to provide more context to the yearly price information report. Only base your response on the information avaliable to you. \
+*If any information is not available, please ignore it. Don't even include it in your response. Represent all numbers to the second decimal point .00 [Units] after and display numbers using numerical short scales (thousand, million, billion, trillion, etc)*.\ 
+## Overall Sentiment Analysis:
+- Determine the overall sentiment (bullish, bearish, neutral) of the news affecting [ASSET_NAME].\ 
+## Key News Highlights: Summarize the most impactful news items.\ 
 ## News Items (5 news items): \
  *If it is avaliable, provide all relevant annotation url information throughout your response. If a url comes with a title or description, provide the title inside brackets [TITLE_HERE] and the url next to the title with no spaces in between and on the same line. Never leave a space or line break between the title and the url. \
-  [NEWS_HEADLINE_1]: \
+ - *Fill in the following values from available data and sources *Omit the following placeholders in the brackets from the response when the values replace them*:\
+  [FIRST_TITLE_HERE]url:\
  - Provide a brief description of the news story as a bullet point on a new line.\ 
  - Provide an impact analysis to further contexualize the news and its impact on business, and social expectations as a bullet point on a new line. \
  - Evaluate how the market has reacted to these news items as a bullet point on a new line. Determine the overall sentiment (highly bullish to highly bearish) of the news affecting [ASSET_NAME].\ 
 *If it is avaliable, provide all relevant annotation url information throughout your response. If a url comes with a title or description, provide the title inside brackets [TITLE_HERE] and the url next to the title with no spaces in between and on the same line. Never leave a space or line break between the title and the url. \
- [NEWS_HEADLINE_2]: \
+ [SECOND_TITLE_HERE]url:\
  - Provide a brief description of the news story as a bullet point on a new line.\ 
  - Provide an impact analysis to further contexualize the news and its impact on business, and social expectations as a bullet point on a new line.\ 
  - Evaluate how the market has reacted to these news items as a bullet point on a new line. Determine the overall sentiment (highly bullish to highly bearish) of the news affecting [ASSET_NAME].\ 
 *If it is avaliable, provide all relevant annotation url information throughout your response. If a url comes with a title or description, provide the title inside brackets [TITLE_HERE] and the url next to the title with no spaces in between and on the same line. Never leave a space or line break between the title and the url. \
- [NEWS_HEADLINE_3]: \
+ [THIRD_TITLE_HERE]url:\
  - Provide a brief description of the news story as a bullet point on a new line.\ 
  - Provide an impact analysis to further contexualize the news and its impact on business, and social expectations as a bullet point on a new line.\ 
  - Evaluate how the market has reacted to these news items as a bullet point on a new line. Determine the overall sentiment (highly bullish to highly bearish) of the news affecting [ASSET_NAME].\ 
 *If it is avaliable, provide all relevant annotation url information throughout your response. If a url comes with a title or description, provide the title inside brackets [TITLE_HERE] and the url next to the title with no spaces in between and on the same line. Never leave a space or line break between the title and the url. \
- [NEWS_HEADLINE_4]: \
+ [FOURTH_TITLE_HERE]url:\
  - Provide a brief description of the news story as a bullet point on a new line.\ 
  - Provide an impact analysis to further contexualize the news and its impact on business, and social expectations as a bullet point on a new line.\ 
  - Evaluate how the market has reacted to these news items as a bullet point on a new line. Determine the overall sentiment (highly bullish to highly bearish) of the news affecting [ASSET_NAME].\ 
 *If it is avaliable, provide all relevant annotation url information throughout your response. If a url comes with a title or description, provide the title inside brackets [TITLE_HERE] and the url next to the title with no spaces in between and on the same line. Never leave a space or line break between the title and the url. \
- [NEWS_HEADLINE_5]: \
+ [FIFTH_TITLE_HERE]url:\
  - Provide a brief description of the news story as a bullet point on a new line.\ 
  - Provide an impact analysis to further contexualize the news and its impact on business, and social expectations as a bullet point on a new line.\ 
  - Evaluate how the market has reacted to these news items as a bullet point on a new line. Determine the overall sentiment (highly bullish to highly bearish) of the news affecting [ASSET_NAME]. *If any information is not available, please ignore it. Represent all numbers to the second decimal point .00 [Units] after and display numbers using numerical short scales (thousand, M for million, B for billion, T for trillion, etc)*."
@@ -129,7 +119,7 @@ When referring to [ASSET_NAME], replace that with the ticker symbol or the full 
  - HQ: [HQ]\ 
  - Include more nuanced information about the company.\ 
  ## Market Share: - Provide a breakdown of the company's market share:\ 
- - **By Region (% Composition)**:\ 
+ - *If this information is not available, please entirely omit this section. Don't even include it in your response. \
  - North America: [MARKET_SHARE_NA]%\ 
  - Europe: [MARKET_SHARE_EU]%\ 
  - Asia-Pacific: [MARKET_SHARE_APAC]%\ 
@@ -146,9 +136,10 @@ When referring to [ASSET_NAME], replace that with the ticker symbol or the full 
  - [BIGGEST_OPPORTUNITY] \
  - Explain why this is a significant growth driver or differentiator. \
 ## Competitive Advantages: - Identify and discuss the company's unique selling propositions: \
- - [ADVANTAGE_1] \
- - [ADVANTAGE_2] \
- - [ADVANTAGE_3] \
+*Fill in the following placeholders with response analysis about the [ASSET_NAME]'s unique selling propositions on a new bullet point line for each advantage. *Omit the following placeholders from the response when the analysis replaces them*:\
+ - ADVANTAGE_1 \
+ - ADVANTAGE_2 \
+ - ADVANTAGE_3 \
 *If it is avaliable, provide all relevant annotation url information throughout your response. If a url comes with a title or description, provide the title inside brackets [TITLE_HERE] and the url next to the title with no spaces in between and on the same line. Never leave a space or line break between the title and the url. \
 ## Sentiment: 
 - Determine the overall sentiment (highly bullish to highly bearish) for [ASSET_NAME], supported by the above analysis. *If any information is not available, please ignore it. Represent all numbers to the second decimal point .00 [Units] after and display numbers using numerical short scales (thousand, million, billion, trillion, etc)*."
