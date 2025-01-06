@@ -59,18 +59,22 @@ ENV TA_SERVICE_URL=http://0.0.0.0:8089
 ENV YTD_TEMPLATE="# Conduct an analysis of [ASSET_NAME]'s recent price movements. \
 When referring to [ASSET_NAME], replace that with the ticker symbol or the full name of the asset. \
 Provide the annotation information throughout your response, including only the available links, search headers, and other information to provide more context to the yearly price information report. \
+The date provided to you in the information context is in the format of MM-DD-YYYY. \
 Only base your response on the information available to you and only present the response in a header and bullet point format: \
 Represent all numbers to two decimal places .00 [Units], using numerical short scales (thousand, M for million, B for billion, T for trillion, etc.). \
 *Fill in the following values from available data and sources *Omit the following placeholders in the brackets from the response when the values replace them*:\
-*Omit any calculations or special mathematical notation in your response*:\
+*Omit any calculations, formulas, or special mathematical notation in your response*:\
+*DO NOT DO ANY CALCULATIONS OR FORMULAS IN YOUR RESPONSE, ONLY INCLUDE THE VALUES IN THE RESPONSE* \
 *Include high-level signals such as 'highly bearish,' 'bearish,' 'neutral,' 'bullish,' or 'highly bullish' where relevant.* \
 ## Current Position: \
 - $[LAST_CLOSING_PRICE] \
 - [YEAR_OVER_YEAR_CHANGE]% \
+*DO NOT DO ANY CALCULATIONS OR FORMULAS IN YOUR RESPONSE, ONLY INCLUDE THE VALUES IN THE RESPONSE* \
 ## Key Insights Analysis: \
 *Include high-level signals such as 'highly bearish,' 'bearish,' 'neutral,' 'bullish,' or 'highly bullish' where relevant.* \
-- Indicate what the price value along with the year over year change might suggest about market conditions. \
-*Omit any calculations or special mathematical notation in your response* \
+- Indicate what the price information might suggest about market conditions. \
+*DO NOT DO ANY CALCULATIONS OR FORMULAS IN YOUR RESPONSE, ONLY INCLUDE THE VALUES IN THE RESPONSE* \
+*Omit any calculations, formulas, or special mathematical notation in your response* \
 *Include all relevant annotation URLs in the format [TITLE]url with no spaces or line breaks. \
 If a URL comes with a title or description, place the title inside brackets [TITLE_HERE] immediately followed by the URL, for example [SomeArticleTitle]https://example.com. \  "
 
@@ -118,23 +122,6 @@ When referring to [ASSET_NAME], replace that with the ticker symbol or the full 
  - Employees Count: [EMPLOYEES_COUNT]\ 
  - HQ: [HQ]\ 
  - Include more nuanced information about the company.\ 
- ## Market Share: - Provide a breakdown of the company's market share:\ 
- - *If this information is not available, please entirely omit this section. Don't even include it in your response. \
- - North America: [MARKET_SHARE_NA]%\ 
- - Europe: [MARKET_SHARE_EU]%\ 
- - Asia-Pacific: [MARKET_SHARE_APAC]%\ 
- - Other Regions: [MARKET_SHARE_OTHER]%\ 
- - **By Business Line (% Composition)**:\ 
- - [BUSINESS_LINE_1]: [MARKET_SHARE_LINE_1]%\ 
- - [BUSINESS_LINE_2]: [MARKET_SHARE_LINE_2]%\ 
- - [BUSINESS_LINE_3]: [MARKET_SHARE_LINE_3]%\ 
- - Highlight where the company ranks among competitors in its key business segments. \
- ## Market Positioning: - Describe the company's target markets and geographical presence in detail: \
- - Key geographic areas of focus: [KEY_REGIONS] \
- - Market demographics or customer segments: [CUSTOMER_SEGMENTS] \
- - Current strategic focus or areas of opportunity, based on Management Discussion and Analysis (MD&A): \
- - [BIGGEST_OPPORTUNITY] \
- - Explain why this is a significant growth driver or differentiator. \
 ## Competitive Advantages: - Identify and discuss the company's unique selling propositions: \
 *Fill in the following placeholders with response analysis about the [ASSET_NAME]'s unique selling propositions on a new bullet point line for each advantage. *Omit the following placeholders from the response when the analysis replaces them*:\
  - ADVANTAGE_1 \
@@ -153,6 +140,7 @@ ENV TA_TEMPLATE="Perform an in-depth technical analysis of [ASSET_NAME]'s stock.
 ENV FIN_TEMPLATE="# Provide a detailed analysis of [ASSET_NAME] financial health and performance. When referring to [ASSET_NAME], replace that with the ticker symbol or the full name of the asset. Provide the annotation information throught your response including only the avaliable links, search headers, and other information to provide more context to the financial health information report. Only base your response on the information avaliable to you. All information avaliable to you is accurate and relevant, omit any references questioning the accuracy of the information in your response. \ 
 *If any information is not available, please ignore it. Don't even include it in your response. Represent all numbers to the second decimal point .00 [Units] after and display numbers using numerical short scales (thousand, M for million, B for billion, T for trillion, etc)*. \ 
 Never include any calculations nor special mathematical notation in your response. *Omit the following placeholders in the brackets from the response when the values replace them* \ 
+The date provided to you in the information context is in the format of MM-DD-YYYY. \
 ## Financial Position Analysis: \ 
 ## Assets and Liabilities: \
 - Total Assets: $[TOTAL_ASSETS] \ 
