@@ -249,7 +249,9 @@ func ChatbotQuery() http.Handler {
 		business segments and their revenue contributions, and anything else pertinent like M&A transactions. You will also attach annotation
 		url and title information only defined within the annotations section of this prompt throughout response segments in the text. Please include as
 		many relevant url link annotations as possible. Please make sure to include the annotation url and title in the response if it is available.
-		If it is not available, please omit it from the response and do not reference it at all.
+		You will structure the annotation in the response by ciiting the source title in brackets and having the url next to it with no spaces.
+		Example: [Source Title]https://www.google.com. If this information is not available, please omit it from the response and do not reference it at all.
+		However, if the annotation is available, please always include it in the response.
 
 			CURRENT DATE:
 			%s
@@ -372,7 +374,7 @@ func getSearchQuery(rawData, passhash string) (string, error) {
 		return "", fmt.Errorf("failed to read response body: %v", err)
 	}
 
-	log.Println("Search service response:", string(body))
+	log.Printf("Search service response code: %d, body: %s", resp.StatusCode, string(body))
 	return string(body), nil
 }
 

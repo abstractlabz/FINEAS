@@ -9,11 +9,9 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"strings"
 
 	"fineas/pkg/serviceauth"
 
-	"github.com/PuerkitoBio/goquery"
 	"github.com/joho/godotenv"
 )
 
@@ -30,7 +28,16 @@ type SearchResponse struct {
 	Results []SearchResult `json:"results"`
 }
 
-// SearchHandler handles the search request and scrapes Google search results
+// GoogleAPIResponse represents the structure of the Google Custom Search API response
+type GoogleAPIResponse struct {
+	Items []struct {
+		Title   string `json:"title"`
+		Link    string `json:"link"`
+		Snippet string `json:"snippet"`
+	} `json:"items"`
+}
+
+// SearchHandler handles the search request and fetches Google search results using the Custom Search API
 func SearchHandler(w http.ResponseWriter, r *http.Request) {
 	// Load environment variables
 	err := godotenv.Load("../../.env")
@@ -68,100 +75,66 @@ func SearchHandler(w http.ResponseWriter, r *http.Request) {
 	query := requestData.Query
 	log.Printf("Received search query: %s", query)
 
-	// Construct the Google search URL
-	searchURL := fmt.Sprintf("https://www.google.com/search?q=%s", url.QueryEscape(query))
-	log.Printf("Search URL: %s", searchURL)
+	// Set up Google Custom Search API parameters
+	apiKey := os.Getenv("GOOGLE_API_KEY") // Load from environment variables
+	cx := os.Getenv("GOOGLE_CSE_ID")      // Load Custom Search Engine ID from environment variables
+	numResults := 10                      // Number of results to fetch
+	apiURL := "https://customsearch.googleapis.com/customsearch/v1"
 
-	// Make a GET request to the Google search URL with a User-Agent header
-	client := &http.Client{}
-	req, err := http.NewRequest("GET", searchURL, nil)
+	// Build the request URL
+	reqURL, err := url.Parse(apiURL)
 	if err != nil {
-		http.Error(w, "Error creating request", http.StatusInternalServerError)
-		return
+		http.Error(w, "Error parsing API URL", http.StatusInternalServerError)
+		log.Fatalf("Error parsing API URL: %v", err)
 	}
-	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3")
-	resp, err := client.Do(req)
+
+	// Add query parameters
+	queryParams := reqURL.Query()
+	queryParams.Set("key", apiKey)
+	queryParams.Set("cx", cx)
+	queryParams.Set("q", query)
+	queryParams.Set("num", fmt.Sprintf("%d", numResults))
+	reqURL.RawQuery = queryParams.Encode()
+
+	// Make the API request
+	resp, err := http.Get(reqURL.String())
 	if err != nil {
-		http.Error(w, "Error fetching search results", http.StatusInternalServerError)
-		return
+		http.Error(w, "Error making API request", http.StatusInternalServerError)
+		log.Fatalf("Error making API request: %v", err)
 	}
 	defer resp.Body.Close()
 
 	// Check the response status
 	if resp.StatusCode != http.StatusOK {
 		http.Error(w, "Error fetching search results", http.StatusInternalServerError)
-		log.Printf("Error: Received status code %d from Google", resp.StatusCode)
+		log.Printf("Error: Received status code %d from Google API", resp.StatusCode)
 		return
 	}
 
-	// Parse the HTML using goquery
-	doc, err := goquery.NewDocumentFromReader(resp.Body)
+	// Parse the API response
+	var apiResponse GoogleAPIResponse
+	err = json.NewDecoder(resp.Body).Decode(&apiResponse)
 	if err != nil {
-		http.Error(w, "Error parsing HTML", http.StatusInternalServerError)
-		log.Printf("Error parsing HTML: %v", err)
+		http.Error(w, "Error parsing API response", http.StatusInternalServerError)
+		log.Printf("Error parsing API response: %v", err)
 		return
 	}
 
-	// Remove <script> and <style> tags
-	doc.Find("script, style").Each(func(i int, s *goquery.Selection) {
-		s.Remove()
-	})
-
-	// Prepare to extract data into structured search results
+	// Extract search results
 	var searchResults []SearchResult
-
-	// Extract the search result data
-	doc.Find("div.kCrYT a").Each(func(i int, s *goquery.Selection) {
-		log.Printf("Extracting data for result %d", i+1)
-
-		// Extract the title (from class 'BNeawe vvjwJb AP7Wnd')
-		title := s.Find(".vvjwJb").Text()
-		log.Printf("Title for result %d: %s", i+1, title)
-
-		// Extract the URL from the 'href' attribute of the <a> tag
-		link, exists := s.Attr("href")
-		if exists {
-			link = parseActualURL(link)
-		}
-		log.Printf("URL for result %d: %s", i+1, link)
-
-		// Extract the snippet (from class 'BNeawe s3v9rd AP7Wnd')
-		snippet := s.Find(".s3v9rd").Text()
-		log.Printf("Snippet for result %d: %s", i+1, snippet)
-
-		// Extract the date (from class 'r0bn4c rQMQod')
-		date := s.Find(".r0bn4c.rQMQod").Text()
-		log.Printf("Date for result %d: %s", i+1, date)
-
-		// Count the number of non-empty data points (Title, URL, Snippet)
-		validDataPoints := 0
-		if title != "" {
-			validDataPoints++
-		}
-		if link != "" {
-			validDataPoints++
-		}
-		if snippet != "" {
-			validDataPoints++
-		}
-
-		// Only append results that have at least 2 data points
-		if validDataPoints >= 2 {
-			searchResults = append(searchResults, SearchResult{
-				Title:   title,
-				URL:     link,
-				Snippet: snippet,
-				Date:    date,
-			})
-		} else {
-			log.Printf("Skipping result %d due to insufficient data points", i+1)
-		}
-	})
+	for _, item := range apiResponse.Items {
+		searchResults = append(searchResults, SearchResult{
+			Title:   item.Title,
+			URL:     item.Link,
+			Snippet: item.Snippet,
+			Date:    "", // Date field is not provided by the API
+		})
+	}
 
 	// Log total number of results found
-	log.Printf("Total number of results found: %d", len(searchResults))
+	log.Printf("Total results found: %d", len(searchResults))
 
-	// Create the response structure with both results and refined HTML
+	// Create the response structure with the results
 	response := SearchResponse{
 		Results: searchResults,
 	}
@@ -177,23 +150,4 @@ func SearchHandler(w http.ResponseWriter, r *http.Request) {
 	// Set the content type to JSON and return the results
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(resultsJSON)
-}
-
-// Helper function to parse and clean the actual URL from Google's search result
-func parseActualURL(rawURL string) string {
-	// Split to remove everything before 'url=' and extract the actual URL
-	if strings.HasPrefix(rawURL, "/url?") {
-		parsed := strings.Split(rawURL, "url=")
-		if len(parsed) > 1 {
-			// Only keep the actual URL and remove any additional parameters
-			cleanURL := strings.Split(parsed[1], "&")[0]
-			decodedURL, err := url.QueryUnescape(cleanURL)
-			if err != nil {
-				log.Printf("Error unescaping URL: %v", err)
-				return cleanURL
-			}
-			return decodedURL
-		}
-	}
-	return rawURL
 }
