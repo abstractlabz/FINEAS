@@ -16,7 +16,6 @@ import (
 )
 
 func LLMHandler(router *gin.Engine) {
-	router.Use(corsMiddleware())
 
 	// Define the /llm endpoint
 	router.POST("/llm", func(c *gin.Context) {
@@ -31,8 +30,6 @@ func LLMHandler(router *gin.Engine) {
 
 		log.Println("Using CLAUDE_API_KEY:", CLAUDE_API_KEY) // Print the API key for debugging purposes
 
-		// Enable CORS middleware
-		router.Use(corsMiddleware())
 		// Extract prompt from JSON payload
 		var jsonData struct {
 			Prompt string `json:"prompt"`
