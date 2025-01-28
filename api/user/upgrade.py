@@ -67,7 +67,7 @@ def upgrade_membership():
     # Proceed with creating a checkout session
     # Now, include the customer ID in the session creation
     try:
-        price_id = "price_1P9N2JCajx6ndCSaSMUbXE57"  # Replace with your price ID
+        price_id = "price_1QjR5TCajx6ndCSaigNuHg61"  # Replace with your price ID
 
         checkout_session = stripe.checkout.Session.create(
             customer=stripe_customer_id,
