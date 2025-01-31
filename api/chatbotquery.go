@@ -724,7 +724,7 @@ func getPineconeHost(coursehash string) string {
 
 	defer client.Disconnect(context.TODO())
 
-	db := client.Database("CourseInformation")
+	db := client.Database("Courses")
 	collectioncli := db.Collection("CoursePineconeHosts")
 
 	//finds the pinecone host based on the coursehash

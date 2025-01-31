@@ -63,6 +63,11 @@ func main() {
 		log.Println(http.ListenAndServeTLS(":6002", queryCertFile, queryKeyFile, nil))
 	}()
 
+	go func() {
+		http.Handle("/coursechat", api.CorsMiddleware(http.HandlerFunc(api.ChatbotQuery().ServeHTTP)))
+		log.Println(http.ListenAndServe(":8082", nil))
+	}()
+
 	// Keep the main goroutine running to prevent the program from exiting
 	select {}
 }
